@@ -100,7 +100,7 @@ var normals = [];
 var axialTilt = -23.439 * Math.PI/180;
 var latitudeBands = 30;
 var longitudeBands = 30;
-var radius = 1;
+var radius = 0.6;
 var theta = Math.PI/2;
 var phi = Math.PI/2;
 var x = 0;
@@ -155,10 +155,10 @@ var normalMatrix = mat3.create();
 gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
 // specular color
-var specularColor = [0.5, 0.5, 0.5, 0.0];
+var specularColor = [1.8, 1.8, 1.8, 0.0];
 gl.uniform4fv(specularColorLocation, specularColor);
 // ambient color 
-var ambientColor = [0.1, 0.1, 0.1, 1.0];
+var ambientColor = [0.05, 0.05, 0.05, 1.0];
 gl.uniform4fv(ambientColorLocation, ambientColor);
 // directional light
 var diffuseColor = [2.0, 2.0, 2.0, 1.0];
@@ -208,11 +208,23 @@ function init(){
   function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    cameraRotationX += (cameraTargetRotationX - cameraRotationX)/10;
+    cameraRotationY += (cameraTargetRotationY - cameraRotationY)/10;
+
+
     rotationY += 0.01;
 
-    for(var i=0; i<3; ++i){
+    var tx = -4.0;
+    var ty = 10.0;
+    for(var i=0; i<250; ++i){
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [i*2.5 - 2.5, 0.0, -5.0]);
+
+
+    mat4.rotate(modelViewMatrix, modelViewMatrix, cameraRotationY, [0, 1, 0]);
+    mat4.rotate(modelViewMatrix, modelViewMatrix, cameraRotationX, [1, 0, 0]);
+
+
+      mat4.translate(modelViewMatrix, modelViewMatrix, [tx, ty, -5.0]);
       mat4.rotateZ(modelViewMatrix, modelViewMatrix, axialTilt);
       mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
       
@@ -223,11 +235,27 @@ function init(){
       gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
       gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+      tx += 1.5;
+      if(tx >= 5)
+      {
+        tx = -4.0;
+        ty -= 1.5;
+      }
     }
 
     requestAnimFrame(render);
   }
   requestAnimFrame(render);
+}
+
+var cameraTargetRotationY = 0;
+var cameraTargetRotationX = 0;
+var cameraRotationX = 0;
+var cameraRotationY = 0;
+document.onmousemove = function(evt){
+  cameraTargetRotationX = -evt.y/window.innerHeight * Math.PI*2;
+  cameraTargetRotationY = evt.x/window.innerWidth * Math.PI*2;
 }
 
 
