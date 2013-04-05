@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>perspective projection</title>
+<script src="../lib/gl-matrix.js"></script>
+<script src="../lib/utils.js"></script>
+
+<script id='vshader' type="x-shader/x-vertex">
+attribute vec3 a_position;
+uniform mat4 u_pMatrix;
+uniform mat4 u_mvMatrix;
+
+void main(){
+  gl_Position = u_pMatrix * u_mvMatrix * vec4(a_position, 1);
+  // gl_Position = vec4(a_position, 1);
+}
+</script>
+<script id='fshader' type="x-shader/x-fragment">
+void main(){
+  gl_FragColor = vec4(1, 0, 0, 1);
+}
+</script>
+</head>
+<body style='margin:0'>
+
+<canvas id='canvas' width='800' height='600'></canvas>
+<script>
+var canvas = document.getElementById('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+gl.clearColor(0, 0, 0, 1);
+gl.clear(gl.COLOR_BUFFER_BIT);
+gl.enable(gl.CULL_FACE);
+
+// var vertices = [
+//   0, 100, 0,
+//   100, 100, 0,
+//   0, 0, 0,
+//   100, 0, 0
+// ];
+var vertices = [
+  // front
+     0,     0,    0,
+     0,   100,    0,
+   100,     0,    0,
+   100,     0,    0,
+     0,   100,    0,
+   100,   100,    0,
+  // back
+   100,   100, -100,
+     0,   100, -100,
+   100,     0, -100,
+   100,     0, -100,
+     0,   100, -100,
+     0,     0, -100,
+  // left
+  0, 0, 0,
+  0, 0, -100,
+  0, 100, 0,
+  0, 0, -100,
+  0, 100, -100,
+  0, 100, 0,
+  // right
+  100, 0, -100,
+  100, 0, 0,
+  100, 100, 0,
+  100, 0, -100,
+  100, 100, 0,
+  100, 100, -100,
+  // top
+  0, 0, -100,
+  0, 0, 0,
+  100, 0, -100,
+  100, 0, -100,
+  0, 0, 0,
+  100, 0, 0,
+  // bottom
+  0, 100, 0,
+  0, 100, -100,
+  100, 100, -100,
+  100, 100, -100,
+  100, 100, 0,
+  0, 100, 0
+];
+
+
+// shader
+var vshader = compileShader(gl, document.getElementById('vshader').textContent, gl.VERTEX_SHADER);
+var fshader = compileShader(gl, document.getElementById('fshader').textContent, gl.FRAGMENT_SHADER);
+var program = createProgram(gl, vshader, fshader);
+gl.useProgram(program);
+
+// setup attribute uniform
+var positionLocation = gl.getAttribLocation(program, 'a_position');
+var projMatrixLocation = gl.getUniformLocation(program, 'u_pMatrix');
+var mvMatrixLocation = gl.getUniformLocation(program, 'u_mvMatrix');
+
+// vbo
+var vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(positionLocation);
+
+// look at point
+// mat4.lookAt(out, eye, center, up)
+var lookAtMatrix = mat4.create();
+mat4.lookAt(lookAtMatrix, 
+  vec3.fromValues(0, 0, 0), 
+  vec3.fromValues(0, 0, 50), 
+  vec3.fromValues(0, 1, 0));
+// projection matrix
+var projMatrix = mat4.create();
+mat4.perspective(projMatrix, 60 * Math.PI/180, canvas.width/canvas.height, 0.1, 1000.0);
+// mat4.ortho(out, left, right, bottom, top, near, far)
+// mat4.ortho(projMatrix, -canvas.width/2, canvas.width/2, canvas.height/2, -canvas.height/2, 200, -1000);
+// merge lookat and projection matrix
+// mat4.multiply(projMatrix, projMatrix, lookAtMatrix);
+gl.uniformMatrix4fv(projMatrixLocation, false, projMatrix);
+
+
+// color
+var colors = [
+  [1.0,  1.0,  1.0,  1.0],    // Front face: white
+  [1.0,  0.0,  0.0,  1.0],    // Back face: red
+  [1.0,  0.0,  1.0,  1.0],    // Left face: purple
+  [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+  [0.0,  1.0,  0.0,  1.0],    // Top face: green
+  [0.0,  0.0,  1.0,  1.0]     // Bottom face: blue
+];
+var unpackedColors = [];
+for (var i in colors) {
+  var color = colors[i];
+  for (var j=0; j < 4; j++) {
+    unpackedColors = unpackedColors.concat(color);
+  }
+}
+var cbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(unpackedColors), gl.STATIC_DRAW);
+
+
+
+var mvMatrix = mat4.create();
+var rotationDegree = 0;
+function render(){
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  rotationDegree += 1;
+  mat4.identity(mvMatrix);
+  mat4.translate(mvMatrix, mvMatrix, [0, 0, -500]);
+  mat4.rotateY(mvMatrix, mvMatrix, rotationDegree * Math.PI/180);
+  mat4.rotateX(mvMatrix, mvMatrix, rotationDegree/2 * Math.PI/180);
+  mat4.rotateZ(mvMatrix, mvMatrix, rotationDegree/3 * Math.PI/180);
+  // trnalsate cube centre in the origin
+  mat4.translate(mvMatrix, mvMatrix, [-50, -50, 50]);
+  
+  // update shader model view matrix
+  gl.uniformMatrix4fv(mvMatrixLocation, false, mvMatrix);
+    
+  // draw 4 vertices
+  // gl.drawArrays(gl.LINE_STRIP, 0, 18);
+  gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+  requestAnimFrame(render);
+}
+requestAnimFrame(render);
+
+</script>
+
+</body>
+</html>

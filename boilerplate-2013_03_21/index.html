@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script src="../lib/gl-matrix.js"></script>
+</head>
+<body>
+<canvas id="wu" style="border: none;" width="640" height="640"></canvas>
+
+<script id="vshader" type="x-shader/x-fragment">
+  attribute vec3 a_vertex;
+
+  // project matrix
+  uniform mat4 u_pMatrix;
+  // model view matrix
+  uniform mat4 u_mvMatrix;
+
+  void main() {
+    gl_Position =  u_pMatrix * u_mvMatrix * vec4(a_vertex, 1);
+  }
+</script>
+
+<script id="fshader" type="x-shader/x-fragment">
+  void main() {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+</script>
+
+<script>
+var canvas, gl;
+var shaderProgram;
+
+var vertexBufferObject;
+
+var pMatrix = mat4.create(); 
+var mvMatrix = mat4.create();
+
+// create vertices array information.
+var vertices = [
+  -1.5, -1.5, 0.0,
+   1.5, -1.5, 0.0,
+  -1.5,  1.5, 0.0,
+   1.5,  1.5, 0.0 
+];
+
+function initWebGL(){
+  canvas = document.getElementById("wu");
+  gl = canvas.getContext("experimental-webgl") || canvas.getContext("webgl");
+
+  gl.viewportWidth = canvas.width;
+  gl.viewportHeight = canvas.height;
+  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  // enable backface culling
+  gl.enable(gl.CULL_FACE);
+}
+
+function createShader(source, type) {
+  var shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw gl.getShaderInfoLog(shader);
+  }
+
+  return shader;
+}
+
+function createProgram(vsource, fsource) {
+  var prog = gl.createProgram();
+  var vshader = createShader(vsource, gl.VERTEX_SHADER);
+  var fshader = createShader(fsource, gl.FRAGMENT_SHADER);
+  gl.attachShader(prog, vshader);
+  gl.attachShader(prog, fshader);
+
+  // in OpenGL, glLinkProgram links the program object specified by program. If any shader objects of type GL_VERTEX_SHADER are attached to program, they will be used to create an executable that will run on the programmable vertex processor.
+  // Since we have two different shaders that need to work together the link step is needed to verify that they actually match up. If the vertex shader is passing data on to the fragment shader the link step makes sure the fragment shader is actually accepting that input. On some devices the actual compilation may be deferred until the link step. Akin to how it works when writing a program in C, in WebGL the shader source first gets compiled into an intermediate representation and then linked to a program. In C the source gets compiled into object files and then finally the different object files get linked into an executable.
+  //
+  // My understanding: check whether 2 shaders match up, link shaders to the program executable.
+  gl.linkProgram(prog);
+
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    throw gl.getProgramInfoLog(prog);
+  }
+
+  return prog;
+}
+
+function initShaders(){
+  // shaders
+  var vs = document.getElementById('vshader').textContent;
+  var fs = document.getElementById('fshader').textContent;
+  // shader program
+  shaderProgram = createProgram(vs, fs);
+  // glUseProgram installs the program object specified by program as part of current rendering state
+  //
+  // my understanding: rendering will use this program to process vertices and fragments.
+  gl.useProgram(shaderProgram);
+
+  // get the shader input vertex position variable 'pos' memory address.
+  // So later we can use: gl.vertexAttribPointer to link the shader input and buffer object. shader program will
+  // be able read the buffer object's vertex data into the 'pos'.
+  //
+  // my understanding: store shader input variable location, so we can link buffer object to the shader input.
+  shaderProgram.vertexAttribPointer = gl.getAttribLocation(shaderProgram, 'a_vertex');
+  shaderProgram.pMatrixUnifPointer = gl.getUniformLocation(shaderProgram, 'u_pMatrix');
+  shaderProgram.mvMatrixUnifPointer = gl.getUniformLocation(shaderProgram, 'u_mvMatrix');
+}
+
+function createBuffer(){
+  // create a webgl buffer obect(vertex buffer object, in video card), like glGenBuffers(1, vertexBufferObject) in OpenGL
+  vertexBufferObject = gl.createBuffer();
+  // object must be bound to the context in order for them to do anything.
+  // bind the buffer object to the ARRAY_BUFFER target.
+  // following command will apply to this vertex buffer object.
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferObject);
+  // perform 2 operations:
+  // 1. allocate memory for the buffer currently bound to the GL_ARRAY_BUFFER in the video card memory.
+  // 2. copy vertices data into buffer object.
+  //
+  // my understanding: upload the vertices to the buffer object, but not drawing yet.
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  vertexBufferObject.vertexSize = 3;
+  vertexBufferObject.numVertices = 4;
+  // tell shader program to read the vertice data from the buffer
+  //
+  // my understanding: tell webgl how to draw: 3 components per vertex
+  gl.vertexAttribPointer(shaderProgram.vertexAttribPointer, vertexBufferObject.vertexSize, gl.FLOAT, false, 0, 0);
+  // tell WebGL that we will want to provide values for the input attribute using an array, of cource, the vertices position information will be array.
+  gl.enableVertexAttribArray(shaderProgram.vertexAttribPointer);
+}
+
+function drawScene(){
+  // clear screen
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  //***************** not sure the projection matrix yet!!!
+  // setup projection, could be move outside to init function and resize function
+  mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+  mat4.translate(mvMatrix, mvMatrix, [0.0, 0.0, -7.0]);
+  //******************
+
+  // update matrix
+  gl.uniformMatrix4fv(shaderProgram.pMatrixUnifPointer, false, pMatrix);
+  gl.uniformMatrix4fv(shaderProgram.mvMatrixUnifPointer, false, mvMatrix);
+
+  // draw it
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexBufferObject.numVertices);
+}
+
+initWebGL();
+initShaders();
+createBuffer();
+drawScene();
+
+// error handling
+window.onerror = function(msg, url, lineno) {
+  alert(url + '(' + lineno + '): ' + msg);
+}
+</script>
+
+</body>
+</html>

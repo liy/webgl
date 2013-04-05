@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<!-- <script src="lib/gl-matrix.js"></script> -->
+</head>
+<body>
+<canvas id="wu" style="border: none;" width="800" height="600"></canvas>
+<script>
+// tutorial:
+// http://gamedev.tutsplus.com/tutorials/implementation/make-a-splash-with-2d-water-effects/
+
+// initialize canvas
+var canvas = document.getElementById('wu');
+var ctx = canvas.getContext("2d");
+
+// equations used:
+// f = k * displacement
+// f = m * a
+
+var numOfPoints = 100;
+var points = [];
+var iteration = 20;
+
+// velocity
+var v = 0;
+// damping factor
+var df = 0.005;
+
+// hooke's law, spring contant
+var k = -0.003;
+// mass of the virtul point
+var m = 1;
+
+function init(){
+  var dx = canvas.width/numOfPoints;
+  for(var i=0; i<numOfPoints; ++i){
+    // mass could be different
+    points.push({x: dx*i, y: canvas.height/2, v:0, a: 0, m: m, f: 0})
+  }
+}
+init();
+
+points[numOfPoints/2].y = canvas.height/2 + 150;
+
+
+// the virtual point has 3 force applied to it:
+// 1. the force bring it back to natual position
+// 2. the force caused by its left points
+// 3. the force caused by its right points
+// 
+// calculate the force of every point first, then use the force to calculate the acceleration and velocity.
+function spring(){
+  // just some drawing cold
+  clear();
+
+  for(var j=0; j<iteration; ++j){
+    for(var i=0; i<numOfPoints; ++i){
+      // reset the force applied to this point to 0
+      points[i].f = 0;
+
+      // calculate the displacement between virtual points
+      if (i > 0)
+          points[i].f += k * (points[i].y - points[i-1].y);
+      if (i < points.length-1)
+          points[i].f += k * (points[i].y - points [i+1].y);
+
+      // calculate displacement of current point to its natual position
+      points[i].f += k * (points[i].y - canvas.height/2);
+    }
+
+    for(var i=0; i<numOfPoints; ++i){
+      // acceleration
+        points[i].a = points[i].f / points[i].m;
+        // update velocity and add dampening factor to the spring, force velocity gradually reaches 0.
+        points[i].v += points[i].a  + (0 - points[i].v) * df;
+        // update position
+        points[i].y += points[i].v;
+    }
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+  for(var i=0; i<numOfPoints; ++i){
+    ctx.fillStyle = "#FF0000";
+    ctx.fillRect(points[i].x, points[i].y, 5, 5);
+  }
+}
+
+function clear(){
+  ctx.clearRect(0, 0, 800, 600);
+  ctx.fillStyle = "#CCCCCC";
+  ctx.fillRect(0, 0, 800, 600);
+
+  ctx.beginPath();
+  ctx.lineWidth = 0.5;
+  ctx.moveTo(0, canvas.height/2);
+  ctx.lineTo(canvas.width, canvas.height/2);
+  ctx.stroke();
+}
+
+// start swing
+setInterval(spring, 50);
+
+</script>
+
+</body>
+</html>
