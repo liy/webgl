@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>flat shading</title>
+<title></title>
 <script src='../lib/gl-matrix.js'></script>
 <script src='../lib/utils.js'></script>
-<script src='Loader.js'></script>
+<script src='../lib/Loader.js'></script>
 </head>
 <body style="margin:0">
 <canvas id='canvas'></canvas>
@@ -102,7 +102,8 @@ var lightAmbientLocation = gl.getUniformLocation(program, 'u_Light.ambient');
 var lightDiffuseLocation = gl.getUniformLocation(program, 'u_Light.diffuse');
 var lightSpecularLocation = gl.getUniformLocation(program, 'u_Light.specular');
 var lightSpotDirectionLocation = gl.getUniformLocation(program, 'u_Light.spotDirection');
-var lightSpotCutOffCosLocation = gl.getUniformLocation(program, 'u_Light.spotCutOffCos');
+var lightCosFalloff = gl.getUniformLocation(program, 'u_Light.cosFalloff');
+var lightCosOuter = gl.getUniformLocation(program, 'u_Light.cosOuter');
 var attenuationConstantLocation = gl.getUniformLocation(program, 'u_Light.attenuationConstant');
 var attenuationLinearLocation = gl.getUniformLocation(program, 'u_Light.attenuationLinear');
 var attenuationQuadraticLocation = gl.getUniformLocation(program, 'u_Light.attenuationQuadratic');
@@ -122,7 +123,8 @@ gl.uniform3fv(lightPositionLocation, lightPosition);
 gl.uniform4fv(lightAmbientLocation, [0.08, 0.08, 0.08, 1.0]);
 gl.uniform4fv(lightDiffuseLocation, [0.9, 0.9, 0.9, 1.0]);
 gl.uniform4fv(lightSpecularLocation, [1.0, 1.0, 1.0, 1.0]);
-gl.uniform1f(lightSpotCutOffCosLocation, Math.cos(Math.PI/8));
+gl.uniform1f(lightCosFalloff, Math.cos(Math.PI/4) - Math.cos(Math.PI/20));
+gl.uniform1f(lightCosOuter, Math.cos(Math.PI/4));
 
 
 // material
@@ -177,7 +179,7 @@ var rotationY = 0;
 var lightRotationY = 0.015;
 
 var spotDirection = vec3.create();
-var spherePosition = vec3.fromValues(0, 3, -8);
+var spherePosition = vec3.fromValues(0, 0, -5);
 
 function init(){
   // texture
@@ -210,7 +212,7 @@ function init(){
     mat4.identity(lightMatrix);
     mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5.0]);
     mat4.rotateY(lightMatrix, lightMatrix, lightRotationY);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -4]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -3]);
 
     // transform light position
     vec3.set(lightPosition, 0.0, 0.0, 0.0);

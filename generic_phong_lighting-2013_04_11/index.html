@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>flat shading</title>
+<title></title>
 <script src='../lib/gl-matrix.js'></script>
 <script src='../lib/utils.js'></script>
-<script src='Loader.js'></script>
+<script src='../lib/Loader.js'></script>
 </head>
 <body style="margin:0">
 <canvas id='canvas'></canvas>
@@ -85,7 +85,6 @@ for(var i=0; i<latitudeBands; ++i){
   }
 }
 
-// attributes
 var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
 var normalLocation = gl.getAttribLocation(program, 'a_Normal');
 var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
@@ -93,60 +92,41 @@ var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
-// light matrix
-var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
-// phong model
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_Light.position');
 var lightAmbientLocation = gl.getUniformLocation(program, 'u_Light.ambient');
 var lightDiffuseLocation = gl.getUniformLocation(program, 'u_Light.diffuse');
 var lightSpecularLocation = gl.getUniformLocation(program, 'u_Light.specular');
-var lightSpotDirectionLocation = gl.getUniformLocation(program, 'u_Light.spotDirection');
-var lightSpotCutOffCosLocation = gl.getUniformLocation(program, 'u_Light.spotCutOffCos');
 var attenuationConstantLocation = gl.getUniformLocation(program, 'u_Light.attenuationConstant');
 var attenuationLinearLocation = gl.getUniformLocation(program, 'u_Light.attenuationLinear');
 var attenuationQuadraticLocation = gl.getUniformLocation(program, 'u_Light.attenuationQuadratic');
+var spotDirectionLocation = gl.getUniformLocation(program, 'u_Light.direction');
+var spotCosOuterLocation = gl.getUniformLocation(program, 'u_Light.cosOuter');
+var spotCosFalloffLocation = gl.getUniformLocation(program, 'u_Light.cosFalloff');
 // material
+var materialPositionLocation = gl.getUniformLocation(program, 'u_Material.position');
 var materialAmbientLocation = gl.getUniformLocation(program, 'u_Material.ambient');
 var materialDiffuseLocation = gl.getUniformLocation(program, 'u_Material.diffuse');
 var materialSpecularLocation = gl.getUniformLocation(program, 'u_Material.specular');
-var emissionLocation = gl.getUniformLocation(program, 'u_Material.emission');
-var shininessLocation = gl.getUniformLocation(program, 'u_Material.shininess');
+var materialEmissionLocation = gl.getUniformLocation(program, 'u_Material.emission');
+var materialShininessLocation = gl.getUniformLocation(program, 'u_Material.shininess');
 
-
-// setup phong model
-// position
-var lightPosition = vec3.fromValues(0.0, 0.0, 0.0);
-gl.uniform3fv(lightPositionLocation, lightPosition);
-// light source
-gl.uniform4fv(lightAmbientLocation, [0.08, 0.08, 0.08, 1.0]);
-gl.uniform4fv(lightDiffuseLocation, [0.9, 0.9, 0.9, 1.0]);
-gl.uniform4fv(lightSpecularLocation, [1.0, 1.0, 1.0, 1.0]);
-gl.uniform1f(lightSpotCutOffCosLocation, Math.cos(Math.PI/8));
-
-
+// light
+gl.uniform4fv(lightAmbientLocation, [0.3, 0.3, 0.3, 1.0]);
+gl.uniform4fv(lightDiffuseLocation, [0.5, 0.5, 0.5, 1.0]);
+gl.uniform4fv(lightSpecularLocation, [0.9, 0.9, 0.9, 1.0]);
+gl.uniform1f(attenuationConstantLocation, 0.1);
+gl.uniform1f(attenuationLinearLocation, 0.1);
+gl.uniform1f(attenuationQuadraticLocation, 0.1);
+gl.uniform1f(spotCosOuterLocation, Math.cos(Math.PI/6));
+gl.uniform1f(spotCosFalloffLocation, Math.cos(Math.PI/6) - Math.cos(Math.PI/9));
 // material
 gl.uniform4fv(materialAmbientLocation, [0.9, 0.9, 0.9, 1.0]);
 gl.uniform4fv(materialDiffuseLocation, [0.8, 0.8, 0.8, 1.0]);
 gl.uniform4fv(materialSpecularLocation, [1.0, 1.0, 1.0, 1.0]);
-// emission
-gl.uniform4fv(emissionLocation, [0.0, 0.02, 0.05, 1.0]);
-// shininess
-gl.uniform1f(shininessLocation, 50);
-// distance attenuation
-gl.uniform1f(attenuationConstantLocation, 0.1);
-gl.uniform1f(attenuationLinearLocation, 0.1);
-gl.uniform1f(attenuationQuadraticLocation, 0.1);
+gl.uniform4fv(materialEmissionLocation, [0.0, 0.0, 0.0, 0.0]);
+gl.uniform1f(materialShininessLocation, 50);
 
-// setup buffer
-// matrix
-var projectionMatrix = mat4.create();
-mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 800);
-gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-var modelViewMatrix = mat4.create();
-var normalMatrix = mat3.create();
-// light matrix
-var lightMatrix = mat4.create();
 
 // vertex buffer
 var vb = gl.createBuffer();
@@ -154,31 +134,42 @@ gl.bindBuffer(gl.ARRAY_BUFFER, vb);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
 gl.enableVertexAttribArray(vertexLocation);
+
 // texture buffer
 var tb = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, tb);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoord), gl.STATIC_DRAW);
 gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 gl.enableVertexAttribArray(texCoordLocation);
+
 // normal buffer
 var nb = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, nb);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, gl.FLOAT, 0, 0);
 gl.enableVertexAttribArray(normalLocation);
+
 // indices buffer
 var ib = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-// load texture
-var image = createImage('../img/earth-big.jpg', init);
-var rotationY = 0;
-var lightRotationY = 0.015;
+// matrix
+var modelViewMatrix = mat4.create();
+var projectionMatrix = mat4.create();
+mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 300);
+var lightMatrix = mat4.create();
+var normalMatrix = mat3.create();
 
+gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+
+
+var lightRotationY = 0;
+var lightPosition = vec3.create();
 var spotDirection = vec3.create();
-var spherePosition = vec3.fromValues(0, 3, -8);
+var earthPosition = vec3.fromValues(0, 0, -5);
 
+var image = createImage('../img/earth-big.jpg', init);
 function init(){
   // texture
   var texture = gl.createTexture();
@@ -191,43 +182,42 @@ function init(){
   gl.generateMipmap(gl.TEXTURE_2D);
   
   function render(){
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    rotationY += 0.01;
+    gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+    
     mat4.identity(modelViewMatrix);
-    mat4.translate(modelViewMatrix, modelViewMatrix, spherePosition);
-    mat4.rotateZ(modelViewMatrix, modelViewMatrix, axialTilt);
-    mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
+    mat4.translate(modelViewMatrix, modelViewMatrix, earthPosition);
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
+    // setup normal matrix
+    gl.uniformMatrix3fv(normalMatrixLocation, false, mat3.normalFromMat4(normalMatrix, modelViewMatrix));
+    
 
-    // update inverse model view matrix
-    mat3.normalFromMat4(normalMatrix, modelViewMatrix);
-    gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
-
-    // transform light
+    // rotate light
     lightRotationY -= 0.01;
     mat4.identity(lightMatrix);
     mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5.0]);
     mat4.rotateY(lightMatrix, lightMatrix, lightRotationY);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -4]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -3]);
 
     // transform light position
     vec3.set(lightPosition, 0.0, 0.0, 0.0);
     vec3.transformMat4(lightPosition, lightPosition, lightMatrix);
 
+    // set light position and direction
+    mat4.identity(lightMatrix);
     gl.uniform3fv(lightPositionLocation, lightPosition);
-
-    // spot light points to the sphere position
-    vec3.sub(spotDirection, spherePosition, lightPosition);
-    gl.uniform3fv(lightSpotDirectionLocation, spotDirection);
+    
+    vec3.sub(spotDirection, earthPosition, lightPosition);
+    gl.uniform3fv(spotDirectionLocation, spotDirection);
 
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-
+    
     requestAnimFrame(render);
   }
   requestAnimFrame(render);
 }
+
+
 </script>
 </body>
 </html>
