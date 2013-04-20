@@ -17,5 +17,7 @@ void main(){
   v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
   v_Color = a_Color;
+
+  // gl_PointSize = 5.0;
   gl_Position = u_ProjectionMatrix * v_Position; 
 }

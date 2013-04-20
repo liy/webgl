@@ -7,7 +7,7 @@ function Material(){
   // vec4
   this.specular = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
   // vec4
-  this.emission = vec4.fromValues(0.2, 0.2, 0.2, 1.0);
+  this.emission = vec4.fromValues(0.3, 0.3, 0.3, 1.0);
   // float
   this.shininess = 65;
 }

@@ -1,5 +1,7 @@
 (function(window){
   function Cube(width, height, depth){
+    this.material = new Material();
+    
     this.set(width, height, depth);
   }
   var p = Cube.prototype;
@@ -13,9 +15,8 @@
     var hh = this.height/2;
     var hd = this.depth/2;
 
-    this.material = new Material();
-
     var e = this.material.emission;
+    console.log(e);
     this.vertices = [
       // x y z   u v  nx ny nz  r g b a
       // front
@@ -58,6 +59,15 @@
       16, 17, 18,  16, 18, 19, // left
       20, 21, 22,  20, 22, 23  // right
     ];
+  }
+
+  p.room = function(){
+    for(var i=0; i<24; ++i){
+      this.vertices[12*i + 5] *= -1;
+      this.vertices[12*i + 6] *= -1;
+      this.vertices[12*i + 7] *= -1;
+    }
+    this.indices = this.indices.reverse();
   }
 
 window.Cube = Cube;

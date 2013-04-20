@@ -129,6 +129,8 @@ for(var i=0; i<latitudeBands; ++i){
     var bottomLeft = topLeft + longitudeBands + 1;
 
     // console.log(topLeft, bottomLeft, (bottomLeft + 1), (bottomLeft + 1), (topLeft + 1), topLeft);
+    indices.push(topLeft);
+    indices.push(bottomLeft);
 
     indices.push(topLeft);
     indices.push(bottomLeft);
@@ -137,6 +139,8 @@ for(var i=0; i<latitudeBands; ++i){
     indices.push(topLeft + 1);
     indices.push(topLeft);
   }
+  indices.push(topLeft + 1);
+  indices.push(topLeft);
 }
 
 // matrices

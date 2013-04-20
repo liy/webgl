@@ -7,6 +7,7 @@
 <script src='../lib/Shader.js'></script>
 <script src='Material.js'></script>
 <script src='Plane.js'></script>
+<script src='Cube.js'></script>
 <script src='Light.js'></script>
 </head>
 <body style="margin:0">
@@ -17,7 +18,10 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 window.gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
+// gl.enable(gl.CULL_FACE);
+// gl.enable(gl.BLEND);
+// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.clearColor(0.1, 0.1, 0.1, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 var preProgram = gl.createProgram();
@@ -29,11 +33,16 @@ var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
 var light = new Light();
-var geometry = new Plane(10, 10, 10, 10);
-console.log(geometry.vertices);
-console.log(geometry.indices);
-var vertexBuffer = gl.createBuffer();
-var indexBuffer = gl.createBuffer();
+light.position = [3.8, 0, -4.9, 1];
+light.attenuation = [1.5, 0, 0];
+var plane = new Plane(18, 18);
+var geometry = new Cube(1, 1, 1);
+// geometry.room();
+var cubeVB = gl.createBuffer();
+var cubeIB = gl.createBuffer();
+
+var planeVB = gl.createBuffer();
+var planeIB = gl.createBuffer();
 
 var texture;
 function initTexture(img){
@@ -48,14 +57,18 @@ function initTexture(img){
 }
 
 function initBuffers(){
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVB);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), gl.STATIC_DRAW);
-
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIB);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(geometry.indices), gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, planeVB);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.vertices), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeIB);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(plane.indices), gl.STATIC_DRAW);
 }
 
-var image = createImage('../img/block.png', init)
+var image = createImage('../img/square.png', init)
 function init(){
   initTexture(image);
   initBuffers();
@@ -73,13 +86,24 @@ function init(){
   requestAnimFrame(render);
 }
 
-var rotationX = 0;
-var rotationY = 0;
+var rotationX = 0.0;
+var rotationY = 0.0;
 function preRendering(){
   gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  // projection
+  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 400);
+  // var ratio = canvas.height/canvas.width;
+  // mat4.ortho(projectionMatrix, -10, 10, -10*ratio, 10*ratio, -50, 50);
+  gl.uniformMatrix4fv(preShader.uniform['u_ProjectionMatrix'], false, projectionMatrix);
+
+
+  // // material
+  geometry.material.setUniforms(preShader.uniform);
+
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVB);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIB);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
   // enable vertex pointer ect.
@@ -92,40 +116,60 @@ function preRendering(){
   gl.enableVertexAttribArray(preShader.attribute.a_Normal);
   gl.enableVertexAttribArray(preShader.attribute.a_Color);
 
-  rotationX += 0.02;
-  rotationY -= 0.003;
+  rotationX += 0.005;
+  rotationY -= 0.007;
   mat4.identity(modelViewMatrix);
-  mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -9]);
+  mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -2]);
   mat4.rotate(modelViewMatrix, modelViewMatrix, rotationX, [1, 0, 0]);
   mat4.rotate(modelViewMatrix, modelViewMatrix, rotationY, [0, 1, 0]);
-  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 400);
-  gl.uniformMatrix4fv(preShader.uniform['u_ProjectionMatrix'], false, projectionMatrix);
   gl.uniformMatrix4fv(preShader.uniform['u_ModelViewMatrix'], false, modelViewMatrix);
 
   // light
-  gl.uniform4fv(preShader.uniform['u_Light.position'], light.position);
-  gl.uniform4fv(preShader.uniform['u_Light.ambient'], [0.05, 0.05, 0.05, 1.0]);
-  gl.uniform4fv(preShader.uniform['u_Light.diffuse'], [0.4, 0.4, 0.4, 1.0]);
-  gl.uniform4fv(preShader.uniform['u_Light.specular'], [1.0, 1.0, 1.0, 1.0]);
-  gl.uniform1f(preShader.uniform['u_Light.attenuationConstant'], 1);
-  gl.uniform1f(preShader.uniform['u_Light.attenuationLinear'], 0);
-  gl.uniform1f(preShader.uniform['u_Light.attenuationQuadratic'], 0);
-  gl.uniform3fv(preShader.uniform['u_Light.spotDirection'], [0, 0.5, 0.5]);
-  gl.uniform1f(preShader.uniform['u_Light.cosOuter'], Math.cos(Math.PI/3));
-  gl.uniform1f(preShader.uniform['u_Light.cosFalloff'], Math.cos(Math.PI/3) - Math.cos(Math.PI/6));
-  // material
-  gl.uniform4fv(preShader.uniform['u_Material.ambient'], [1.0, 1.0, 1.0, 1.0]);
-  gl.uniform4fv(preShader.uniform['u_Material.diffuse'], [1.0, 1.0, 1.0, 1.0]);
-  gl.uniform4fv(preShader.uniform['u_Material.specular'], [1.0, 1.0, 1.0, 1.0]);
-  gl.uniform4fv(preShader.uniform['u_Material.emission'], [0.0, 0.0, 0.0, 1.0]);
-  gl.uniform1f(preShader.uniform['u_Material.shininess'], 50);
-
+  light.setUniforms(preShader.uniform);
   // transform model normal
   mat3.normalFromMat4(normalMatrix, modelViewMatrix);
   gl.uniformMatrix3fv(preShader.uniform['u_NormalMatrix'], false, normalMatrix);
 
   // console.log(this.geometry.indices.length);
   gl.drawElements(gl.TRIANGLES, this.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
+
+
+
+
+  // draw plane
+  gl.bindBuffer(gl.ARRAY_BUFFER, planeVB);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeIB);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  gl.vertexAttribPointer(preShader.attribute.a_Vertex, 3, gl.FLOAT, false, 48, 0);
+  gl.vertexAttribPointer(preShader.attribute.a_TexCoord, 2, gl.FLOAT, false, 48, 12);
+  gl.vertexAttribPointer(preShader.attribute.a_Normal, 3, gl.FLOAT, false, 48, 20);
+  gl.vertexAttribPointer(preShader.attribute.a_Color, 4, gl.FLOAT, false, 48, 32);
+  gl.enableVertexAttribArray(preShader.attribute.a_Vertex);
+  gl.enableVertexAttribArray(preShader.attribute.a_TexCoord);
+  gl.enableVertexAttribArray(preShader.attribute.a_Normal);
+  gl.enableVertexAttribArray(preShader.attribute.a_Color);
+
+  mat4.identity(modelViewMatrix);
+  mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -5]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, -Math.PI/7, [1, 0, 0]);
+  gl.uniformMatrix4fv(preShader.uniform['u_ModelViewMatrix'], false, modelViewMatrix);
+
+  // light
+  light.setUniforms(preShader.uniform);
+  // transform model normal
+  mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+  gl.uniformMatrix3fv(preShader.uniform['u_NormalMatrix'], false, normalMatrix);
+
+  // material
+  plane.material.setUniforms(preShader.uniform);
+
+  gl.drawElements(gl.TRIANGLES, this.plane.indices.length, gl.UNSIGNED_SHORT, 0);
+
+
+
+
+  light.draw();
 }
 
 </script>

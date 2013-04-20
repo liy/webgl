@@ -7,16 +7,18 @@
   p.set = function(width, height, widthSegments, heightSegments){
     this.width = width ? width : 1;
     this.height = height ? height : 1;
+    this.widthSegments = widthSegments ? widthSegments : 1;
+    this.heightSegments = heightSegments ? heightSegments : 1;
 
     this.vertices = [];
     this.indices = [];
 
     var x = 0;
     var y = 0;
-    var dx = this.width/widthSegments;
-    var dy = this.height/heightSegments;
-    var du = 1/widthSegments;
-    var dv = 1/heightSegments;
+    var dx = this.width/this.widthSegments;
+    var dy = this.height/this.heightSegments;
+    var du = 1/this.widthSegments;
+    var dv = 1/this.heightSegments;
     var offsetX = -this.width/2;
     var offsetY = -this.height/2;
 
@@ -24,8 +26,8 @@
 
     var e = this.material.emission;
 
-    for(var i=0; i<=heightSegments; ++i){
-      for(var j=0; j<=widthSegments; ++j){
+    for(var i=0; i<=this.heightSegments; ++i){
+      for(var j=0; j<=this.widthSegments; ++j){
         // vertex
         var x = j*dx - this.width/2;
         var y = i*dy - this.height/2;
@@ -63,17 +65,18 @@
     //   -hw,  hh,  0,   0.0, 0.0,    0,  0,  1,    e[0], e[1], e[2], e[3]
     // ];
 
-    for(var i=0; i<heightSegments; ++i){
-      for(var j=0; j<widthSegments; ++j){
-        var bottomLeft = i * (widthSegments + 1) + j;
-        var topLeft = bottomLeft + widthSegments + 1;
+    for(var i=0; i<this.heightSegments; ++i){
+      for(var j=0; j<this.widthSegments; ++j){
+        var bottomLeft = i * (this.widthSegments + 1) + j;
+        var topLeft = bottomLeft + this.widthSegments + 1;
+
 
         this.indices.push(bottomLeft);
         this.indices.push(bottomLeft+1);
         this.indices.push(topLeft+1);
 
         this.indices.push(topLeft+1);
-        this.indices.push(topLeft);
+        this.indices.push(topLeft);    
         this.indices.push(bottomLeft);
       }
     }
