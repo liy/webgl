@@ -33,7 +33,7 @@ var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
 var light = new Light();
-light.position = [3.8, 0, -4.9, 1];
+light.position = [0.6, 0, -1.2, 1];
 light.attenuation = [1.5, 0, 0];
 var plane = new Plane(18, 18);
 var geometry = new Cube(1, 1, 1);
@@ -167,9 +167,9 @@ function preRendering(){
   gl.drawElements(gl.TRIANGLES, this.plane.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
-
-
+  gl.uniform1i(preShader.uniform['u_UseColor'], 1);
   light.draw();
+  gl.uniform1i(preShader.uniform['u_UseColor'], 0);
 }
 
 </script>

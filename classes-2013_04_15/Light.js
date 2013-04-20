@@ -24,7 +24,7 @@
     this.point = new Cube();
     this.point.rotationX = 0;
     this.point.rotationY = 0;
-    this.point.material.emission = [1, 1, 0, 1];
+    this.point.material.emission = [1, 1, 1, 1];
     this.point.set(0.03, 0.03, 0.03);
     this.createBuffers();
   }
@@ -91,7 +91,7 @@
     gl.uniformMatrix3fv(preShader.uniform['u_NormalMatrix'], false, normalMatrix);
 
     // console.log(this.point.indices.length);
-    gl.drawElements(gl.TRIANGLES, this.point.indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.POINTS, this.point.indices.length, gl.UNSIGNED_SHORT, 0);
   }
 
 window.Light = Light;

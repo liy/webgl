@@ -27,6 +27,8 @@ uniform sampler2D u_Sampler;
 uniform Light u_Light;
 uniform Material u_Material;
 
+uniform bool u_UseColor;
+
 varying vec4 v_Position;
 varying vec2 v_TexCoord;
 varying vec3 v_Normal;
@@ -34,7 +36,7 @@ varying vec4 v_Color;
 
 void main(){
   vec3 normal = normalize(v_Normal);
-  vec4 color = texture2D(u_Sampler, v_TexCoord) + v_Color;
+  vec4 color = texture2D(u_Sampler, v_TexCoord);
 
   vec4 intensity = u_Material.ambient*u_Light.ambient;
 
@@ -61,6 +63,9 @@ void main(){
 
     intensity += (diffuse + specular) * attenuation;
   }
+
+  if(u_UseColor)
+    color = v_Color;
 
   gl_FragColor = color * intensity;
   // gl_FragColor = vec4(photonDirection.x, photonDirection.y, photonDirection.z, 1.0);
