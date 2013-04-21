@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script src='../lib/gl-matrix.js'></script>
+<script src='../lib/utils.js'></script>
+<script type="x-shader/x-vertex" id='vshader'>
+attribute vec3 a_Position;
+attribute vec2 a_TexCoord;
+attribute vec3 a_Normal;
+
+uniform vec3 u_LightPosition;
+uniform mat4 u_ProjectionMatrix;
+uniform mat4 u_ModelViewMatrix;
+uniform mat3 u_ModelViewMatrixInverse;
+uniform vec4 u_LightColor;
+uniform vec4 u_AmbientColor;
+
+varying vec2 v_TexCoord;
+varying vec4 v_LightIntensity;
+
+void main(){
+  // vertex world position
+  vec4 worldPosition = u_ModelViewMatrix * vec4(a_Position, 1.0);
+  gl_Position = u_ProjectionMatrix * worldPosition;
+  v_TexCoord = a_TexCoord;
+
+  // get light direction
+  vec3 lightDirection = normalize(u_LightPosition - worldPosition.xyz);
+
+  vec3 transformedNormal = u_ModelViewMatrixInverse * a_Normal;
+  float lightScale = max(dot(transformedNormal, lightDirection), 0.0);
+  v_LightIntensity = u_AmbientColor + u_LightColor * lightScale;
+}
+</script>
+<script type="x-shader/x-fragment" id='fshader'>
+precision mediump float;
+
+varying vec2 v_TexCoord;
+varying vec4 v_LightIntensity;
+
+uniform sampler2D sampler;
+
+void main(){
+  // vec4 color = vec4(0.5, 0.5, 0.5, 1.0);
+  // gl_FragColor = vec4(color.rgb * v_LightIntensity.rgb, color.a);
+
+  vec4 color = texture2D(sampler, v_TexCoord);
+  gl_FragColor = vec4(color.rgb * v_LightIntensity.rgb, color.a);
+}
+</script>
+</head>
+<body style="margin:0">
+<canvas id='canvas'></canvas>
+<script>
+var canvas = document.getElementById('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+gl.enable(gl.DEPTH_TEST);
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+// shaders
+var vshader = compileShader(gl, document.getElementById('vshader').textContent, gl.VERTEX_SHADER);
+var fshader = compileShader(gl, document.getElementById('fshader').textContent, gl.FRAGMENT_SHADER);
+var program = createProgram(gl, vshader, fshader);
+gl.useProgram(program);
+
+
+// shaders
+var vshader = compileShader(gl, document.getElementById('vshader').textContent, gl.VERTEX_SHADER);
+var fshader = compileShader(gl, document.getElementById('fshader').textContent, gl.FRAGMENT_SHADER);
+var program = createProgram(gl, vshader, fshader);
+gl.useProgram(program);
+
+// locations
+var positionLocation = gl.getAttribLocation(program, 'a_Position');
+var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
+var normalLocation = gl.getAttribLocation(program, 'a_Normal');
+var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
+var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
+var modelViewMatrixInverseLocation = gl.getUniformLocation(program, 'u_ModelViewMatrixInverse');
+var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
+var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
+var ambientColorLocation = gl.getUniformLocation(program, 'u_AmbientColor');
+
+// variables
+var vertices = [];
+var indices = [];
+var texCoords = [];
+var normals = [];
+
+// sphere
+var axialTilt = -23.439 * Math.PI/180;
+var latitudeBands = 10;
+var longitudeBands = 10;
+var radius = 2;
+var theta = Math.PI/2;
+var phi = Math.PI/2;
+var x = 0;
+var y = 0;
+var z = 0;
+// x = r*cos(theta)cos(phi)
+// y = r*sin(theta)
+// z = r*cos(theta)sin(phi)
+// latitude theta [pi/2, -pi/2], longitude phi [0, 2*pi]
+for(var i=0; i<=latitudeBands; ++i){
+  theta = Math.PI/2 - i * (Math.PI/latitudeBands);
+  cosTheta = Math.cos(theta);
+  sinTheta = Math.sin(theta);
+  for(var j=0; j<=longitudeBands; ++j){
+    phi = j * (Math.PI*2 / longitudeBands);
+    
+    x = cosTheta * Math.cos(phi);
+    y = sinTheta;
+    z = cosTheta * Math.sin(phi);
+
+    // normals
+    normals.push(x);
+    normals.push(y);
+    normals.push(z);
+
+    vertices.push(x * radius);
+    vertices.push(y * radius);
+    vertices.push(z * radius);
+
+    texCoords.push(1 - j/longitudeBands);
+    texCoords.push(i/latitudeBands);
+  }
+}
+
+// indices
+for(var i=0; i<latitudeBands; ++i){
+  for(var j=0; j<longitudeBands; ++j){
+    var topLeft = i * longitudeBands + i + j;
+    var bottomLeft = topLeft + longitudeBands + 1;
+
+    // console.log(topLeft, bottomLeft, (bottomLeft + 1), (bottomLeft + 1), (topLeft + 1), topLeft);
+
+    indices.push(topLeft);
+    indices.push(bottomLeft);
+    indices.push(bottomLeft + 1);
+    indices.push(bottomLeft + 1);
+    indices.push(topLeft + 1);
+    indices.push(topLeft);
+  }
+}
+
+// matrices
+var projectionMatrix = mat4.create();
+mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 1000);
+var modelViewMatrix = mat4.create();
+var normalMatrix = mat3.create();
+
+// pre-set uniforms
+gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+
+// ambient color 
+var ambientColor = [0.01, 0.01, 0.01, 1.0];
+gl.uniform4fv(ambientColorLocation, ambientColor);
+// directional light
+var lightColor = [1.5, 1.5, 1.5, 1.0];
+gl.uniform4fv(lightColorLocation, lightColor);
+// directional light direction
+var lightPosition = [180.0, 0.0, 0.0];
+gl.uniform3fv(lightPositionLocation, lightPosition);
+
+
+
+// buffers
+var vb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(positionLocation);
+
+var ib = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+var tb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, tb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(texCoordLocation);
+
+var nb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(normalLocation);
+
+var rotationY = -Math.PI/2;
+// create image, texture and render
+var image = createImage('../img/earth-big.jpg', init);
+function init(){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.generateMipmap(gl.TEXTURE_2D);
+
+  function render(){
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    rotationY += 0.01;
+
+    mat4.identity(modelViewMatrix);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -5]);
+    mat4.rotateZ(modelViewMatrix, modelViewMatrix, axialTilt);
+    mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
+    
+    gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
+
+    // update inverse model view matrix
+    mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+    gl.uniformMatrix3fv(modelViewMatrixInverseLocation, false, normalMatrix);
+
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+    requestAnimFrame(render);
+  }
+  requestAnimFrame(render);
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script src='../lib/gl-matrix.js'></script>
+<script src='../lib/utils.js'></script>
+<script id='vshader' type="x-shader/x-vertex">
+attribute vec3 a_position;
+// attribute vec4 a_color;
+attribute vec2 a_texCoord;
+
+// every vertex attribute has different normal
+attribute vec3 a_normal;
+// transformation matrix for normal
+uniform mat3 u_normalMatrix;
+
+uniform mat4 u_mvMatrix;
+uniform mat4 u_pMatrix;
+
+// directional light's direction
+uniform vec3 u_directionalLight;
+// color of the directional light
+uniform vec4 u_directionalLightColor;
+// ambient light
+uniform vec4 u_ambientColor;
+
+varying vec2 v_texCoord;
+varying vec4 v_lightWeighting;
+
+void main(){
+  gl_Position = u_pMatrix * u_mvMatrix * vec4(a_position, 1);
+  // v_color = a_color;
+  v_texCoord = a_texCoord;
+
+  // calculate the light weighting
+  vec3 transformedNormal = u_normalMatrix * a_normal;
+  float directionalLightWeighting = max(dot(transformedNormal, u_directionalLight), 0.0);
+  v_lightWeighting = u_ambientColor + u_directionalLightColor * directionalLightWeighting;
+}
+</script>
+<script id='fshader' type="x-shader/x-fragment">
+precision mediump float;
+
+// varying v_color;
+varying vec2 v_texCoord;
+varying vec4 v_lightWeighting;
+
+uniform sampler2D u_sampler;
+
+void main(){
+  vec4 color = texture2D(u_sampler, v_texCoord);
+  gl_FragColor = vec4(color.rgb * v_lightWeighting.rgb, v_lightWeighting.a);
+}
+</script>
+</head>
+<body style='margin:0'>
+<canvas id='canvas'></canvas>
+<script>
+var canvas = document.getElementById('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+gl.enable(gl.DEPTH_TEST);
+gl.enable(gl.CULL_FACE);
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+// shader
+var vshader = compileShader(gl, document.getElementById('vshader').textContent, gl.VERTEX_SHADER);
+var fshader = compileShader(gl, document.getElementById('fshader').textContent, gl.FRAGMENT_SHADER);
+var program = createProgram(gl, vshader, fshader);
+gl.useProgram(program);
+
+// vertices
+var vertices = [
+  // front
+  -0.5, -0.5,  0.5,
+   0.5, -0.5,  0.5,
+   0.5,  0.5,  0.5,
+  -0.5,  0.5,  0.5,
+  // back
+   0.5, -0.5, -0.5,
+  -0.5, -0.5, -0.5,
+  -0.5,  0.5, -0.5,
+   0.5,  0.5, -0.5,
+  // top
+  -0.5,  0.5,  0.5,
+   0.5,  0.5,  0.5,
+   0.5,  0.5, -0.5,
+  -0.5,  0.5, -0.5, 
+  // bottom
+  -0.5, -0.5, -0.5,
+   0.5, -0.5, -0.5,
+   0.5, -0.5,  0.5,
+  -0.5, -0.5,  0.5,
+  // left
+  -0.5, -0.5, -0.5,
+  -0.5, -0.5,  0.5,
+  -0.5,  0.5,  0.5,
+  -0.5,  0.5, -0.5,
+  // right
+   0.5, -0.5,  0.5,
+   0.5, -0.5, -0.5,
+   0.5,  0.5, -0.5,
+   0.5,  0.5,  0.5
+];
+
+var texCoord = [
+  // y flipped
+  // front
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0,
+  // back
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0,
+  // top
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0,
+  // bottom
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0,
+  // left
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0,
+  // right
+  0.0, 1.0,
+  1.0, 1.0,
+  1.0, 0.0,
+  0.0, 0.0
+];
+
+var indices = [
+  0,  1,  2,   0,  2,  3,  // front
+  4,  5,  6,   4,  6,  7,  // back
+  8,  9,  10,  8,  10, 11, // top
+  12, 13, 14,  12, 14, 15, // bottom
+  16, 17, 18,  16, 18, 19, // left
+  20, 21, 22,  20, 22, 23  // right
+];
+
+// normals
+var normals = [
+  // front
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+  // back
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+  // top
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0, 
+  // bottom
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+  // left
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  // right
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0
+];
+
+// matrix
+var pMatrix = mat4.create();
+mat4.perspective(pMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 800);
+var mvMatrix = mat4.create();
+// normal transform matrix
+var normalMatrix = mat3.create();
+
+// vertex position related
+var positionLocation = gl.getAttribLocation(program, 'a_position');
+var texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+var pMatrixLocation = gl.getUniformLocation(program, 'u_pMatrix');
+var mvMatrixLocation = gl.getUniformLocation(program, 'u_mvMatrix');
+// light related
+var normalLocation = gl.getAttribLocation(program, 'a_normal');
+var lightLocation = gl.getUniformLocation(program, 'u_directionalLight');
+var lightColorLocation = gl.getUniformLocation(program, 'u_directionalLightColor');
+var normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix');
+var ambientColorLocation = gl.getUniformLocation(program, 'u_ambientColor');
+
+
+
+// create a image
+var image = createImage('../img/block.png', init);
+
+function init(){
+  var vb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(positionLocation);
+
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  var tb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, tb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoord), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(texCoordLocation);
+
+  var nb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(normalLocation);
+
+  var ib = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+
+  // projection matrix
+  gl.uniformMatrix4fv(pMatrixLocation, false, pMatrix);
+
+  // ambient color
+  gl.uniform4fv(ambientColorLocation, [0.1, 0.1, 0.1, 1.0]);
+  // directional light color
+  gl.uniform4fv(lightColorLocation, [0.9, 0.9, 0.9, 1.0]);
+  // directional light direction
+  var dir = vec3.create();
+  vec3.set(dir, -1.0, -1.0, -1.0);
+  vec3.normalize(dir, dir);
+  vec3.negate(dir, dir);
+  gl.uniform3fv(lightLocation, dir);
+
+
+  var rotationY = 0;
+  var rotationX = 0;
+  function render(){
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    rotationY += 0.01;
+    rotationX += 0.01;
+    mat4.identity(mvMatrix);
+    mat4.translate(mvMatrix, mvMatrix, [0, 0, -2]);
+    mat4.rotateY(mvMatrix, mvMatrix, rotationY);
+    mat4.rotateX(mvMatrix, mvMatrix, rotationX);
+    gl.uniformMatrix4fv(mvMatrixLocation, false, mvMatrix);
+
+    // calculate the transform matrix for normals
+    // mat3.invert(normalMatrix, mat3.fromMat4(mvMatrix, mvMatrix));
+    // mat3.transpose(normalMatrix, normalMatrix);
+    mat3.normalFromMat4(normalMatrix, mvMatrix);
+    gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+    
+    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+    
+    requestAnimFrame(render);
+  }
+  requestAnimFrame(render);
+}
+
+</script>
+
+<script type="text/javascript"></script>
+</body>
+</html>
