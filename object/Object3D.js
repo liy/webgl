@@ -5,7 +5,8 @@ function Object3D(){
   this.rotationY = 0;
   this.rotationZ = 0;
 
-  this.matrix = mat4.create();
+  this._matrix = mat4.create();
+  this._concatMatrix = mat4.create();
 
   this.children = [];
   this.parent = null;
@@ -45,6 +46,7 @@ Object.defineProperty(p, "x", {
   },
   set: function(x){
     this.position[0] = x;
+    this._matrix[12] = x;
   }
 });
 
@@ -54,6 +56,7 @@ Object.defineProperty(p, "y", {
   },
   set: function(y){
     this.position[1] = y;
+    this._matrix[13] = y;
   }
 });
 
@@ -63,7 +66,40 @@ Object.defineProperty(p, "z", {
   },
   set: function(z){
     this.position[2] = z;
+    this._matrix[14] = z;
   }
 });
+
+Object.defineProperty(p, "matrix", {
+  get: function(){
+    return this._matrix;
+  },
+  set: function(matrix){
+    this._matrix = matrix;
+
+    // translate
+    this.position[0] = this._matrix[12];
+    this.position[1] = this._matrix[13];
+    this.position[2] = this._matrix[14];
+
+    // TODO: rotation
+
+    // TODO: scale
+  }
+});
+
+Object.defineProperty(p, "concatMatrix", {
+  get: function(){
+    if(this.parent){
+      mat4.mul(this._concatMatrix, this.parent.concatMatrix, this._matrix);
+    }
+    else{
+      mat4.identity(this._concatMatrix);
+      mat4.mul(this._concatMatrix, this._concatMatrix, this._matrix);
+    }
+    return this._concatMatrix;
+  }
+});
+
 
 Object3D.id = 0;

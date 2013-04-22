@@ -2,6 +2,7 @@ function Mesh(geometry, material){
   Object3D.call(this);
 
   this.normalMatrix = mat3.create();
+  this.modelViewMatrix = mat4.create();
 
   this.geometry = geometry;
   this.material = material;
@@ -81,13 +82,14 @@ p.render = function(shader, camera){
   mat4.rotateY(this.matrix, this.matrix, this.rotationY);
   mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
 
+  var concatMatrix = this.concatMatrix;
+
   // set model view matrix
-  var modelViewMatrix = mat4.create();
-  mat4.mul(modelViewMatrix, camera.viewMatrix, this.matrix);
-  gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, modelViewMatrix);
+  mat4.mul(this.modelViewMatrix, camera.viewMatrix, concatMatrix);
+  gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
 
   // transform model normal
-  mat3.normalFromMat4(this.normalMatrix, this.matrix);
+  mat3.normalFromMat4(this.normalMatrix, concatMatrix);
   gl.uniformMatrix3fv(shader.uniform['u_NormalMatrix'], false, this.normalMatrix);
 
   this.material.setUniform(shader.uniform);

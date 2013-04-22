@@ -13,24 +13,36 @@ gl.useProgram(phongProgram);
 phongShader.bindAttribute(phongProgram);
 phongShader.bindUniform(phongProgram);
 
+var scene = new Scene();
+var renderer = new Renderer();
+var camera = new Camera();
+var light = new Light();
+
 Texture.load(['img/square.png', 'img/block.png'], init)
 function init(textures){
-  var camera = new Camera();
-  var light = new Light();
-  light.setUniform(phongShader.uniform);
-  var cubeMesh = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  cubeMesh.z = -2;
+  var cube1 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
+  cube1.z = -2;
+  scene.add(cube1);
+  camera.lookAt(cube1.position);
 
-  camera.lookAt(cubeMesh.position);
+  light.setUniform(phongShader.uniform);
+
+  var cube2 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
+  cube2.z = 0;
+  cube2.x = 1;
+  cube1.add(cube2);
 
   function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     camera.setUniform(phongShader.uniform);
 
-    cubeMesh.rotationX += 0.01;
-    cubeMesh.rotationY += 0.007;
-    cubeMesh.render(phongShader, camera);
+    cube1.rotationX += 0.01;
+    cube1.rotationY += 0.007;
+
+    cube2.rotationX += 0.02;
+
+    renderer.render(scene, phongShader, camera);
 
     requestAnimFrame(render);
   }
