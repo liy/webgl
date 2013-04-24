@@ -76,11 +76,7 @@ p.setAttribute = function(attribute){
 }
 
 p.render = function(shader, camera){
-  mat4.identity(this.matrix);
-  mat4.translate(this.matrix, this.matrix, this.position);
-  mat4.rotateX(this.matrix, this.matrix, this.rotationX);
-  mat4.rotateY(this.matrix, this.matrix, this.rotationY);
-  mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
+  this.updateMatrix();
 
   var concatMatrix = this.concatMatrix;
 

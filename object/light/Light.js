@@ -13,14 +13,42 @@ function Light(){
   // vec3
   // if any of x, y, z are non-zero, it is spot light
   this.direction = vec3.create();
+  // float
+  // this._cosOuter = Math.cos(Math.PI/9);
+  // float, outer cos - inner cos
+  // this._cosFalloff = this._cosOuter - Math.cos(Math.PI/10);
+
+  this.outerRadian = Math.PI/9;
+  this.innerRadian = Math.PI/10;
+
+  // shadow map requires the view matrix from the light
+  this._viewMatrix = mat4.create();
+
+  // if 0, then this light is a directional, if it 1, it is a point or spot light
+  this.directional = 1;
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 
 p.setUniform = function(uniform){
-  gl.uniform4fv(uniform['u_Light.position'], [this.position[0], this.position[1], this.position[2], 1]);
+  this.updateMatrix();
+
+  gl.uniform4fv(uniform['u_Light.position'], [this.position[0], this.position[1], this.position[2], this.directional]);
   gl.uniform4fv(uniform['u_Light.ambient'], this.ambient);
   gl.uniform4fv(uniform['u_Light.diffuse'], this.diffuse);
   gl.uniform4fv(uniform['u_Light.specular'], this.specular);
   gl.uniform3fv(uniform['u_Light.attenuation'], this.attenuation);
   gl.uniform3fv(uniform['u_Light.direction'], this.direction);
+  gl.uniform1f(uniform['u_Light.cosOuter'], Math.cos(this.outerRadian));
+  gl.uniform1f(uniform['u_Light.cosFalloff'], Math.cos(this.outerRadian) - Math.cos(this.innerRadian));
+
+  // TODO: may be ensure the matrix is the transpose inverse of the transformation matrix? Just in case, the matrix has scale transformation.
+  // Of course, the scale transformation does not make sense to the light.
+  gl.uniformMatrix4fv(uniform['u_LightDirectionMatrix'], false, this.matrix);
 }
+
+Object.defineProperty(p, "viewMatrix", {
+  get: function(){
+    mat4.lookAt(this._viewMatrix, this.position, this.direction, [0, 1, 0]);
+    return this._viewMatrix;
+  }
+});

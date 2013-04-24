@@ -17,18 +17,20 @@ var scene = new Scene();
 var renderer = new Renderer();
 var camera = new Camera();
 var light = new Light();
+light.z = -2;
+light.direction = [0, 0, -1];
+// light.rotationY = -Math.PI/4;
+light.outerRadian = Math.PI/4;
 
 Texture.load(['img/square.png', 'img/block.png'], init)
 function init(textures){
   var cube1 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  cube1.z = -2;
+  cube1.z = -3;
   scene.add(cube1);
   camera.lookAt(cube1.position);
 
-  light.setUniform(phongShader.uniform);
-
   var cube2 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  cube2.z = 0;
+  cube2.z = 1;
   cube2.x = 1;
   cube1.add(cube2);
 
@@ -37,10 +39,12 @@ function init(textures){
 
     camera.setUniform(phongShader.uniform);
 
-    cube1.rotationX += 0.01;
-    cube1.rotationY += 0.007;
+    light.setUniform(phongShader.uniform);
 
-    cube2.rotationX += 0.02;
+    // cube1.rotationX += 0.01;
+    // cube1.rotationY += 0.007;
+
+    // cube2.rotationX += 0.02;
 
     renderer.render(scene, phongShader, camera);
 

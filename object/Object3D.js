@@ -46,7 +46,6 @@ Object.defineProperty(p, "x", {
   },
   set: function(x){
     this.position[0] = x;
-    this._matrix[12] = x;
   }
 });
 
@@ -56,7 +55,6 @@ Object.defineProperty(p, "y", {
   },
   set: function(y){
     this.position[1] = y;
-    this._matrix[13] = y;
   }
 });
 
@@ -66,9 +64,19 @@ Object.defineProperty(p, "z", {
   },
   set: function(z){
     this.position[2] = z;
-    this._matrix[14] = z;
   }
 });
+
+// If use convenient setter methods, the matrix must be updated, sync with the position.
+p.updateMatrix = function(){
+  // transform this matrix
+  mat4.identity(this._matrix);
+  mat4.translate(this._matrix, this._matrix, this.position);
+  mat4.rotateX(this._matrix, this._matrix, this.rotationX);
+  mat4.rotateY(this._matrix, this._matrix, this.rotationY);
+  mat4.rotateZ(this._matrix, this._matrix, this.rotationZ);
+  // TODO: add scale
+}
 
 Object.defineProperty(p, "matrix", {
   get: function(){

@@ -13,7 +13,7 @@
     // vec3, constant, linear and quadratic
     this.attenuation = vec3.fromValues(1.0, 0, 0);
     // vec3
-    // if any of x, y, z are non-zero, it is spot light 
+    // if any of x, y, z are non-zero, it is spot light
     this.direction = vec3.create();
     // float
     this.cosOuter = Math.cos(Math.PI/4);
