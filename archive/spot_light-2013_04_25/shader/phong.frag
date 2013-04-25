@@ -72,7 +72,9 @@ void main(){
   }
 
   // gl_FragColor = color * intensity;
-  gl_FragColor = vec4(v_Position.xyz, 1.0);
+  gl_FragColor = color * intensity;
+  // gl_FragColor = vec4(photonDirection.x, photonDirection.y, photonDirection.z, 1.0);
   // gl_FragColor = vec4(normal, 1.0);
+  // gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
   // gl_FragColor = color;
 }

@@ -3,7 +3,7 @@ function Light(){
   Object3D.call(this);
 
   // vec4
-  this.ambient = vec4.fromValues(0.25, 0.25, 0.25, 1.0);
+  this.ambient = vec4.fromValues(0.05, 0.05, 0.05, 1.0);
   // vec4
   this.diffuse = vec4.fromValues(0.95, 0.95, 0.95, 1.0);
   // vec4
@@ -14,8 +14,11 @@ function Light(){
   // if any of x, y, z are non-zero, it is spot light
   this.direction = vec3.create();
   this._transformedDirection = vec3.create();
+  // float
+  // this._cosOuter = Math.cos(Math.PI/9);
+  // float, outer cos - inner cos
+  // this._cosFalloff = this._cosOuter - Math.cos(Math.PI/10);
 
-  // internal spot fall off
   this._cosOuter = 0;
   this._cosInner = 0;
   this._outerRadian = 0;
@@ -35,10 +38,7 @@ var p = Light.prototype = Object.create(Object3D.prototype);
 p.setUniform = function(uniform){
   this.updateMatrix();
 
-  // update the spot light direction
-  // vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-  this._transformedDirection = [0, 0, -1];
-  this.position = [0,0,-2.8];
+  vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
 
   gl.uniform4fv(uniform['u_Light.position'], [this.position[0], this.position[1], this.position[2], this.directional]);
   gl.uniform4fv(uniform['u_Light.ambient'], this.ambient);
@@ -48,14 +48,15 @@ p.setUniform = function(uniform){
   gl.uniform3fv(uniform['u_Light.direction'], this._transformedDirection);
   gl.uniform1f(uniform['u_Light.cosOuter'], this._cosOuter);
   gl.uniform1f(uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
+
+  // TODO: may be ensure the matrix is the transpose inverse of the transformation matrix? Just in case, the matrix has scale transformation.
+  // Of course, the scale transformation does not make sense to the light.
+  // gl.uniformMatrix4fv(uniform['u_LightDirectionMatrix'], false, this.matrix);
 }
 
 Object.defineProperty(p, "viewMatrix", {
   get: function(){
-    this.updateMatrix();
-    // apply the current transformation to the direction first.
-    vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-    mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
+    mat4.lookAt(this._viewMatrix, this.position, this.direction, [0, 1, 0]);
     return this._viewMatrix;
   }
 });
