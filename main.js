@@ -13,13 +13,13 @@ gl.useProgram(phongProgram);
 phongShader.bindAttribute(phongProgram);
 phongShader.bindUniform(phongProgram);
 
-var scene = new Scene();
-var renderer = new Renderer();
+var scene = new Scene()
+;var renderer = new Renderer();
 var camera = new Camera();
 var light = new Light();
 light.z = -2;
 light.direction = [0, 0, -1];
-// light.rotationY = -Math.PI/4;
+// light.rotationY = -Math.PI/6;
 light.outerRadian = Math.PI/4;
 
 Texture.load(['img/square.png', 'img/block.png'], init)

@@ -25,7 +25,7 @@ struct Material {
 uniform sampler2D u_Sampler;
 
 uniform Light u_Light;
-uniform mat4 u_LightDirectionMatrix;
+// uniform mat4 u_LightDirectionMatrix;
 
 uniform Material u_Material;
 
@@ -63,9 +63,8 @@ void main(){
     vec4 specular = pow(max(dot(reflection, normalize(v_Position.xyz)), 0.0), u_Material.shininess) * u_Material.specular*u_Light.specular;
 
     float spot = 1.0;
-    vec3 lightDirection = mat3(u_LightDirectionMatrix) * u_Light.direction;
-    if(lightDirection.x != 0.0 || lightDirection.y != 0.0 || lightDirection.z != 0.0)
-      spot = clamp((u_Light.cosOuter - dot(photonDirection, normalize(-lightDirection)))/u_Light.cosFalloff, 0.0, 1.0);
+    if(u_Light.direction.x != 0.0 || u_Light.direction.y != 0.0 || u_Light.direction.z != 0.0)
+      spot = clamp((u_Light.cosOuter - dot(photonDirection, normalize(-u_Light.direction)))/u_Light.cosFalloff, 0.0, 1.0);
 
     intensity += (diffuse + specular) * attenuation * spot;
   }
