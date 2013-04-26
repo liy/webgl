@@ -62,7 +62,6 @@ void main(){
 
     vec3 reflection = reflect(photonDirection, normal);
     vec4 specular = pow(max(dot(reflection, normalize(v_Position.xyz)), 0.0), u_Material.shininess) * u_Material.specular*u_Light.specular;
-    specular = vec4(0,0,0,0);
 
     float spot = 1.0;
     if(u_Light.direction.x != 0.0 || u_Light.direction.y != 0.0 || u_Light.direction.z != 0.0){

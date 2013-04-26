@@ -85,7 +85,10 @@ p.render = function(shader, camera){
   gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
 
   // transform model normal
-  mat3.normalFromMat4(this.normalMatrix, concatMatrix);
+  // ********
+  // notice that the normal matrix is inverse transpose of the ** model view ** matrix
+  // ********
+  mat3.normalFromMat4(this.normalMatrix, this.modelViewMatrix);
   gl.uniformMatrix3fv(shader.uniform['u_NormalMatrix'], false, this.normalMatrix);
 
   this.material.setUniform(shader.uniform);

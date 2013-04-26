@@ -48,17 +48,11 @@ p.setUniform = function(uniform){
   vec3.transformMat3(this._transformedDirection, this.direction, directionMatrix);
 
 
-
-
-
   // transform light position to eye coordinate
-  // ************ this is correct
   this._trasnformedPosition = vec3.create();
-  vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
+  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
+  vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
 
-
-  // this._transformedDirection = this.direction;
-  console.log(this._trasnformedPosition);
 
   gl.uniform4fv(uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
   gl.uniform4fv(uniform['u_Light.ambient'], this.ambient);

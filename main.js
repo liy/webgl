@@ -21,10 +21,11 @@ var renderer = new Renderer();
 var camera = new Camera();
 var light = new Light();
 light.z = 1;
+light.y = 0.5;
 light.direction = [0, 0, -1];
 // light.rotationY = -Math.PI/4;
 light.outerRadian = Math.PI/4;
-light.innerRadian = Math.PI/4.001;
+light.innerRadian = Math.PI/5;
 
 Texture.load(['img/square.png', 'img/block.png'], init)
 function init(textures){
