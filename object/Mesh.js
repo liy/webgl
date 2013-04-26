@@ -81,7 +81,7 @@ p.render = function(shader, camera){
   var concatMatrix = this.concatMatrix;
 
   // set model view matrix
-  mat4.mul(this.modelViewMatrix, camera.viewMatrix, concatMatrix);
+  mat4.mul(this.modelViewMatrix, camera.matrix, concatMatrix);
   gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
 
   // transform model normal

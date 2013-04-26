@@ -27,6 +27,8 @@ function Light(){
   // shadow map requires the view matrix from the light
   this._viewMatrix = mat4.create();
 
+  this._modelViewMatrix = mat4.create();
+
   // if 0, then this light is a directional, if it 1, it is a point or spot light
   this.directional = 1;
 }
@@ -35,12 +37,30 @@ var p = Light.prototype = Object.create(Object3D.prototype);
 p.setUniform = function(uniform){
   this.updateMatrix();
 
-  // update the spot light direction
-  // vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-  this._transformedDirection = [0, 0, -1];
-  this.position = [0,0,-2.8];
+  // calculate model view matrix
+  mat4.mul(this._modelViewMatrix, camera.matrix, this.matrix);
+  // console.log(this._modelViewMatrix);
+  // transform direction to eye coordinate
+  // ********** this is wrong!!!!!!!!!!!
+  // vec3.transformMat4(this._transformedDirection, this.direction, this._modelViewMatrix);
+  var directionMatrix = mat3.create();
+  mat3.normalFromMat4(directionMatrix, this._modelViewMatrix);
+  vec3.transformMat3(this._transformedDirection, this.direction, directionMatrix);
 
-  gl.uniform4fv(uniform['u_Light.position'], [this.position[0], this.position[1], this.position[2], this.directional]);
+
+
+
+
+  // transform light position to eye coordinate
+  // ************ this is correct
+  this._trasnformedPosition = vec3.create();
+  vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
+
+
+  // this._transformedDirection = this.direction;
+  console.log(this._trasnformedPosition);
+
+  gl.uniform4fv(uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
   gl.uniform4fv(uniform['u_Light.ambient'], this.ambient);
   gl.uniform4fv(uniform['u_Light.diffuse'], this.diffuse);
   gl.uniform4fv(uniform['u_Light.specular'], this.specular);

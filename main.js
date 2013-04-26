@@ -20,7 +20,7 @@ var scene = new Scene();
 var renderer = new Renderer();
 var camera = new Camera();
 var light = new Light();
-light.z = -2;
+light.z = 1;
 light.direction = [0, 0, -1];
 // light.rotationY = -Math.PI/4;
 light.outerRadian = Math.PI/4;
@@ -29,7 +29,6 @@ light.innerRadian = Math.PI/4.001;
 Texture.load(['img/square.png', 'img/block.png'], init)
 function init(textures){
   var cube1 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  cube1.z = -3;
   scene.add(cube1);
 
   var cube2 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
@@ -37,8 +36,10 @@ function init(textures){
   cube2.x = 1;
   cube1.add(cube2);
 
+  camera.z = 3;
   camera.y = 2;
-  camera.lookAt(cube1.position);
+  // camera.lookAt = [0, camera.y, -1];
+  camera.lookAt = light.position;
 
   // shadow mapping related
   createColorTexture();
@@ -48,6 +49,7 @@ function init(textures){
   function render(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    camera.updateMatrix();
     camera.setUniform(phongShader.uniform);
 
     light.setUniform(phongShader.uniform);
