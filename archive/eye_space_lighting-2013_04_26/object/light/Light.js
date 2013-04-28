@@ -2,8 +2,6 @@
 function Light(){
   Object3D.call(this);
 
-  this.enabled = true;
-
   // vec4
   this.ambient = vec4.fromValues(0.25, 0.25, 0.25, 1.0);
   // vec4
@@ -28,8 +26,6 @@ function Light(){
 
   // shadow map requires the view matrix from the light
   this._viewMatrix = mat4.create();
-  this._projectionMatrix = mat4.create();
-  this._camera = new PerspectiveCamera(this._outerRadian*2, 1);
 
   this._modelViewMatrix = mat4.create();
 
@@ -38,7 +34,7 @@ function Light(){
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 
-p.setUniform = function(uniform, camera){
+p.setUniform = function(uniform){
   this.updateMatrix();
 
   // calculate model view matrix
@@ -66,12 +62,6 @@ p.setUniform = function(uniform, camera){
   gl.uniform3fv(uniform['u_Light.direction'], this._transformedDirection);
   gl.uniform1f(uniform['u_Light.cosOuter'], this._cosOuter);
   gl.uniform1f(uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
-  gl.uniform1i(uniform['u_Light.enabled'], this.enabled);
-}
-
-p.getProjectionMatrix = function(near, far){
-  ma4.perspective(this._projectionMatrix, this._outerRadian*2, 1, near, far);
-  return this._projectionMatrix;
 }
 
 Object.defineProperty(p, "viewMatrix", {
@@ -81,16 +71,6 @@ Object.defineProperty(p, "viewMatrix", {
     vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
     mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
     return this._viewMatrix;
-  }
-});
-
-Object.defineProperty(p, 'camera', {
-  get: function(){
-    this._camera.updateMatrix();
-    // override the perspective camera matrix to be the light's view matrix.
-    this._camera.matrix = this.viewMatrix;
-    this._camera.perspective(this._outerRadian*2, 1);
-    return this._camera;
   }
 });
 

@@ -1,4 +1,36 @@
 function Texture(){
+  this.texCoords = [
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0
+  ];
+
   this.id = Texture.id++;
 }
 var p = Texture.prototype;
@@ -25,10 +57,10 @@ p.create = function(image){
 }
 
 Texture.bind = function(textureID){
-  // if(Texture.boundID != textureID){
+  if(Texture.boundID != textureID){
     gl.bindTexture(gl.TEXTURE_2D, textureID);
     Texture.boundID = textureID;
-  // }
+  }
 }
 
 // load multiple textures

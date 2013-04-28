@@ -7,8 +7,6 @@ function Mesh(geometry, material){
   this.geometry = geometry;
   this.material = material;
 
-  this.useColor = false;
-
   this.createBuffer();
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
@@ -16,7 +14,7 @@ var p = Mesh.prototype = Object.create(Object3D.prototype);
 p.createBuffer = function(){
   // vertices information
   var data = [];
-  for(var i=0; i<this.geometry.numVertices; ++i){
+  for(var i=0; i<24; ++i){
     // vertex
     data.push(this.geometry.vertices[i*3]);
     data.push(this.geometry.vertices[i*3+1]);
@@ -26,10 +24,9 @@ p.createBuffer = function(){
     data.push(this.geometry.normals[i*3]);
     data.push(this.geometry.normals[i*3+1]);
     data.push(this.geometry.normals[i*3+2]);
-
     // uv
-    data.push(this.geometry.texCoords[i*2]);
-    data.push(this.geometry.texCoords[i*2+1]);
+    data.push(this.material.texture.texCoords[i*2]);
+    data.push(this.material.texture.texCoords[i*2+1]);
 
     // color
     data.push(this.material.color[0])
@@ -38,7 +35,15 @@ p.createBuffer = function(){
     data.push(this.material.color[3])
   }
 
-
+  // index information
+  this.indices = [
+    0,  1,  2,   0,  2,  3,  // front
+    4,  5,  6,   4,  6,  7,  // back
+    8,  9,  10,  8,  10, 11, // top
+    12, 13, 14,  12, 14, 15, // bottom
+    16, 17, 18,  16, 18, 19, // left
+    20, 21, 22,  20, 22, 23  // right
+  ];
 
   // destroy original buffers
   if(this.vb)
@@ -54,7 +59,7 @@ p.createBuffer = function(){
   // index information
   this.ib = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.geometry.indices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
 }
 
 p.setAttribute = function(attribute){
@@ -68,10 +73,6 @@ p.setAttribute = function(attribute){
   gl.enableVertexAttribArray(attribute['a_TexCoord']);
   gl.enableVertexAttribArray(attribute['a_Normal']);
   gl.enableVertexAttribArray(attribute['a_Color']);
-}
-
-p.setUniform = function(uniform){
-  gl.uniform1i(uniform['u_UseColor'], this.useColor);
 }
 
 p.render = function(shader, camera){
@@ -93,10 +94,8 @@ p.render = function(shader, camera){
   this.material.setUniform(shader.uniform);
 
   this.setAttribute(shader.attribute);
-  this.setUniform(shader.uniform);
 
-  if(this.material.texture)
-    Texture.bind(this.material.texture.textureID);
+  Texture.bind(this.material.texture.textureID);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);
-  gl.drawElements(gl.TRIANGLES, this.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
 }

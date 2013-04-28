@@ -1,8 +1,9 @@
-// TODO: make it base class of 2 types of camera, perspective and orthogonal
 function Camera(){
   Object3D.call(this);
 
   this.projectionMatrix = mat4.create();
+  mat4.perspective(this.projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 400);
+
   this.lookAt = vec3.fromValues(0, 0, -1);
 }
 var p = Camera.prototype = Object.create(Object3D.prototype);
