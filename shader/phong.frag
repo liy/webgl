@@ -30,7 +30,6 @@ uniform sampler2D u_Sampler;
 uniform bool u_UseColor;
 
 uniform Light u_Light;
-// uniform mat4 u_LightDirectionMatrix;
 
 uniform Material u_Material;
 
@@ -40,11 +39,43 @@ varying vec2 v_TexCoord;
 varying vec3 v_Normal;
 varying vec4 v_Color;
 
+
+
+
+
+
+
+
+// shadow map related
+uniform sampler2D u_ShadowMap;
+varying vec4 v_ShadowPosition;
+
+float computeShadow(){
+  vec3 depth = v_ShadowPosition.xyz / v_ShadowPosition.w;
+  float shadowValue = texture2D(u_ShadowMap, depth.xy).r;
+  depth.z *= 0.999;
+  if(shadowValue < depth.z)
+    return 0.0;
+  return 1.0;
+}
+
+
+
+
+
+
+
+
+
+
+
 void main(){
   vec3 normal = normalize(v_Normal);
   vec4 color = texture2D(u_Sampler, v_TexCoord);
   if(u_UseColor)
     color = v_Color;
+
+  float shadow = computeShadow();
 
   vec4 intensity = vec4(1.0, 1.0, 1.0, 1.0);
   if(u_Light.enabled){
@@ -76,7 +107,7 @@ void main(){
         spot = clamp((u_Light.cosOuter - dot(photonDirection, normalize(-u_Light.direction)))/u_Light.cosFalloff, 0.0, 1.0);
       }
 
-      intensity += (diffuse + specular) * attenuation * spot;
+      intensity += (diffuse + specular) * attenuation * spot * shadow;
     }
   }
 
@@ -85,6 +116,5 @@ void main(){
   // gl_FragColor = vec4(photonDirection, 1.0);
   // gl_FragColor = vec4(v_Position.xyz, 1.0);
 
-  // gl_FragColor = vec4(normal, 1.0);
-  // gl_FragColor = color;
+  // gl_FragColor = vec4(shadow, 0.0, 0.0, 1.0);
 }

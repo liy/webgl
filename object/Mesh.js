@@ -79,6 +79,9 @@ p.render = function(shader, camera){
 
   var concatMatrix = this.concatMatrix;
 
+  // set model matrix, for shadow mapping use
+  gl.uniformMatrix4fv(shader.uniform['u_ModelMatrix'], false, concatMatrix);
+
   // set model view matrix
   mat4.mul(this.modelViewMatrix, camera.matrix, concatMatrix);
   gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);

@@ -5,7 +5,7 @@ function Light(){
   this.enabled = true;
 
   // vec4
-  this.ambient = vec4.fromValues(0.25, 0.25, 0.25, 1.0);
+  this.ambient = vec4.fromValues(0.05, 0.05, 0.05, 1.0);
   // vec4
   this.diffuse = vec4.fromValues(0.95, 0.95, 0.95, 1.0);
   // vec4
@@ -67,6 +67,15 @@ p.setUniform = function(uniform, camera){
   gl.uniform1f(uniform['u_Light.cosOuter'], this._cosOuter);
   gl.uniform1f(uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
   gl.uniform1i(uniform['u_Light.enabled'], this.enabled);
+
+
+
+  // shadow map related
+  var lightCamera = this.camera;
+  gl.uniformMatrix4fv(uniform['u_LightViewMatrix'], false, lightCamera.matrix);
+  gl.uniformMatrix4fv(uniform['u_LightProjectionMatrix'], false, lightCamera.projectionMatrix);
+
+  // console.log(lightCamera.projectionMatrix);
 }
 
 p.getProjectionMatrix = function(near, far){

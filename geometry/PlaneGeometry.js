@@ -54,9 +54,6 @@ function PlaneGeometry(width, height, widthSegments, heightSegments){
     }
   }
 
-  console.log(this.vertices);
-  console.log(this.texCoords);
-
   this.numVertices = this.indices.length;
 }
 var p = PlaneGeometry.prototype;
