@@ -72,34 +72,33 @@ p.setAttribute = function(attribute){
 
 p.setUniform = function(uniform){
   gl.uniform1i(uniform['u_UseColor'], this.useColor);
+
+  // normal model view matrix
+  gl.uniformMatrix4fv(uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  gl.uniformMatrix3fv(uniform['u_NormalMatrix'], false, this.normalMatrix);
+
+  // set model matrix, for shadow mapping use
+  gl.uniformMatrix4fv(uniform['u_ModelMatrix'], false, this.worldMatrix);
 }
 
 p.render = function(shader, camera){
-  this.updateMatrix();
-
-  var concatMatrix = this.concatMatrix;
-
-  // set model matrix, for shadow mapping use
-  gl.uniformMatrix4fv(shader.uniform['u_ModelMatrix'], false, concatMatrix);
-
-  // set model view matrix
-  mat4.mul(this.modelViewMatrix, camera.matrix, concatMatrix);
-  gl.uniformMatrix4fv(shader.uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
-
+  // update to model view matrix
+  mat4.mul(this.modelViewMatrix, camera.matrix, this.worldMatrix);
   // transform model normal
   // ********
   // notice that the normal matrix is inverse transpose of the ** model view ** matrix
   // ********
   mat3.normalFromMat4(this.normalMatrix, this.modelViewMatrix);
-  gl.uniformMatrix3fv(shader.uniform['u_NormalMatrix'], false, this.normalMatrix);
 
-  this.material.setUniform(shader.uniform);
-
+  // setup uniform and attributes
   this.setAttribute(shader.attribute);
+  this.material.setUniform(shader.uniform);
   this.setUniform(shader.uniform);
 
+  // bind texture
   if(this.material.texture)
     Texture.bind(this.material.texture.textureID);
+
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);
   gl.drawElements(gl.TRIANGLES, this.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
 }

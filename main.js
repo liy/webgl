@@ -19,7 +19,7 @@ var shadowProgram = gl.createProgram();
 var shadowShader = new Shader(shadowProgram, 'shader/shadow.vert', 'shader/shadow.frag');
 
 
-var light = new Light();
+var light = new SpotLight();
 light.z = 4.8;
 // light.y = 0.5;
 light.direction = [0, 0, -0.5];
@@ -60,6 +60,7 @@ function init(textures){
   perspectiveCamera.lookAt = [0, perspectiveCamera.y, -1];
   perspectiveCamera.lookAt = light.position;
   perspectiveCamera.lookAt = cube1.position;
+  plane.add(perspectiveCamera);
 
   // shadow mapping related
   createColorTexture();
@@ -126,7 +127,6 @@ function renderScene(){
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  perspectiveCamera.updateMatrix();
 
   perspectiveCamera.setUniform(phongShader.uniform);
   light.setUniform(phongShader.uniform, perspectiveCamera);

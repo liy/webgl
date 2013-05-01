@@ -5,8 +5,10 @@ function Object3D(){
   this.rotationY = 0;
   this.rotationZ = 0;
 
-  this._matrix = mat4.create();
-  this._concatMatrix = mat4.create();
+  // the matrix apply to this object
+  this.matrix = mat4.create();
+  // the concatenated matrix from root scene apply to this object.
+  this.worldMatrix = mat4.create();
 
   this.children = [];
   this.parent = null;
@@ -70,44 +72,40 @@ Object.defineProperty(p, "z", {
 // If use convenient setter methods, the matrix must be updated, sync with the position.
 p.updateMatrix = function(){
   // transform this matrix
-  mat4.identity(this._matrix);
-  mat4.translate(this._matrix, this._matrix, this.position);
-  mat4.rotateX(this._matrix, this._matrix, this.rotationX);
-  mat4.rotateY(this._matrix, this._matrix, this.rotationY);
-  mat4.rotateZ(this._matrix, this._matrix, this.rotationZ);
-  // TODO: add scale
+  mat4.identity(this.matrix);
+  mat4.translate(this.matrix, this.matrix, this.position);
+  mat4.rotateX(this.matrix, this.matrix, this.rotationX);
+  mat4.rotateY(this.matrix, this.matrix, this.rotationY);
+  mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
+  // TODO: scale
+
+  // update the world matrix apply to this object
+  this._updateWorldMatrix();
+
+  // update the matrix of its children, deep first traversing.
+  this._updateChildrenMatrix();
 }
 
-Object.defineProperty(p, "matrix", {
-  get: function(){
-    return this._matrix;
-  },
-  set: function(matrix){
-    this._matrix = matrix;
-
-    // translate
-    this.position[0] = this._matrix[12];
-    this.position[1] = this._matrix[13];
-    this.position[2] = this._matrix[14];
-
-    // TODO: rotation
-
-    // TODO: scale
+p._updateWorldMatrix = function(){
+  if(this.parent){
+    mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.matrix);
   }
-});
-
-Object.defineProperty(p, "concatMatrix", {
-  get: function(){
-    if(this.parent){
-      mat4.mul(this._concatMatrix, this.parent.concatMatrix, this._matrix);
-    }
-    else{
-      mat4.identity(this._concatMatrix);
-      mat4.mul(this._concatMatrix, this._concatMatrix, this._matrix);
-    }
-    return this._concatMatrix;
+  else{
+    mat4.identity(this.worldMatrix);
+    mat4.mul(this.worldMatrix, this.worldMatrix, this.matrix);
   }
-});
+}
+
+p._updateChildrenMatrix = function(){
+  var len = this.children.length
+  for(var i=0; i<len; ++i){
+    this.children[i].updateMatrix();
+  }
+}
+
+p.render = function(shader, camera){
+
+}
 
 
 Object3D.id = 0;
