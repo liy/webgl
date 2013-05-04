@@ -1,21 +1,6 @@
 // by default position directional light, from (1, 1, 1)
 function SpotLight(){
-  Object3D.call(this);
-
-  this.enabled = true;
-
-  // vec4
-  this.ambient = vec4.fromValues(0.05, 0.05, 0.05, 1.0);
-  // vec4
-  this.diffuse = vec4.fromValues(0.95, 0.95, 0.95, 1.0);
-  // vec4
-  this.specular = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec3, constant, linear and quadratic
-  this.attenuation = vec3.fromValues(1, 0, 0);
-  // vec3
-  // if any of x, y, z are non-zero, it is spot light
-  this.direction = vec3.create();
-  this._transformedDirection = vec3.create();
+  Light.call(this);
 
   // internal spot fall off
   this._cosOuter = 0;
@@ -29,18 +14,18 @@ function SpotLight(){
   // shadow map requires the view matrix from the light
   this._viewMatrix = mat4.create();
   this._projectionMatrix = mat4.create();
-  this._camera = new PerspectiveCamera(this._outerRadian*2, 1);
+
+  this.camera = new PerspectiveCamera(this._outerRadian*2, 1);
+  this.add(this.camera);
 
   this._modelViewMatrix = mat4.create();
 
   // if 0, then this light is a directional, if it 1, it is a point or spot light
   this.directional = 1;
 }
-var p = SpotLight.prototype = Object.create(Object3D.prototype);
+var p = SpotLight.prototype = Object.create(Light.prototype);
 
 p.setUniform = function(uniform, camera){
-  this.updateMatrix();
-
   // calculate model view matrix
   mat4.mul(this._modelViewMatrix, camera.matrix, this.matrix);
   // console.log(this._modelViewMatrix);
@@ -69,13 +54,47 @@ p.setUniform = function(uniform, camera){
   gl.uniform1i(uniform['u_Light.enabled'], this.enabled);
 
 
+  // console.log('light set uniform');
 
   // shadow map related
   var lightCamera = this.camera;
   gl.uniformMatrix4fv(uniform['u_LightViewMatrix'], false, lightCamera.matrix);
   gl.uniformMatrix4fv(uniform['u_LightProjectionMatrix'], false, lightCamera.projectionMatrix);
+}
 
-  // console.log(lightCamera.projectionMatrix);
+p.updateMatrix = function(){
+  // transform this matrix
+  mat4.identity(this.matrix);
+  mat4.translate(this.matrix, this.matrix, this.position);
+  mat4.rotateX(this.matrix, this.matrix, this.rotationX);
+  mat4.rotateY(this.matrix, this.matrix, this.rotationY);
+  mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
+  // TODO: scale
+
+  // update the world matrix apply to this object
+  this._updateWorldMatrix();
+
+  // update the matrix of its children, deep first traversing.
+  this._updateChildrenMatrix();
+
+  // camera's matrix will be updated by this._updateChildrenMatrix()
+  // this.camera.updateMatrix();
+  // apply the current transformation to the direction first.
+  vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
+  mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
+  // override the perspective camera matrix to be the light's view matrix.
+  this.camera.matrix = this.viewMatrix;
+  this.camera.perspective(this._outerRadian*2, 1);
+}
+
+p.lit = function(shader){
+  var lightCamera = this.camera;
+  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, lightCamera.matrix);
+  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, lightCamera.projectionMatrix);
+}
+
+p.render = function(shader, camera){
+
 }
 
 p.getProjectionMatrix = function(near, far){
@@ -85,23 +104,20 @@ p.getProjectionMatrix = function(near, far){
 
 Object.defineProperty(p, "viewMatrix", {
   get: function(){
-    this.updateMatrix();
-    // apply the current transformation to the direction first.
-    vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-    mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
+
     return this._viewMatrix;
   }
 });
 
-Object.defineProperty(p, 'camera', {
-  get: function(){
-    this._camera.updateMatrix();
-    // override the perspective camera matrix to be the light's view matrix.
-    this._camera.matrix = this.viewMatrix;
-    this._camera.perspective(this._outerRadian*2, 1);
-    return this._camera;
-  }
-});
+// Object.defineProperty(p, 'camera', {
+//   get: function(){
+//     this._camera.updateMatrix();
+//     // override the perspective camera matrix to be the light's view matrix.
+//     this._camera.matrix = this.viewMatrix;
+//     this._camera.perspective(this._outerRadian*2, 1);
+//     return this._camera;
+//   }
+// });
 
 Object.defineProperty(p, "outerRadian", {
   set: function(value){

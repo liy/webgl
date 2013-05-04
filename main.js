@@ -18,6 +18,7 @@ var phongShader = new Shader(phongProgram, 'shader/phong.vert', 'shader/phong.fr
 var shadowProgram = gl.createProgram();
 var shadowShader = new Shader(shadowProgram, 'shader/shadow.vert', 'shader/shadow.frag');
 
+var scene = new Scene();
 
 var light = new SpotLight();
 light.z = 4.8;
@@ -27,8 +28,9 @@ light.direction = [0, 0, -0.5];
 light.outerRadian = Math.PI/6;
 light.innerRadian = light.outerRadian  * 0;
 // light.enabled = false;
+scene.add(light);
 
-var scene = new Scene();
+
 var renderer = new Renderer();
 
 // normal perspective camera, for rendering the final scene
@@ -107,12 +109,12 @@ function drawDepthTexture(){
   camera.setUniform(shadowShader.uniform);
   light.setUniform(shadowShader.uniform, camera);
 
-  // cube1.rotationX += 0.01;
-  // cube1.rotationY += 0.007;
-  // cube2.rotationX += 0.02;
+  cube1.rotationX += 0.01;
+  cube1.rotationY += 0.007;
+  cube2.rotationX += 0.02;
   // plane.rotationX += 0.01;
 
-  renderer.render(scene, shadowShader, camera);
+  renderer.render(scene, camera);
 
   // gl.colorMask(true, true, true, true);
 }
@@ -131,9 +133,9 @@ function renderScene(){
   perspectiveCamera.setUniform(phongShader.uniform);
   light.setUniform(phongShader.uniform, perspectiveCamera);
 
-  cube1.rotationX += 0.01;
-  cube1.rotationY += 0.007;
-  cube2.rotationX += 0.02;
+  // cube1.rotationX += 0.01;
+  // cube1.rotationY += 0.007;
+  // cube2.rotationX += 0.02;
   // plane.rotationX += 0.01;
 
   // TODO: bind depth texture
@@ -146,7 +148,7 @@ function renderScene(){
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
   gl.activeTexture(gl.TEXTURE0);
 
-  renderer.render(scene, phongShader, perspectiveCamera);
+  renderer.render(scene, perspectiveCamera);
 }
 
 function renderCanvas(){
