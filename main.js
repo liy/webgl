@@ -1,202 +1,49 @@
-var canvas = document.getElementById('canvas');
+var canvas = document.createElement('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+document.body.appendChild(canvas);
+
 var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-gl.enable(gl.DEPTH_TEST);
+var ext = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('depth_texture');
+
 gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-// enable depth texture extension
-var depthTextureExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
-
-var canvasProgram = gl.createProgram();
-var canvasShader = new Shader(canvasProgram, 'shader/canvas.vert', 'shader/canvas.frag');
-
-var phongProgram = gl.createProgram();
-var phongShader = new Shader(phongProgram, 'shader/phong.vert', 'shader/phong.frag');
+gl.enable(gl.DEPTH_TEST);
+gl.clear(gl.COLOR_BUFFER_BIT);
 
 var shadowProgram = gl.createProgram();
-var shadowShader = new Shader(shadowProgram, 'shader/shadow.vert', 'shader/shadow.frag');
+var shadowShader = new Shader(this.shadowProgram, '../shader/shadow.vert', '../shader/shadow.frag');
+var phongProgram = gl.createProgram();
+var phongShader = new Shader(this.phongProgram, '../shader/phong.vert', '../shader/phong.frag');
+var canvasProgram = gl.createProgram();
+var canvasShader = new Shader(this.canvasProgram, '../shader/canvas.vert', '../shader/canvas.frag')
 
-var scene = new Scene();
-
+var cube;
+var subCube;
+var plane = new Mesh(new PlaneGeometry(10, 10), new PhongMaterial());
+plane.z = -5;
 var light = new SpotLight();
-light.z = 4.8;
-// light.y = 0.5;
-light.direction = [0, 0, -0.5];
-// light.rotationY = -Math.PI/4;
-light.outerRadian = Math.PI/6;
-light.innerRadian = light.outerRadian  * 0;
-// light.enabled = false;
-scene.add(light);
-
-
-var renderer = new Renderer();
-
-// normal perspective camera, for rendering the final scene
-var perspectiveCamera = new PerspectiveCamera(Math.PI/3, canvas.width/canvas.height);
-// orthogonal camera, for rendering the final result to the canvas.
+light.outerRadian = Math.PI/5;
+light.innerRadian = Math.PI/5.1;
+// light.castShadow = true;
+light.z = -1;
+var sceneCamera = new PerspectiveCamera(Math.PI/3, canvas.width/canvas.height, 0.1, 800);
+sceneCamera.x = 0.7;
 var orthoCamera = new OrthoCamera();
-// Also, there is camera from the light source, it is used for drawing the depth texture.
 
-var cube1, cube2, plane;
-Texture.load(['img/square.png', 'img/block.png'], init)
-function init(textures){
-  cube1 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  scene.add(cube1);
-
-  cube2 = new Mesh(new CubeGeometry(), new PhongMaterial({texture: textures[0]}));
-  cube2.z = 1;
-  cube2.x = 1;
-  cube1.add(cube2);
-
-  plane = new Mesh(new PlaneGeometry(10,10), new PhongMaterial({texture: textures[1]}));
-  plane.useColor = true;
-  plane.z = -4.2;
-  plane.rotationX = -Math.PI/3;
-  scene.add(plane);
-
-  perspectiveCamera.x = -2;
-  perspectiveCamera.z = 4;
-  perspectiveCamera.y = 1.0;
-  perspectiveCamera.lookAt = [0, perspectiveCamera.y, -1];
-  perspectiveCamera.lookAt = light.position;
-  perspectiveCamera.lookAt = cube1.position;
-  plane.add(perspectiveCamera);
-
-  // shadow mapping related
-  createColorTexture();
-  createDepthTexture();
-  createFramebuffer();
-
-  initCanvas();
-
-  function render(){
-
-    drawDepthTexture();
-
-    renderScene();
-
-    // renderCanvas();
-
-    requestAnimFrame(render);
-  }
-  requestAnimFrame(render);
-}
-
-function drawDepthTexture(){
-  gl.useProgram(shadowProgram);
-  shadowShader.bindAttribute(shadowProgram);
-  shadowShader.bindUniform(shadowProgram);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-  // gl.colorMask(false, false, false, false);
-  gl.viewport(0, 0, framebufferSize, framebufferSize);
-  // gl.clearColor(1.0, 1.0, 1.0, 1.0);
-  gl.clear(gl.DEPTH_BUFFER_BIT);
-  // gl.clear(gl.DEPTH_BUFFER_BIT);
-
-
-  //  use light's camera, draw the depth information to the depth texture
-  var camera = light.camera;
-  // console.log(camera.projectionMatrix);
-
-  // use perspective camera instead
-  // perspectiveCamera.updateMatrix();
-  // camera = perspectiveCamera;
-
-  camera.setUniform(shadowShader.uniform);
-  light.setUniform(shadowShader.uniform, camera);
-
-  cube1.rotationX += 0.01;
-  cube1.rotationY += 0.007;
-  cube2.rotationX += 0.02;
-  // plane.rotationX += 0.01;
-
-  renderer.render(scene, camera);
-
-  // gl.colorMask(true, true, true, true);
-}
-
-function renderScene(){
-  gl.useProgram(phongProgram);
-  phongShader.bindAttribute(phongProgram);
-  phongShader.bindUniform(phongProgram);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-  perspectiveCamera.setUniform(phongShader.uniform);
-  light.setUniform(phongShader.uniform, perspectiveCamera);
-
-  // cube1.rotationX += 0.01;
-  // cube1.rotationY += 0.007;
-  // cube2.rotationX += 0.02;
-  // plane.rotationX += 0.01;
-
-  // TODO: bind depth texture
-  gl.activeTexture(gl.TEXTURE1);
-  gl.uniform1i(phongShader.uniform['u_ShadowMap'], 1);
-  // var lightCamera = light.camera;
-  // lightCamera.setUniform(phongShader.uniform);
-  // light.setUniform(phongShader.uniform, lightCamera);
-
-  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-  gl.activeTexture(gl.TEXTURE0);
-
-  renderer.render(scene, perspectiveCamera);
-}
-
-function renderCanvas(){
-  gl.useProgram(canvasProgram);
-  canvasShader.bindAttribute(canvasProgram);
-  canvasShader.bindUniform(canvasProgram);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  // gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, canvasVertexBuffer);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, canvasIndexBuffer);
-  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-  // gl.bindTexture(gl.TEXTURE_2D, colorTexture);
-
-  gl.vertexAttribPointer(canvasShader.attribute['a_Vertex'], 3, gl.FLOAT, false, 20, 0);
-  gl.vertexAttribPointer(canvasShader.attribute['a_TexCoord'], 2, gl.FLOAT, false, 20, 12);
-  gl.enableVertexAttribArray(canvasShader.attribute['a_Vertex']);
-  gl.enableVertexAttribArray(canvasShader.attribute['a_TexCoord']);
-
-  orthoCamera.updateMatrix();
-  // setup projection
-  orthoCamera.setUniform(canvasShader.uniform);
-
-  // TODO: to be removed
-  var modelViewMatrix = mat4.create();
-  mat4.identity(modelViewMatrix);
-  mat4.translate(modelViewMatrix, modelViewMatrix, [0, 0, -1]);
-  gl.uniformMatrix4fv(canvasShader.uniform['u_ModelViewMatrix'], false, modelViewMatrix);
-
-  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-}
-
-function debugDepthTexture(){
-  gl.useProgram(canvasProgram);
-  phongShader.bindAttribute(canvasProgram);
-  phongShader.bindUniform(canvasProgram);
-
-
-}
-
-var framebufferSize = 1024;
-
+var framebufferSize = 512;
 var colorTexture;
-function createColorTexture(){
+var depthTexture;
+var framebuffer;
+
+Texture.load(['img/square.png'], init)
+function init(textures){
+  cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
+  cube.z = -3;
+  subCube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
+  cube.add(subCube);
+  subCube.x = -1;
+  subCube.z = 1;
+
   colorTexture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, colorTexture);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -204,10 +51,7 @@ function createColorTexture(){
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, framebufferSize, framebufferSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-}
 
-var depthTexture;
-function createDepthTexture(){
   depthTexture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -215,37 +59,109 @@ function createDepthTexture(){
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, framebufferSize, framebufferSize, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-}
 
-var framebuffer;
-function createFramebuffer(){
   framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+
+  function loop(){
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    drawShadow();
+    renderScene(phongProgram, phongShader, sceneCamera);
+
+    // debugShadow();
+
+    requestAnimFrame(loop);
+  }
+  requestAnimFrame(loop);
+}
+// init(null);
+
+function drawShadow(){
+  var shader = shadowShader;
+  var program = shadowProgram;
+  var camera = light._camera;
+  gl.useProgram(program);
+  shader.bindAttribute(program);
+  shader.bindUniform(program);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.viewport(0, 0, framebufferSize, framebufferSize);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  subCube.rotationY += 0.008;
+  subCube.rotationX += 0.008;
+
+  camera.updateMatrix();
+  light.updateMatrix();
+  cube.updateMatrix();
+  plane.updateMatrix();
+  camera.projection(shader.uniform);
+
+  light.lit(shader, camera);
+  cube.draw(shader, camera);
+  plane.draw(shader, camera);
+  subCube.draw(shader, camera);
+
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
-var canvasVertexBuffer;
-var canvasIndexBuffer;
-function initCanvas(){
-  var vertices = [
-    // x y z   u v
-    // front
-    -1, -1, -1,   0.0, 1.0,
-     1, -1, -1,   1.0, 1.0,
-     1,  1, -1,   1.0, 0.0,
-    -1,  1, -1,   0.0, 0.0
-  ];
+function renderScene(program, shader, camera){
+  gl.useProgram(program);
+  shader.bindAttribute(program);
+  shader.bindUniform(program);
 
-  var indices = [
-    0,  1,  2,   0,  2,  3,  // front
-  ];
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  canvasVertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, canvasVertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  canvasIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, canvasIndexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+  subCube.rotationY += 0.008;
+  subCube.rotationX += 0.008;
+
+  camera.updateMatrix();
+  light.updateMatrix();
+  cube.updateMatrix();
+  plane.updateMatrix();
+  camera.projection(shader.uniform);
+
+  gl.activeTexture(gl.TEXTURE2);
+  gl.uniform1i(shader.uniform['u_ShadowMap'], 2);
+  gl.uniformMatrix4fv(shader.uniform['u_ModelMatrix'], false, cube.worldMatrix);
+  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, light.viewMatrix);
+  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, light._camera.projectionMatrix);
+  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+  // re-active the texture0,
+  gl.activeTexture(gl.TEXTURE0);
+
+  light.lit(shader, camera);
+  cube.draw(shader, camera);
+  plane.draw(shader, camera);
+  subCube.draw(shader, camera);
+}
+
+
+var shadowPlane = new Mesh(new PlaneGeometry(2, 2), new PhongMaterial());
+shadowPlane.z = -0.2;
+var orthoCamera = new OrthoCamera();
+function debugShadow(){
+  var shader = canvasShader;
+  var program = canvasProgram;
+  var camera =  orthoCamera;
+  gl.useProgram(program);
+  shader.bindAttribute(program);
+  shader.bindUniform(program);
+
+  shadowPlane.updateMatrix();
+  camera.updateMatrix();
+  camera.projection(shader.uniform);
+
+  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+
+  shadowPlane.draw(shader, camera);
+
+  gl.bindTexture(gl.TEXTURE_2D, null);
 }

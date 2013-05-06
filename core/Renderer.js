@@ -1,42 +1,43 @@
 function Renderer(){
-  this.shadowProgram = gl.createProgram();
-  this.shadowShader = new Shader(this.shadowProgram, 'shader/shadow.vert', 'shader/shadow.frag');
+  this.canvas = document.createElement('canvas');
+  gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  this.phongProgram = gl.createProgram();
-  this.phongShader = new Shader(this.phongProgram, 'shader/phong.vert', 'shader/phong.frag');
+  // render targets
+  this.targets = [];
+  // shadow target, render depth texture
+  this.targets.push(new ShadowMapTarget(this));
+  // final scene render target, renders the final scene using the depth texture
+  this.targets.push(new SceneTarget(this));
+
+  this.resize(window.innerWidth, window.innerHeight);
 }
 var p = Renderer.prototype;
 
-// TODO: remove shader from the parameter
-p.render = function(scene, camera){
+p.update = function(scene, camera){
   var len = scene.children.length;
-  var i;
-  for(i=0; i<len; ++i){
+  for(var i=0; i<len; ++i){
     // update all objects, to world space.
     scene.children[i].updateMatrix();
   }
 
   // TODO: sort the list first.
   scene.sort();
+}
 
-  // TODO: draw shadow, etc.
-  gl.useProgram(this.shadowProgram);
-  shadowShader.bindAttribute(this.shadowProgram);
-  shadowShader.bindUniform(this.shadowProgram);
-  // draw shadows
-  len = scene.lights.length;
-  for(i=0; i<len; ++i){
-    scene.lights[i].shadow(shadowShader);
-  }
+p.render = function(scene, camera){
+  this.update(scene, camera);
 
-  // render final scene
-  gl.useProgram(this.phongProgram);
-  phongShader.bindAttribute(this.phongProgram);
-  phongShader.bindUniform(this.phongProgram);
-  // draw to canvas context
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  len = scene.sortList.length;
-  for(i=0; i<len; ++i){
-    scene.sortList[i].render(phongShader, camera);
+  // draw shadow, scene, etc.
+  var len = this.targets.length;
+  for(var i=0; i<len; ++i){
+    this.targets[i].render(scene, camera);
   }
+}
+
+p.resize = function(width, height){
+  this.canvas.width = width;
+  this.canvas.height = height;
+  gl.viewport(0, 0, width, height);
 }

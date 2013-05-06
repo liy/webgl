@@ -103,7 +103,7 @@ p._updateChildrenMatrix = function(){
   }
 }
 
-p.render = function(shader, camera){
+p.draw = function(shader, camera){
 
 }
 

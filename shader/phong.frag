@@ -115,6 +115,7 @@ void main(){
   // gl_FragColor = vec4(distance(v_Position, u_Light.position), distance(v_Position, u_Light.position), distance(v_Position, u_Light.position), 1.0);
   // gl_FragColor = vec4(photonDirection, 1.0);
   // gl_FragColor = vec4(v_Position.xyz, 1.0);
-
   // gl_FragColor = vec4(shadow, 0.0, 0.0, 1.0);
+  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  // gl_FragColor = texture2D(u_Sampler, v_TexCoord);
 }

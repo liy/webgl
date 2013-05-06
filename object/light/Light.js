@@ -6,10 +6,10 @@ function Light(){
 
   // whether this light cast shadow or not
   this._castShadow = false;
-  this.depthTextureSize = 512;
+  this.framebufferSize = 512;
 
   // vec4
-  this.ambient = vec4.fromValues(0.05, 0.05, 0.05, 1.0);
+  this.ambient = vec4.fromValues(0.1, 0.1, 0.1, 1.0);
   // vec4
   this.diffuse = vec4.fromValues(0.95, 0.95, 0.95, 1.0);
   // vec4
@@ -33,12 +33,19 @@ function Light(){
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 
-p.shadow = function(shader, framebuffer){
+p.lit = function(shader, camera){
+  // transform light position to eye coordinate
+  this._trasnformedPosition = vec3.create();
+  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
+  vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
 
-}
-
-p.lit = function(shader){
-
+  gl.uniform4fv(shader.uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
+  gl.uniform4fv(shader.uniform['u_Light.ambient'], this.ambient);
+  gl.uniform4fv(shader.uniform['u_Light.diffuse'], this.diffuse);
+  gl.uniform4fv(shader.uniform['u_Light.specular'], this.specular);
+  gl.uniform3fv(shader.uniform['u_Light.attenuation'], this.attenuation);
+  gl.uniform3fv(shader.uniform['u_Light.direction'], this._transformedDirection);
+  gl.uniform1i(shader.uniform['u_Light.enabled'], this.enabled);
 }
 
 Object.defineProperty(p, "castShadow", {
@@ -55,23 +62,41 @@ Object.defineProperty(p, "castShadow", {
       gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.depthTextureSize, this.depthTextureSize, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.framebufferSize, this.framebufferSize, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 
-      // framebuffer
+      // color texture is required by framebuffer by default.
+      this.colorTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, this.colorTexture);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.framebufferSize, this.framebufferSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
       this.framebuffer = gl.createFramebuffer();
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.colorTexture, 0);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     // delete original texture and framebuffer
     else{
-      gl.deleteFramebuffer(this.framebuffer);
       gl.deleteTexture(this.depthTexture);
+      gl.deleteFramebuffer(this.framebuffer);
     }
 
     this._castShadow = value;
   },
   get: function(){
     return this._castShadow;
+  }
+});
+
+Object.defineProperty(p, "viewMatrix", {
+  get: function(){
+    // apply the current transformation to the direction first.
+    vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
+    mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
+    return this._viewMatrix;
   }
 });

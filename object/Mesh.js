@@ -7,7 +7,7 @@ function Mesh(geometry, material){
   this.geometry = geometry;
   this.material = material;
 
-  this.useColor = false;
+  this.useColor = !this.material.texture;
 
   this.createBuffer();
 }
@@ -81,7 +81,8 @@ p.setUniform = function(uniform){
   gl.uniformMatrix4fv(uniform['u_ModelMatrix'], false, this.worldMatrix);
 }
 
-p.render = function(shader, camera){
+p.draw = function(shader, camera){
+  // console.log(camera.matrix);
   // update to model view matrix
   mat4.mul(this.modelViewMatrix, camera.matrix, this.worldMatrix);
   // transform model normal

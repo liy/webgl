@@ -2,6 +2,11 @@
 function SpotLight(){
   Light.call(this);
 
+  // vec3
+  // if any of x, y, z are non-zero, it is spot light
+  this.direction = vec3.fromValues(0, 0, -1);
+  this._transformedDirection = vec3.create();
+
   // internal spot fall off
   this._cosOuter = 0;
   this._cosInner = 0;
@@ -15,52 +20,17 @@ function SpotLight(){
   this._viewMatrix = mat4.create();
   this._projectionMatrix = mat4.create();
 
-  this.camera = new PerspectiveCamera(this._outerRadian*2, 1);
-  this.add(this.camera);
+  this._camera = new PerspectiveCamera(this._outerRadian*2, 1);
+  this.add(this._camera);
 
   this._modelViewMatrix = mat4.create();
 
   // if 0, then this light is a directional, if it 1, it is a point or spot light
   this.directional = 1;
+
+  this.framebufferSize = 512;
 }
 var p = SpotLight.prototype = Object.create(Light.prototype);
-
-p.setUniform = function(uniform, camera){
-  // calculate model view matrix
-  mat4.mul(this._modelViewMatrix, camera.matrix, this.matrix);
-  // console.log(this._modelViewMatrix);
-  // transform direction to eye coordinate
-  // ********** this is wrong!!!!!!!!!!!
-  // vec3.transformMat4(this._transformedDirection, this.direction, this._modelViewMatrix);
-  var directionMatrix = mat3.create();
-  mat3.normalFromMat4(directionMatrix, this._modelViewMatrix);
-  vec3.transformMat3(this._transformedDirection, this.direction, directionMatrix);
-
-
-  // transform light position to eye coordinate
-  this._trasnformedPosition = vec3.create();
-  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
-  vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
-
-
-  gl.uniform4fv(uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
-  gl.uniform4fv(uniform['u_Light.ambient'], this.ambient);
-  gl.uniform4fv(uniform['u_Light.diffuse'], this.diffuse);
-  gl.uniform4fv(uniform['u_Light.specular'], this.specular);
-  gl.uniform3fv(uniform['u_Light.attenuation'], this.attenuation);
-  gl.uniform3fv(uniform['u_Light.direction'], this._transformedDirection);
-  gl.uniform1f(uniform['u_Light.cosOuter'], this._cosOuter);
-  gl.uniform1f(uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
-  gl.uniform1i(uniform['u_Light.enabled'], this.enabled);
-
-
-  // console.log('light set uniform');
-
-  // shadow map related
-  var lightCamera = this.camera;
-  gl.uniformMatrix4fv(uniform['u_LightViewMatrix'], false, lightCamera.matrix);
-  gl.uniformMatrix4fv(uniform['u_LightProjectionMatrix'], false, lightCamera.projectionMatrix);
-}
 
 p.updateMatrix = function(){
   // transform this matrix
@@ -83,18 +53,50 @@ p.updateMatrix = function(){
   vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
   mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
   // override the perspective camera matrix to be the light's view matrix.
-  this.camera.matrix = this.viewMatrix;
-  this.camera.perspective(this._outerRadian*2, 1);
+  this._camera.matrix = this._viewMatrix;
+  this._camera.perspective(this._outerRadian*2, 1);
+
+  // console.log(this._viewMatrix);
 }
 
-p.lit = function(shader){
-  var lightCamera = this.camera;
-  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, lightCamera.matrix);
-  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, lightCamera.projectionMatrix);
+p.shadow = function(shader){
+  // shadow map related
+  if(this.castShadow){
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    gl.viewport(0, 0, this.framebufferSize, this.framebufferSize);
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // console.log(this._camera.worldMatrix);
+
+    gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this._camera.worldMatrix);
+    gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this._camera.projectionMatrix);
+  }
 }
 
-p.render = function(shader, camera){
+p.lit = function(shader, camera){
+  // calculate model view matrix
+  mat4.mul(this._modelViewMatrix, camera.matrix, this.matrix);
 
+  // transform direction to eye coordinate
+  var directionMatrix = mat3.create();
+  mat3.normalFromMat4(directionMatrix, this._modelViewMatrix);
+  vec3.transformMat3(this._transformedDirection, this.direction, directionMatrix);
+
+  // transform light position to eye coordinate
+  this._trasnformedPosition = vec3.create();
+  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
+  vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
+
+  gl.uniform4fv(shader.uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
+  gl.uniform4fv(shader.uniform['u_Light.ambient'], this.ambient);
+  gl.uniform4fv(shader.uniform['u_Light.diffuse'], this.diffuse);
+  gl.uniform4fv(shader.uniform['u_Light.specular'], this.specular);
+  gl.uniform3fv(shader.uniform['u_Light.attenuation'], this.attenuation);
+  gl.uniform3fv(shader.uniform['u_Light.direction'], this._transformedDirection);
+  gl.uniform1f(shader.uniform['u_Light.cosOuter'], this._cosOuter);
+  gl.uniform1f(shader.uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
+  gl.uniform1i(shader.uniform['u_Light.enabled'], this.enabled);
 }
 
 p.getProjectionMatrix = function(near, far){
@@ -108,16 +110,6 @@ Object.defineProperty(p, "viewMatrix", {
     return this._viewMatrix;
   }
 });
-
-// Object.defineProperty(p, 'camera', {
-//   get: function(){
-//     this._camera.updateMatrix();
-//     // override the perspective camera matrix to be the light's view matrix.
-//     this._camera.matrix = this.viewMatrix;
-//     this._camera.perspective(this._outerRadian*2, 1);
-//     return this._camera;
-//   }
-// });
 
 Object.defineProperty(p, "outerRadian", {
   set: function(value){
