@@ -96,6 +96,7 @@ function drawShadow(){
 
   subCube.rotationY += 0.008;
   subCube.rotationX += 0.008;
+  cube.rotationX += 0.003;
 
   camera.updateMatrix();
   light.updateMatrix();
@@ -121,6 +122,7 @@ function renderScene(program, shader, camera){
 
   subCube.rotationY += 0.008;
   subCube.rotationX += 0.008;
+  cube.rotationX += 0.003;
 
   camera.updateMatrix();
   light.updateMatrix();

@@ -82,7 +82,7 @@ p.updateMatrix = function(){
   // update the world matrix apply to this object
   this._updateWorldMatrix();
 
-  // update the matrix of its children, deep first traversing.
+  // update the matrix of its children, depth first traversing.
   this._updateChildrenMatrix();
 }
 
