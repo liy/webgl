@@ -13,13 +13,10 @@ p.render = function(scene, camera){
   // gl.colorMask(false, false, false, false);
   var len = scene.lights.length;
   for(var i=0; i<len; ++i){
-    scene.lights[i].shadow(this.shader);
-
-    // console.log(scene.lights[i]._camera.worldMatrix);
 
     // draw to the depth texture
     for(var j=0; j<scene.sortList.length; ++j){
-      scene.sortList[j].draw(this.shader, scene.lights[i]._camera);
+      scene.sortList[j].draw(this.shader, scene.lights[i].shadowCamera);
     }
   }
 

@@ -16,36 +16,15 @@ function Light(){
   this.specular = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
   // vec3, constant, linear and quadratic
   this.attenuation = vec3.fromValues(1, 0, 0);
-  // vec3
-  // if any of x, y, z are non-zero, it is spot light
-  this.direction = vec3.create();
-  this._transformedDirection = vec3.create();
-
-  // shadow map requires the view matrix from the light
-  this._viewMatrix = mat4.create();
-  this._projectionMatrix = mat4.create();
-  this._camera = new PerspectiveCamera(this._outerRadian*2, 1);
-
-  this._modelViewMatrix = mat4.create();
-
-  // if 0, then this light is a directional, if it 1, it is a point or spot light
-  this.directional = 1;
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 
-p.lit = function(shader, camera){
-  // transform light position to eye coordinate
-  this._trasnformedPosition = vec3.create();
-  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
-  vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
+p.shadow = function(shader){
 
-  gl.uniform4fv(shader.uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
-  gl.uniform4fv(shader.uniform['u_Light.ambient'], this.ambient);
-  gl.uniform4fv(shader.uniform['u_Light.diffuse'], this.diffuse);
-  gl.uniform4fv(shader.uniform['u_Light.specular'], this.specular);
-  gl.uniform3fv(shader.uniform['u_Light.attenuation'], this.attenuation);
-  gl.uniform3fv(shader.uniform['u_Light.direction'], this._transformedDirection);
-  gl.uniform1i(shader.uniform['u_Light.enabled'], this.enabled);
+}
+
+p.lit = function(shader, camera){
+
 }
 
 Object.defineProperty(p, "castShadow", {
@@ -89,14 +68,5 @@ Object.defineProperty(p, "castShadow", {
   },
   get: function(){
     return this._castShadow;
-  }
-});
-
-Object.defineProperty(p, "viewMatrix", {
-  get: function(){
-    // apply the current transformation to the direction first.
-    vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-    mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
-    return this._viewMatrix;
   }
 });

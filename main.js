@@ -24,7 +24,7 @@ plane.z = -5;
 var light = new SpotLight();
 light.outerRadian = Math.PI/5;
 light.innerRadian = Math.PI/5.1;
-// light.castShadow = true;
+light.castShadow = true;
 light.z = -1;
 var sceneCamera = new PerspectiveCamera(Math.PI/3, canvas.width/canvas.height, 0.1, 800);
 sceneCamera.x = 0.7;
@@ -74,8 +74,6 @@ function init(textures){
     drawShadow();
     renderScene(phongProgram, phongShader, sceneCamera);
 
-    // debugShadow();
-
     requestAnimFrame(loop);
   }
   requestAnimFrame(loop);
@@ -83,12 +81,9 @@ function init(textures){
 // init(null);
 
 function drawShadow(){
-  var shader = shadowShader;
-  var program = shadowProgram;
-  var camera = light._camera;
-  gl.useProgram(program);
-  shader.bindAttribute(program);
-  shader.bindUniform(program);
+  gl.useProgram(shadowProgram);
+  shadowShader.bindAttribute(shadowProgram);
+  shadowShader.bindUniform(shadowProgram);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.viewport(0, 0, framebufferSize, framebufferSize);
@@ -98,16 +93,15 @@ function drawShadow(){
   subCube.rotationX += 0.008;
   cube.rotationX += 0.003;
 
-  camera.updateMatrix();
   light.updateMatrix();
   cube.updateMatrix();
   plane.updateMatrix();
-  camera.projection(shader.uniform);
 
-  light.lit(shader, camera);
-  cube.draw(shader, camera);
-  plane.draw(shader, camera);
-  subCube.draw(shader, camera);
+  cube.draw(shadowShader, light.shadowCamera);
+  subCube.draw(shadowShader, light.shadowCamera);
+  plane.draw(shadowShader, light.shadowCamera);
+
+  light.shadowCamera.project(shadowShader);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
@@ -128,13 +122,8 @@ function renderScene(program, shader, camera){
   light.updateMatrix();
   cube.updateMatrix();
   plane.updateMatrix();
-  camera.projection(shader.uniform);
 
-  gl.activeTexture(gl.TEXTURE2);
-  gl.uniform1i(shader.uniform['u_ShadowMap'], 2);
-  gl.uniformMatrix4fv(shader.uniform['u_ModelMatrix'], false, cube.worldMatrix);
-  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, light.viewMatrix);
-  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, light._camera.projectionMatrix);
+  light.shadow(shader);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
   // re-active the texture0,
   gl.activeTexture(gl.TEXTURE0);
@@ -143,27 +132,6 @@ function renderScene(program, shader, camera){
   cube.draw(shader, camera);
   plane.draw(shader, camera);
   subCube.draw(shader, camera);
-}
 
-
-var shadowPlane = new Mesh(new PlaneGeometry(2, 2), new PhongMaterial());
-shadowPlane.z = -0.2;
-var orthoCamera = new OrthoCamera();
-function debugShadow(){
-  var shader = canvasShader;
-  var program = canvasProgram;
-  var camera =  orthoCamera;
-  gl.useProgram(program);
-  shader.bindAttribute(program);
-  shader.bindUniform(program);
-
-  shadowPlane.updateMatrix();
-  camera.updateMatrix();
-  camera.projection(shader.uniform);
-
-  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-
-  shadowPlane.draw(shader, camera);
-
-  gl.bindTexture(gl.TEXTURE_2D, null);
+  camera.project(shader);
 }

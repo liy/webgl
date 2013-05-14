@@ -7,10 +7,6 @@ function Camera(){
 }
 var p = Camera.prototype = Object.create(Object3D.prototype);
 
-p.projection = function(uniform){
-  gl.uniformMatrix4fv(uniform['u_ProjectionMatrix'], false, this.projectionMatrix);
-}
-
 // camera use look at method to update its matrix, so its matrix is actually the view matrix.
 p.updateMatrix = function(){
   // transform this matrix
@@ -23,4 +19,10 @@ p.updateMatrix = function(){
 
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();
+}
+
+// set projection matrix uniform
+p.project = function(shader){
+  // set shadow mapping projection matrix, for rendering the shadow map
+  gl.uniformMatrix4fv(shader.uniform['u_ProjectionMatrix'], false, this.projectionMatrix);
 }

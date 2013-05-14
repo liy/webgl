@@ -16,12 +16,9 @@ function SpotLight(){
   this.outerRadian = Math.PI/9;
   this.innerRadian = Math.PI/10;
 
-  // shadow map requires the view matrix from the light
-  this._viewMatrix = mat4.create();
-  this._projectionMatrix = mat4.create();
-
-  this._camera = new PerspectiveCamera(this._outerRadian*2, 1);
-  this.add(this._camera);
+  // light camera's matrix will be the view matrix.
+  // It also contains projection matrix.
+  this.shadowCamera = new PerspectiveCamera(this._outerRadian*2, 1);
 
   this._modelViewMatrix = mat4.create();
 
@@ -39,7 +36,6 @@ p.updateMatrix = function(){
   mat4.rotateX(this.matrix, this.matrix, this.rotationX);
   mat4.rotateY(this.matrix, this.matrix, this.rotationY);
   mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
-  // TODO: scale
 
   // update the world matrix apply to this object
   this._updateWorldMatrix();
@@ -47,45 +43,31 @@ p.updateMatrix = function(){
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();
 
-  // camera's matrix will be updated by this._updateChildrenMatrix()
-  // this.camera.updateMatrix();
-  // apply the current transformation to the direction first.
+  // sync camera view matrix and projection matrix
   vec3.transformMat4(this._transformedDirection, this.direction, this.matrix);
-  mat4.lookAt(this._viewMatrix, this.position, this._transformedDirection, [0, 1, 0]);
-  // override the perspective camera matrix to be the light's view matrix.
-  this._camera.matrix = this._viewMatrix;
-  this._camera.perspective(this._outerRadian*2, 1);
-
-  // console.log(this._viewMatrix);
+  mat4.lookAt(this.shadowCamera.matrix, this.position, this._transformedDirection, [0, 1, 0]);
+  this.shadowCamera.perspective(this._outerRadian*2, 1);
 }
 
+// active the correct texture and setup view and projection matrix for shadow
 p.shadow = function(shader){
-  // shadow map related
-  if(this.castShadow){
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.viewport(0, 0, this.framebufferSize, this.framebufferSize);
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    // console.log(this._camera.worldMatrix);
-
-    gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this._camera.worldMatrix);
-    gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this._camera.projectionMatrix);
-  }
+  gl.activeTexture(gl.TEXTURE2);
+  gl.uniform1i(shader.uniform['u_ShadowMap'], 2);
+  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this.shadowCamera.matrix);
+  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this.shadowCamera.projectionMatrix);
 }
 
 p.lit = function(shader, camera){
   // calculate model view matrix
   mat4.mul(this._modelViewMatrix, camera.matrix, this.matrix);
 
-  // transform direction to eye coordinate
+  // transform light direction to eye coordinate
   var directionMatrix = mat3.create();
   mat3.normalFromMat4(directionMatrix, this._modelViewMatrix);
   vec3.transformMat3(this._transformedDirection, this.direction, directionMatrix);
 
   // transform light position to eye coordinate
   this._trasnformedPosition = vec3.create();
-  // vec3.transformMat4(this._trasnformedPosition, [0, 0, 0], this._modelViewMatrix);
   vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
 
   gl.uniform4fv(shader.uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
@@ -98,18 +80,6 @@ p.lit = function(shader, camera){
   gl.uniform1f(shader.uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
   gl.uniform1i(shader.uniform['u_Light.enabled'], this.enabled);
 }
-
-p.getProjectionMatrix = function(near, far){
-  ma4.perspective(this._projectionMatrix, this._outerRadian*2, 1, near, far);
-  return this._projectionMatrix;
-}
-
-Object.defineProperty(p, "viewMatrix", {
-  get: function(){
-
-    return this._viewMatrix;
-  }
-});
 
 Object.defineProperty(p, "outerRadian", {
   set: function(value){
