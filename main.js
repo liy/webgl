@@ -71,6 +71,8 @@ function init(textures){
   function loop(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    update();
+
     drawShadow();
     renderScene(phongProgram, phongShader, sceneCamera);
 
@@ -78,7 +80,18 @@ function init(textures){
   }
   requestAnimFrame(loop);
 }
-// init(null);
+
+
+function update(){
+  subCube.rotationY += 0.008;
+  subCube.rotationX += 0.008;
+  cube.rotationX += 0.003;
+
+  sceneCamera.updateMatrix();
+  light.updateMatrix();
+  cube.updateMatrix();
+  plane.updateMatrix();
+}
 
 function drawShadow(){
   gl.useProgram(shadowProgram);
@@ -89,19 +102,11 @@ function drawShadow(){
   gl.viewport(0, 0, framebufferSize, framebufferSize);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  subCube.rotationY += 0.008;
-  subCube.rotationX += 0.008;
-  cube.rotationX += 0.003;
-
-  light.updateMatrix();
-  cube.updateMatrix();
-  plane.updateMatrix();
+  light.shadowCamera.project(shadowShader);
 
   cube.draw(shadowShader, light.shadowCamera);
   subCube.draw(shadowShader, light.shadowCamera);
   plane.draw(shadowShader, light.shadowCamera);
-
-  light.shadowCamera.project(shadowShader);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
@@ -114,24 +119,15 @@ function renderScene(program, shader, camera){
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  subCube.rotationY += 0.008;
-  subCube.rotationX += 0.008;
-  cube.rotationX += 0.003;
-
-  camera.updateMatrix();
-  light.updateMatrix();
-  cube.updateMatrix();
-  plane.updateMatrix();
-
   light.shadow(shader);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-  // re-active the texture0,
+  // re-active the texture0
   gl.activeTexture(gl.TEXTURE0);
+
+  camera.project(shader);
 
   light.lit(shader, camera);
   cube.draw(shader, camera);
   plane.draw(shader, camera);
   subCube.draw(shader, camera);
-
-  camera.project(shader);
 }
