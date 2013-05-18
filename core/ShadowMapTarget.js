@@ -10,18 +10,30 @@ p.render = function(scene, camera){
   this.shader.bindAttribute(this.program);
   this.shader.bindUniform(this.program);
 
-  // gl.colorMask(false, false, false, false);
+  // for some reason, the framebuffer requires a colorTexture. Better to disable color drawing, save some computation.
+  gl.colorMask(false, false, false, false);
+
   var len = scene.lights.length;
   for(var i=0; i<len; ++i){
+    if(!scene.lights[i].castShadow)
+      continue;
 
-    // draw to the depth texture
+    // bind the light's framebuffer, ready to draw to the texture
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.lights[i].framebuffer);
+    gl.viewport(0, 0, scene.lights[i].framebufferSize, scene.lights[i].framebufferSize);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // use the light's camera to do the projection
+    scene.lights[i].shadowCamera.project(this.shader);
+
+    // draw all scene object to the depth texture
     for(var j=0; j<scene.sortList.length; ++j){
+      // draw to shadow texture using light's camera as the view matrix.
       scene.sortList[j].draw(this.shader, scene.lights[i].shadowCamera);
     }
   }
 
-  // gl.colorMask(true, true, true, true);
-
-  // reset to default
+  // reset fraembuffer to context fraembuffer, and re-enable color draw for scene drawing
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.colorMask(true, true, true, true);
 }

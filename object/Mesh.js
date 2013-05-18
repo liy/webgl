@@ -82,7 +82,6 @@ p.setUniform = function(uniform){
 }
 
 p.draw = function(shader, camera){
-  // console.log(camera.matrix);
   // update to model view matrix
   mat4.mul(this.modelViewMatrix, camera.matrix, this.worldMatrix);
   // transform model normal

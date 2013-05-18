@@ -10,22 +10,20 @@ p.render = function(scene, camera){
   this.shader.bindAttribute(this.program);
   this.shader.bindUniform(this.program);
 
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  gl.clear(this.bits);
-
-  camera.projection(this.shader.uniform);
+  camera.project(this.shader);
 
   // light up the scene
   var len;
   len = scene.lights.length;
   for(var i=0; i<len; ++i){
-    // bind depth texture
-    gl.activeTexture(gl.TEXTURE1);
-    gl.uniform1i(this.shader.uniform['u_ShadowMap'], 1);
-    gl.bindTexture(gl.TEXTURE_2D, scene.lights[i].depthTexture);
 
-    gl.activeTexture(gl.TEXTURE0);
+    // bind depth texture
+    scene.lights[i].shadowMapping(this.shader);
+
 
     scene.lights[i].lit(this.shader, camera);
   }

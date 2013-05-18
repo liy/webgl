@@ -50,11 +50,19 @@ p.updateMatrix = function(){
 }
 
 // active the correct texture and setup view and projection matrix for shadow
-p.shadow = function(shader){
-  gl.activeTexture(gl.TEXTURE2);
-  gl.uniform1i(shader.uniform['u_ShadowMap'], 2);
-  gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this.shadowCamera.matrix);
-  gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this.shadowCamera.projectionMatrix);
+p.shadowMapping = function(shader){
+  if(this.castShadow){
+    gl.activeTexture(gl.TEXTURE1);
+    gl.uniform1i(shader.uniform['u_ShadowMap'], 1);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+
+    // setup light view and projection matrix for shadow mapping
+    gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this.shadowCamera.matrix);
+    gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this.shadowCamera.projectionMatrix);
+
+    // reset to texture 0
+    gl.activeTexture(gl.TEXTURE0);
+  }
 }
 
 p.lit = function(shader, camera){
