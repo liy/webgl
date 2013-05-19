@@ -18,7 +18,7 @@ var light = new SpotLight();
 light.castShadow = true;
 light.direction = [0.5, 0, -1];
 light.x = -1.5;
-scene.add(light);
+// scene.add(light);
 
 // objects
 var cube;
