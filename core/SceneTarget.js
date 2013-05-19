@@ -1,7 +1,7 @@
 function SceneTarget(renderer){
   RenderTarget.call(this, renderer);
 
-  this.shader = new Shader(this.program, '../shader/phong.vert', '../shader/phong.frag');
+  this.shader = new Shader(this.program, './shader/phong.vert', './shader/phong.frag');
 }
 var p = SceneTarget.prototype = Object.create(RenderTarget.prototype);
 

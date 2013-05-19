@@ -1,7 +1,7 @@
 function ShadowMapTarget(renderer){
   RenderTarget.call(this, renderer);
 
-  this.shader = new Shader(this.program, '../shader/shadow.vert', '../shader/shadow.frag');
+  this.shader = new Shader(this.program, './shader/shadow.vert', './shader/shadow.frag');
 }
 var p = ShadowMapTarget.prototype = Object.create(RenderTarget.prototype);
 
