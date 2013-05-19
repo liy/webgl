@@ -13,7 +13,7 @@ function SpotLight(){
   this._outerRadian = 0;
   this._innerRadian = 0;
 
-  this.outerRadian = Math.PI/9;
+  this.outerRadian = Math.PI/4;
   this.innerRadian = Math.PI/10;
 
   // light camera's matrix will be the view matrix.
@@ -50,10 +50,10 @@ p.updateMatrix = function(){
 }
 
 // active the correct texture and setup view and projection matrix for shadow
-p.shadowMapping = function(shader){
+p.shadowMapping = function(shader, index){
   if(this.castShadow){
-    gl.activeTexture(gl.TEXTURE1);
-    gl.uniform1i(shader.uniform['u_ShadowMap'], 1);
+    gl.activeTexture(gl.TEXTURE1 + index);
+    gl.uniform1i(shader.uniform['u_ShadowMap'], 1+index);
     gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
 
     // setup light view and projection matrix for shadow mapping

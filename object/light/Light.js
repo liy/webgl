@@ -19,7 +19,7 @@ function Light(){
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 
-p.shadowMapping = function(shader){
+p.shadowMapping = function(shader, index){
 
 }
 

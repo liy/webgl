@@ -1,6 +1,8 @@
 function Renderer(){
   this.canvas = document.createElement('canvas');
   gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+  this.ext = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('WEBGL_depth_texture');
+
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 

@@ -22,7 +22,7 @@ p.render = function(scene, camera){
   for(var i=0; i<len; ++i){
 
     // bind depth texture
-    scene.lights[i].shadowMapping(this.shader);
+    scene.lights[i].shadowMapping(this.shader, i);
 
 
     scene.lights[i].lit(this.shader, camera);

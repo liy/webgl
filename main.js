@@ -1,7 +1,6 @@
 // renderer render the scene.
 var renderer = new Renderer();
 document.body.appendChild(renderer.canvas);
-ext = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('depth_texture');
 
 // scene
 var scene = new Scene();
@@ -9,35 +8,45 @@ var scene = new Scene();
 // scene camera
 var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 800);
 scene.add(sceneCamera);
-sceneCamera.lookAt = [0, 0, -3];
-sceneCamera.x = 2;
-
+sceneCamera.lookAt = [0, 0, -2];
+sceneCamera.z = 2;
+sceneCamera.x = 4;
+sceneCamera.y = 2;
 
 // lights
 var light = new SpotLight();
 light.castShadow = true;
+light.direction = [0.5, 0, -1];
+light.x = -1.5;
 scene.add(light);
 
 // objects
 var cube;
+var subCube;
 var plane;
 Texture.load(['img/square.png'], init);
 function init(textures){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
-  cube.z = -3;
+  cube.z = -2;
   scene.add(cube);
+
+  subCube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
+  subCube.x = 1;
+  subCube.z = 1;
+  cube.add(subCube);
 
   plane = new Mesh(new PlaneGeometry(10, 10), new PhongMaterial({texture:textures[0]}));
   plane.useColor = true;
-  plane.z = -6;
+  plane.z = -3;
   scene.add(plane);
 
 
   // rendering
   function loop(){
-    // cube.rotationX += 0.03;
-    // cube.rotationY += 0.01;
-    // cube.rotationZ += 0.02;
+    cube.rotationX += 0.01;
+
+    subCube.rotationX += 0.01;
+    subCube.rotationY += 0.01;
 
     // sceneCamera.x += 0.01;
 
