@@ -6,14 +6,15 @@ function Renderer(){
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  // render targets
-  this.targets = [];
-  // shadow target, render depth texture
-  this.targets.push(new ShadowMapTarget(this));
-  // final scene render target, renders the final scene using the depth texture
-  this.targets.push(new SceneTarget(this));
-
   this.resize(window.innerWidth, window.innerHeight);
+
+  // always have a scene target
+  this.sceneTarget = new SceneTarget(this);
+
+  // render targets
+  this.targets = [new NormalTarget(this), new AlbedoTarget(this)];
+
+  this.mrtDebugger = new MRTDebugger(this);
 }
 var p = Renderer.prototype;
 
@@ -29,13 +30,20 @@ p.update = function(scene, camera){
 }
 
 p.render = function(scene, camera){
+  // update matrix
   this.update(scene, camera);
 
-  // draw shadow, scene, etc.
+  // draw to render target, normal, depth, albedo, etc.
   var len = this.targets.length;
   for(var i=0; i<len; ++i){
     this.targets[i].render(scene, camera);
   }
+
+  // draw to screen.
+  this.sceneTarget.render(scene, camera);
+
+  // debug mrt
+  this.mrtDebugger.draw();
 }
 
 p.resize = function(width, height){

@@ -60,14 +60,23 @@ p.createBuffer = function(){
 p.setAttribute = function(attribute){
   // vertex buffer
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vb);
+
+  // always have a vertex array
   gl.vertexAttribPointer(attribute['a_Vertex'], 3, gl.FLOAT, false, 48, 0);
-  gl.vertexAttribPointer(attribute['a_Normal'], 3, gl.FLOAT, false, 48, 12);
-  gl.vertexAttribPointer(attribute['a_TexCoord'], 2, gl.FLOAT, false, 48, 24);
-  gl.vertexAttribPointer(attribute['a_Color'], 4, gl.FLOAT, false, 48, 32);
   gl.enableVertexAttribArray(attribute['a_Vertex']);
-  gl.enableVertexAttribArray(attribute['a_TexCoord']);
-  gl.enableVertexAttribArray(attribute['a_Normal']);
-  gl.enableVertexAttribArray(attribute['a_Color']);
+
+  if(typeof attribute['a_Normal'] !== 'undefined'){
+    gl.vertexAttribPointer(attribute['a_Normal'], 3, gl.FLOAT, false, 48, 12);
+    gl.enableVertexAttribArray(attribute['a_Normal']);
+  }
+  if(typeof attribute['a_TexCoord'] !== 'undefined'){
+    gl.vertexAttribPointer(attribute['a_TexCoord'], 2, gl.FLOAT, false, 48, 24);
+    gl.enableVertexAttribArray(attribute['a_TexCoord']);
+  }
+  if(typeof attribute['a_Color'] !== 'undefined'){
+    gl.vertexAttribPointer(attribute['a_Color'], 4, gl.FLOAT, false, 48, 32);
+    gl.enableVertexAttribArray(attribute['a_Color']);
+  }
 }
 
 p.setUniform = function(uniform){
@@ -96,8 +105,9 @@ p.draw = function(shader, camera){
   this.setUniform(shader.uniform);
 
   // bind texture
-  if(this.material.texture)
+  if(this.material.texture){
     Texture.bind(this.material.texture.textureID);
+  }
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);
   gl.drawElements(gl.TRIANGLES, this.geometry.indices.length, gl.UNSIGNED_SHORT, 0);

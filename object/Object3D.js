@@ -5,6 +5,10 @@ function Object3D(){
   this.rotationY = 0;
   this.rotationZ = 0;
 
+  this.scaleX = 1;
+  this.scaleY = 1;
+  this.scaleZ = 1;
+
   // the matrix apply to this object
   this.matrix = mat4.create();
   // the concatenated matrix from root scene apply to this object.
@@ -77,7 +81,7 @@ p.updateMatrix = function(){
   mat4.rotateX(this.matrix, this.matrix, this.rotationX);
   mat4.rotateY(this.matrix, this.matrix, this.rotationY);
   mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
-  // TODO: scale
+  mat4.scale(this.matrix, this.matrix, [this.scaleX, this.scaleY, this.scaleZ]);
 
   // update the world matrix apply to this object
   this._updateWorldMatrix();

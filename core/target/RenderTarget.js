@@ -1,7 +1,9 @@
 function RenderTarget(renderer){
   this.program = gl.createProgram();
 
-  this.bits = gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT;
+  this.renderer = renderer;
+  this.shader = null;
+  this.framebuffer = null;
 }
 var p = RenderTarget.prototype;
 
