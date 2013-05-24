@@ -39,12 +39,13 @@ p.createBuffer = function(){
   }
 
 
-
-  // destroy original buffers
-  if(this.vb)
-    gl.deleteBuffer(this.vb);
-  if(this.ib)
-    gl.deleteBuffer(this.ib);
+  // NO NEED TO deallocate the buffer.
+  // bufferData auto resize the buffer size
+  // // destroy original buffers
+  // if(this.vb)
+  //   gl.deleteBuffer(this.vb);
+  // if(this.ib)
+  //   gl.deleteBuffer(this.ib);
 
   // vertex buffer
   this.vb = gl.createBuffer();
