@@ -16,23 +16,23 @@ var plane;
 Texture.load(['img/square.png'], init);
 function init(textures){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
+  cube.name = 'cube';
   cube.z = -2;
   scene.add(cube);
 
   plane = new Mesh(new PlaneGeometry(3, 3), new PhongMaterial());
+  plane.name = 'plane';
   plane.z = -3.5;
   plane.x = -1;
-  scene.add(plane);
+  cube.add(plane);
 
   // cube.add(sceneCamera);
 
   // rendering
   function loop(){
 
-    cube.rotationX += 0.02;
-    cube.rotationY += 0.008;
-
-    // console.log(sceneCamera.worldMatrix);
+    // cube.rotationX += 0.02;
+    // cube.rotationY += 0.008;
 
     renderer.render(scene, sceneCamera);
     requestAnimFrame(loop);

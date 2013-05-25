@@ -29,8 +29,8 @@ p.render = function(scene, camera){
   }
 
   // draw the scene
-  len = scene.sortList.length;
+  len = scene.meshes.length;
   for(var i=0; i<len; ++i){
-    scene.sortList[i].draw(this.shader, camera);
+    scene.meshes[i].draw(this.shader, camera);
   }
 }

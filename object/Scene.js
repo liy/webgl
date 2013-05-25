@@ -9,23 +9,23 @@ function Scene(){
   this.meshes = [];
   // contains cameras only
   this.cameras = [];
-  // sort list contains every objects in the scene.
-  this.sortList = [];
+  // contains every objects in the scene.
+  this.objects = [];
 
   // if it is dirty, the buffer will be updated
   this.dirty = true;
 }
 var p = Scene.prototype = Object.create(Object3D.prototype);
 
-p.addToSortList = function(obj3D){
-  var index = this.sortList.indexOf(obj3D);
+p.track = function(obj3D){
+  var index = this.objects.indexOf(obj3D);
   if(index === -1){
-    this.sortList.push(obj3D);
+    this.objects.push(obj3D);
     obj3D.scene = this;
 
     // scan all its children to add them to the sort list
     for(var i=0; i<obj3D.children.length; ++i){
-      this.addToSortList(obj3D.children[i]);
+      this.track(obj3D.children[i]);
     }
 
     // add object to specific category
@@ -40,15 +40,15 @@ p.addToSortList = function(obj3D){
   }
 }
 
-p.removeFromSortList = function(obj3D){
-  var index = this.sortList.indexOf(obj3D);
+p.untrack = function(obj3D){
+  var index = this.objects.indexOf(obj3D);
   if(index !== -1){
-    this.sortList.splice(index, 1);
+    this.objects.splice(index, 1);
     obj3D.scene = null;
 
     // recursively, scan all its children and remove them from the sort list and their categories
     for(var i=0; i<obj3D.children.length; ++i){
-      this.removeFromSortList(obj3D.children[i]);
+      this.untrack(obj3D.children[i]);
     }
 
     // remove object from specific category

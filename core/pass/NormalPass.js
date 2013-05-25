@@ -37,9 +37,9 @@ p.render = function(scene, camera){
 
   camera.project(this.shader);
 
-  var len = scene.sortList.length;
+  var len = scene.meshes.length;
   for(var i=0; i<len; ++i){
-    scene.sortList[i].draw(this.shader, camera);
+    scene.meshes[i].draw(this.shader, camera);
   }
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);

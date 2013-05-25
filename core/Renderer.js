@@ -13,16 +13,10 @@ function Renderer(){
   // render targets
   this.targets = [new NormalPass(this), new AlbedoPass(this)];
   this.mrtDebugger = new MRTDebugger(this);
-
-  this.vertexBuffer = gl.createBuffer();
-  this.texCoordBuffer = gl.createBuffer();
-  this.colorBuffer = gl.createBuffer();
-  this.normalBuffer = gl.createBuffer();
-  this.indexBuffer = gl.createBuffer();
 }
 var p = Renderer.prototype;
 
-p.update = function(scene, camera){
+p.update = function(scene){
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
     // update all objects, to world space.
@@ -30,24 +24,29 @@ p.update = function(scene, camera){
   }
 }
 
-p.sort = function(scene, camera){
-  var len = scene.sortList.length;
-  scene.sortList.sort();
-}
-
 p.render = function(scene, camera){
+  var i, len;
+
   // update matrix
-  this.update(scene, camera);
+  this.update(scene);
 
-  // TODO: sort the list first.
-  this.sort(scene, camera);
+  // calculate normal, model view matrix and view space position of the meshes
+  len = scene.meshes.length;
+  for(i=0; i<len; ++i){
+    // update to model view matrix
+    mat4.mul(scene.meshes[i].modelViewMatrix, camera.worldMatrix, scene.meshes[i].worldMatrix);
+    // normal matrix, it is inverse transpose of the model view matrix
+    mat3.normalFromMat4(scene.meshes[i].normalMatrix, scene.meshes[i].modelViewMatrix);
+    // calculate the view space position of the meshes, for states sorting
+    vec3.transformMat4(scene.meshes[i].viewSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
+  }
 
-  // update buffer
-  this.updateBuffer(scene);
+  // do the state sorting
+  scene.meshes.sort(sortFunc);
 
   // draw to render target, normal, depth, albedo, etc.
-  var len = this.targets.length;
-  for(var i=0; i<len; ++i){
+  len = this.targets.length;
+  for(i=0; i<len; ++i){
     this.targets[i].render(scene, camera);
   }
 
@@ -58,48 +57,42 @@ p.render = function(scene, camera){
   this.mrtDebugger.draw();
 }
 
-p.updateBuffer = function(scene){
-  if(scene.dirty){
-    var vertexData = [];
-    var texCoordData =[];
-    var colorData = [];
-    var normalData = [];
-    var indexData = [];
-
-    var len = scene.meshes.length;
-    for(var i=0; i<len; ++i){
-      // vertices information
-      for(var j=0; j<scene.meshes[i].geometry.numVertices; ++j){
-        // vertex
-        vertexData.push(scene.meshes[i].geometry.vertices[j*3]);
-        vertexData.push(scene.meshes[i].geometry.vertices[j*3+1]);
-        vertexData.push(scene.meshes[i].geometry.vertices[j*3+2]);
-
-        // uv
-        texCoordData.push(scene.meshes[i].geometry.texCoords[j*2]);
-        texCoordData.push(scene.meshes[i].geometry.texCoords[j*2+1]);
-
-        // normal
-        normalData.push(scene.meshes[i].geometry.normals[j*3]);
-        normalData.push(scene.meshes[i].geometry.normals[j*3+1]);
-        normalData.push(scene.meshes[i].geometry.normals[j*3+2]);
-
-        // color, rgba
-        colorData.push(scene.meshes[i].material.color[0])
-        colorData.push(scene.meshes[i].material.color[1])
-        colorData.push(scene.meshes[i].material.color[2])
-        colorData.push(scene.meshes[i].material.color[3])
-      }
-    }
-
-    // gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-
-    scene.dirty = false;
-  }
-}
-
 p.resize = function(width, height){
   this.canvas.width = width;
   this.canvas.height = height;
   gl.viewport(0, 0, width, height);
+}
+
+function sortFunc(a, b){
+  // if(a.translucent != b.translucent){
+  //   if(b.translucent)
+  //     return 1;
+  //   else
+  //     return -1;
+  // }
+
+  // if(a.texture != b.texture){
+  //   if(a.texture < b.texture)
+  //     return 1;
+  //   else
+  //     return -1;
+  // }
+
+  // if(a.depth != b.depth){
+  //   if(a.depth < b.depth)
+  //     return (a.translucent) ? -1 : 1;
+  //   else if(a.depth == b.depth)
+  //     return 0;
+  //   else
+  //     return (!a.translucent) ? -1 : 1;
+  // }
+
+  // return 0;
+
+  if(a.viewSpacePosition[2] < b.viewSpacePosition[2])
+    return 1;
+  else if(a.viewSpacePosition[2] > b.viewSpacePosition[2])
+    return -1
+  else
+    return 0;
 }

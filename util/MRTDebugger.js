@@ -25,6 +25,10 @@ p.draw = function(){
 
     for(var i=0; i<this.views.length; ++i){
       this.views[i].updateMatrix();
+
+      // model view matrix of the views
+      mat4.mul(this.views[i].modelViewMatrix, this.camera.worldMatrix, this.views[i].worldMatrix);
+
       gl.bindTexture(gl.TEXTURE_2D, this.renderer.targets[i].texture);
       this.views[i].draw(this.shader, this.camera);
     }

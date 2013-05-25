@@ -47,11 +47,8 @@ p.updateMatrix = function(){
 
 p._updateWorldMatrix = function(){
   if(this.parent === null){
-    // mat4.identity(this.worldMatrix);
-    // mat4.mul(this.worldMatrix, this.worldMatrix, this._matrix);
-
     // directly override the world matrix with the local matrix. No need to make copy.
-    this.worldMatrix = this._matrix;
+    mat4.copy(this.worldMatrix, this._matrix);
   }
   else{
     mat4.mul(this.worldMatrix, this.parent.worldMatrix, this._matrix);
@@ -75,7 +72,7 @@ p.add = function(obj3D){
     obj3D.parent = this;
 
     if(this.scene)
-      this.scene.addToSortList(obj3D);
+      this.scene.track(obj3D);
   }
 }
 
@@ -86,7 +83,7 @@ p.remove = function(obj3D){
     obj3D.parent = null;
 
     if(this.scene)
-      this.scene.removeFromSortList(obj3D);
+      this.scene.untrack(obj3D);
   }
 }
 
@@ -199,5 +196,5 @@ p.draw = function(shader, camera){
 
 }
 
-
+Object3D.origin = vec3.create();
 Object3D.id = 0;

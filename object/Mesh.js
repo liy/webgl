@@ -3,6 +3,7 @@ function Mesh(geometry, material){
 
   this.normalMatrix = mat3.create();
   this.modelViewMatrix = mat4.create();
+  this.viewSpacePosition = vec3.create();
 
   this.geometry = geometry;
   this.material = material;
@@ -13,6 +14,8 @@ function Mesh(geometry, material){
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
 
+// NO NEED TO deallocate the buffer.
+// bufferData auto resize the buffer size, and upload the data
 p.createBuffer = function(){
   // vertices information
   var data = [];
@@ -37,15 +40,6 @@ p.createBuffer = function(){
     data.push(this.material.color[2])
     data.push(this.material.color[3])
   }
-
-
-  // NO NEED TO deallocate the buffer.
-  // bufferData auto resize the buffer size, and upload the data
-  // // destroy original buffers
-  // if(this.vb)
-  //   gl.deleteBuffer(this.vb);
-  // if(this.ib)
-  //   gl.deleteBuffer(this.ib);
 
   // vertex buffer
   this.vb = gl.createBuffer();
@@ -82,24 +76,14 @@ p.setAttribute = function(attribute){
 
 p.setUniform = function(uniform){
   gl.uniform1i(uniform['u_UseColor'], this.useColor);
-
-  // normal model view matrix
+  // normal, model view matrix
   gl.uniformMatrix4fv(uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
   gl.uniformMatrix3fv(uniform['u_NormalMatrix'], false, this.normalMatrix);
-
   // set model matrix, for shadow mapping use
   gl.uniformMatrix4fv(uniform['u_ModelMatrix'], false, this.worldMatrix);
 }
 
 p.draw = function(shader, camera){
-  // update to model view matrix
-  mat4.mul(this.modelViewMatrix, camera.worldMatrix, this.worldMatrix);
-  // transform model normal
-  // ********
-  // notice that the normal matrix is inverse transpose of the ** model view ** matrix
-  // ********
-  mat3.normalFromMat4(this.normalMatrix, this.modelViewMatrix);
-
   // setup uniform and attributes
   this.setAttribute(shader.attribute);
   this.material.setUniform(shader.uniform);
