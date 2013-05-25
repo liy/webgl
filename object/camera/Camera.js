@@ -3,22 +3,27 @@ function Camera(){
   Object3D.call(this);
 
   this.projectionMatrix = mat4.create();
-  this.lookAt = vec3.fromValues(0, 0, -1);
 }
 var p = Camera.prototype = Object.create(Object3D.prototype);
 
-// camera use look at method to update its matrix, so its matrix is actually the view matrix.
+// camera use look at method to update its matrix, so its 'worldMatrix' is actually the view worldMatrix.
 p.updateMatrix = function(){
-  // transform this matrix
-  mat4.identity(this.matrix);
-  mat4.translate(this.matrix, this.matrix, this.position);
-  // invert the translation, since this is the view matrix, move camera left means move object right
-  mat4.invert(this.matrix, this.matrix);
-  // apply look at matrix, that is the rotation matrix
-  mat4.lookAt(this.matrix, this.position, this.lookAt, [0, 1, 0]);
+  if(this.autoMatrix){
+    mat4.identity(this._matrix);
+    mat4.translate(this._matrix, this._matrix, this._position);
+    mat4.rotateX(this._matrix, this._matrix, this._rotationX);
+    mat4.rotateY(this._matrix, this._matrix, this._rotationY);
+    mat4.rotateZ(this._matrix, this._matrix, this._rotationZ);
+  }
 
   // update the world matrix apply to this object
   this._updateWorldMatrix();
+
+  // invert the translation, since this is the view matrix, move camera left means move object right
+  mat4.invert(this.worldMatrix, this.worldMatrix);
+
+  // update the matrix of its children, deep first traversing.
+  this._updateChildrenMatrix();
 }
 
 // set projection matrix uniform

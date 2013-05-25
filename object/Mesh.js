@@ -93,7 +93,7 @@ p.setUniform = function(uniform){
 
 p.draw = function(shader, camera){
   // update to model view matrix
-  mat4.mul(this.modelViewMatrix, camera.matrix, this.worldMatrix);
+  mat4.mul(this.modelViewMatrix, camera.worldMatrix, this.worldMatrix);
   // transform model normal
   // ********
   // notice that the normal matrix is inverse transpose of the ** model view ** matrix

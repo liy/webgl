@@ -7,8 +7,9 @@ var scene = new Scene();
 
 // scene camera
 var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 800);
+// sceneCamera.z = 0.5;
+// sceneCamera.y = 0.54;
 scene.add(sceneCamera);
-sceneCamera.lookAt = [0, 0, -2];
 
 // objects
 var cube;
@@ -20,15 +21,17 @@ function init(textures){
   scene.add(cube);
 
   plane = new Mesh(new PlaneGeometry(3, 3), new PhongMaterial());
-  plane.z = -0.5;
+  plane.z = -3.5;
   plane.x = -1;
-  cube.add(plane);
+  scene.add(plane);
 
   // rendering
   function loop(){
 
-    cube.rotationX += 0.02;
-    cube.rotationY += 0.008;
+    // cube.rotationX += 0.02;
+    // cube.rotationY += 0.008;
+
+    // console.log(sceneCamera.worldMatrix);
 
     renderer.render(scene, sceneCamera);
     requestAnimFrame(loop);

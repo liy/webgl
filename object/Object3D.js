@@ -1,24 +1,20 @@
 function Object3D(){
-  this.position = vec3.create();
-
-  this.rotationX = 0;
-  this.rotationY = 0;
-  this.rotationZ = 0;
-
-  this.scaleX = 1;
-  this.scaleY = 1;
-  this.scaleZ = 1;
+  this._position = vec3.create();
+  this._rotationX = 0;
+  this._rotationY = 0;
+  this._rotationZ = 0;
+  this._scale = vec3.fromValues(1,1,1);
 
   // the matrix apply to this object
-  this.matrix = mat4.create();
-  // the concatenated matrix from root scene apply to this object.
+  this._matrix = mat4.create();
+  // read only, the concatenated matrix from root scene apply to this object.
   this.worldMatrix = mat4.create();
 
   // if you directly set xyz, scale, rotation, this field will be set to false.
   // that means, matrix will be generated from those field.
   // However, if you manually set the matrix value, this field will be auto set to true,
   // matrix will not be updated according to simple xyz, scale and rotation values.
-  this.manualMatrix = false;
+  this.autoMatrix = true;
 
   this.children = [];
   this.parent = null;
@@ -27,6 +23,48 @@ function Object3D(){
   this.id = Object3D.id++;
 }
 var p = Object3D.prototype;
+
+
+// If use convenient setter methods, the matrix must be updated, sync with the position.
+p.updateMatrix = function(){
+  // if user set the simple xyz, rotation or scale values, autoMatrix will be set to true.
+  // The object's matrix will be computed by those values instead.
+  if(this.autoMatrix){
+    mat4.identity(this._matrix);
+    mat4.translate(this._matrix, this._matrix, this._position);
+    mat4.rotateX(this._matrix, this._matrix, this._rotationX);
+    mat4.rotateY(this._matrix, this._matrix, this._rotationY);
+    mat4.rotateZ(this._matrix, this._matrix, this._rotationZ);
+    mat4.scale(this._matrix, this._matrix, this._scale);
+  }
+
+  // update the world matrix apply to this object
+  this._updateWorldMatrix();
+
+  // update the matrix of its children
+  this._updateChildrenMatrix();
+}
+
+p._updateWorldMatrix = function(){
+  if(this.parent === null){
+    // mat4.identity(this.worldMatrix);
+    // mat4.mul(this.worldMatrix, this.worldMatrix, this._matrix);
+
+    // directly override the world matrix with the local matrix. No need to make copy.
+    this.worldMatrix = this._matrix;
+  }
+  else{
+    mat4.mul(this.worldMatrix, this.parent.worldMatrix, this._matrix);
+  }
+}
+
+p._updateChildrenMatrix = function(){
+  var len = this.children.length
+  for(var i=0; i<len; ++i){
+    this.children[i].updateMatrix();
+  }
+}
+
 
 p.add = function(obj3D){
   if(this.children.indexOf(obj3D) === -1){
@@ -52,69 +90,110 @@ p.remove = function(obj3D){
   }
 }
 
+
 Object.defineProperty(p, "x", {
   get: function(){
-    return this.position[0];
+    return this._position[0];
   },
   set: function(x){
-    this.position[0] = x;
+    this._position[0] = x;
+    this.autoMatrix = true;
   }
 });
 
 Object.defineProperty(p, "y", {
   get: function(){
-    return this.position[1];
+    return this._position[1];
   },
   set: function(y){
-    this.position[1] = y;
+    this._position[1] = y;
+    this.autoMatrix = true;
   }
 });
 
 Object.defineProperty(p, "z", {
   get: function(){
-    return this.position[2];
+    return this._position[2];
   },
   set: function(z){
-    this.position[2] = z;
+    this._position[2] = z;
+    this.autoMatrix = true;
   }
 });
 
-// If use convenient setter methods, the matrix must be updated, sync with the position.
-p.updateMatrix = function(){
-  // transform this matrix
-  mat4.identity(this.matrix);
-  mat4.translate(this.matrix, this.matrix, this.position);
-  mat4.rotateX(this.matrix, this.matrix, this.rotationX);
-  mat4.rotateY(this.matrix, this.matrix, this.rotationY);
-  mat4.rotateZ(this.matrix, this.matrix, this.rotationZ);
-  mat4.scale(this.matrix, this.matrix, [this.scaleX, this.scaleY, this.scaleZ]);
-
-  // update the world matrix apply to this object
-  this._updateWorldMatrix();
-
-  // update the matrix of its children
-  this._updateChildrenMatrix();
-}
-
-p._updateWorldMatrix = function(){
-  if(this.parent === null){
-    // mat4.identity(this.worldMatrix);
-    // mat4.mul(this.worldMatrix, this.worldMatrix, this.matrix);
-
-    // directly override the world matrix with the local matrix. No need to make copy.
-    this.worldMatrix = this.matrix;
+Object.defineProperty(p, "rotationX", {
+  get: function(){
+    return this._rotationX;
+  },
+  set: function(x){
+    this._rotationX = x;
+    this.autoMatrix = true;
   }
-  else{
-    mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.matrix);
-  }
-}
+});
 
-p._updateChildrenMatrix = function(){
-  var len = this.children.length
-  for(var i=0; i<len; ++i){
-    this.children[i].updateMatrix();
+Object.defineProperty(p, "rotationY", {
+  get: function(){
+    return this._rotationY;
+  },
+  set: function(y){
+    this._rotationY = y;
+    this.autoMatrix = true;
   }
-}
+});
+
+Object.defineProperty(p, "rotationZ", {
+  get: function(){
+    return this._rotationZ;
+  },
+  set: function(z){
+    this._rotationZ = z;
+    this.autoMatrix = true;
+  }
+});
+
+Object.defineProperty(p, "scaleX", {
+  get: function(){
+    return this._scale[0];
+  },
+  set: function(x){
+    this._scale[0] = x;
+    this.autoMatrix = true;
+  }
+});
+
+Object.defineProperty(p, "scaleY", {
+  get: function(){
+    return this._scale[1];
+  },
+  set: function(y){
+    this._scale[1] = y;
+    this.autoMatrix = true;
+  }
+});
+
+Object.defineProperty(p, "scaleZ", {
+  get: function(){
+    return this._scale[2];
+  },
+  set: function(z){
+    this._scale[2] = z;
+    this.autoMatrix = true;
+  }
+});
+
+Object.defineProperty(p, "matrix", {
+  get: function(){
+    return this._matrix;
+  },
+  set: function(value){
+    this._matrix = value;
+
+    // TODO: decompose the xyz, scale and rotaion value
+
+    this.autoMatrix = false;
+  }
+});
+
 
 p.draw = function(shader, camera){
 
