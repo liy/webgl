@@ -40,7 +40,7 @@ p.createBuffer = function(){
 
 
   // NO NEED TO deallocate the buffer.
-  // bufferData auto resize the buffer size
+  // bufferData auto resize the buffer size, and upload the data
   // // destroy original buffers
   // if(this.vb)
   //   gl.deleteBuffer(this.vb);

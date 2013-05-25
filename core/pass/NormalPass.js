@@ -1,5 +1,5 @@
-function NormalTarget(renderer){
-  RenderTarget.call(this, renderer);
+function NormalPass(renderer){
+  RenderPass.call(this, renderer);
 
   this.shader = new Shader(this.program, 'shader/normal.vert', 'shader/normal.frag');
 
@@ -22,7 +22,7 @@ function NormalTarget(renderer){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
 }
-var p = NormalTarget.prototype = Object.create(RenderTarget.prototype);
+var p = NormalPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);

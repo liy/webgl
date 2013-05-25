@@ -20,9 +20,9 @@ function init(textures){
   scene.add(cube);
 
   plane = new Mesh(new PlaneGeometry(3, 3), new PhongMaterial());
-  plane.z = -4;
+  plane.z = -0.5;
   plane.x = -1;
-  scene.add(plane);
+  cube.add(plane);
 
   // rendering
   function loop(){
@@ -35,7 +35,6 @@ function init(textures){
   }
   requestAnimFrame(loop);
 }
-
 
 
 

@@ -1,6 +1,6 @@
 function MRTDebugger(renderer){
   this.renderer = renderer;
-  this.shader = this.renderer.sceneTarget.shader;
+  this.shader = this.renderer.screenPass.shader;
 
   this.enabled = true;
 

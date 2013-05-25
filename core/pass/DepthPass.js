@@ -1,5 +1,5 @@
-function DepthTarget(renderer){
-  RenderTarget.call(this, renderer);
+function DepthPass(renderer){
+  RenderPass.call(this, renderer);
   this.shader = new Shader(this.program, 'shader/depth.vert', 'shader/depth.frag');
 
   this.texture = gl.createTexture();
@@ -13,7 +13,7 @@ function DepthTarget(renderer){
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   // TODO: check depth texture extension, if extension available use the extension. Otherwise, use renderbuffer to draw depth information.
 }
-var p = DepthTarget.prototype = Object.create(RenderTarget.prototype);
+var p = DepthPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);

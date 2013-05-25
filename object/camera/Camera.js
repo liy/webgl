@@ -19,10 +19,6 @@ p.updateMatrix = function(){
 
   // update the world matrix apply to this object
   this._updateWorldMatrix();
-
-
-  // update the matrix of its children, deep first traversing.
-  this._updateChildrenMatrix();
 }
 
 // set projection matrix uniform

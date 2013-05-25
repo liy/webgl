@@ -14,6 +14,12 @@ function Object3D(){
   // the concatenated matrix from root scene apply to this object.
   this.worldMatrix = mat4.create();
 
+  // if you directly set xyz, scale, rotation, this field will be set to false.
+  // that means, matrix will be generated from those field.
+  // However, if you manually set the matrix value, this field will be auto set to true,
+  // matrix will not be updated according to simple xyz, scale and rotation values.
+  this.manualMatrix = false;
+
   this.children = [];
   this.parent = null;
   this.scene = null;
@@ -86,17 +92,20 @@ p.updateMatrix = function(){
   // update the world matrix apply to this object
   this._updateWorldMatrix();
 
-  // update the matrix of its children, depth first traversing.
+  // update the matrix of its children
   this._updateChildrenMatrix();
 }
 
 p._updateWorldMatrix = function(){
-  if(this.parent){
-    mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.matrix);
+  if(this.parent === null){
+    // mat4.identity(this.worldMatrix);
+    // mat4.mul(this.worldMatrix, this.worldMatrix, this.matrix);
+
+    // directly override the world matrix with the local matrix. No need to make copy.
+    this.worldMatrix = this.matrix;
   }
   else{
-    mat4.identity(this.worldMatrix);
-    mat4.mul(this.worldMatrix, this.worldMatrix, this.matrix);
+    mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.matrix);
   }
 }
 

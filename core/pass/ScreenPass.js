@@ -1,9 +1,9 @@
-function SceneTarget(renderer){
-  RenderTarget.call(this, renderer);
+function ScreenPass(renderer){
+  RenderPass.call(this, renderer);
 
   this.shader = new Shader(this.program, './shader/scene.vert', './shader/scene.frag');
 }
-var p = SceneTarget.prototype = Object.create(RenderTarget.prototype);
+var p = ScreenPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);
