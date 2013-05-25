@@ -1,12 +1,14 @@
-// TODO: make it base class of 2 types of camera, perspective and orthogonal
 function Camera(){
   Object3D.call(this);
 
   this.projectionMatrix = mat4.create();
+  this.lookTarget = vec3.fromValues(0,0,-1);
 }
 var p = Camera.prototype = Object.create(Object3D.prototype);
 
-// camera use look at method to update its matrix, so its 'worldMatrix' is actually the view worldMatrix.
+// TODO: camera update matrix needs more work
+// camera's 'worldMatrix' is actually the view matrix.
+// I've temporarily removed lookAt method to apply the rotation, just for simplicity reason
 p.updateMatrix = function(){
   if(this.autoMatrix){
     mat4.identity(this._matrix);
@@ -21,6 +23,8 @@ p.updateMatrix = function(){
 
   // invert the translation, since this is the view matrix, move camera left means move object right
   mat4.invert(this.worldMatrix, this.worldMatrix);
+
+  // mat4.lookAt(this.worldMatrix, this._position, this.lookTarget, [0, 1, 0]);
 
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();

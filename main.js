@@ -7,9 +7,8 @@ var scene = new Scene();
 
 // scene camera
 var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 800);
-// sceneCamera.z = 0.5;
-// sceneCamera.y = 0.54;
 scene.add(sceneCamera);
+sceneCamera.lookTarget = [0, 0, -2];
 
 // objects
 var cube;
@@ -25,11 +24,13 @@ function init(textures){
   plane.x = -1;
   scene.add(plane);
 
+  // cube.add(sceneCamera);
+
   // rendering
   function loop(){
 
-    // cube.rotationX += 0.02;
-    // cube.rotationY += 0.008;
+    cube.rotationX += 0.02;
+    cube.rotationY += 0.008;
 
     // console.log(sceneCamera.worldMatrix);
 
