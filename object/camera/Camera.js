@@ -24,7 +24,7 @@ p.updateMatrix = function(){
   // invert the translation, since this is the view matrix, move camera left means move object right
   mat4.invert(this.worldMatrix, this.worldMatrix);
 
-  // mat4.lookAt(this.worldMatrix, this._position, this.lookTarget, [0, 1, 0]);
+  mat4.lookAt(this.worldMatrix, this._position, this.lookTarget, [0, 1, 0]);
 
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();

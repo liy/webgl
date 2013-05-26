@@ -1,3 +1,13 @@
+var stats = new Stats();
+stats.setMode(1); // 0: fps, 1: ms
+
+// Align top-left
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+document.body.appendChild( stats.domElement );
+
+
 // renderer render the scene.
 var renderer = new Renderer();
 document.body.appendChild(renderer.canvas);
@@ -22,20 +32,23 @@ function init(textures){
 
   plane = new Mesh(new PlaneGeometry(3, 3), new PhongMaterial());
   plane.name = 'plane';
-  plane.z = -3.5;
+  plane.z = -3;
   plane.x = -1;
-  cube.add(plane);
+  scene.add(plane);
 
   // cube.add(sceneCamera);
 
   // rendering
   function loop(){
+    stats.begin();
 
-    // cube.rotationX += 0.02;
-    // cube.rotationY += 0.008;
+    cube.rotationX += 0.02;
+    cube.rotationY += 0.008;
 
     renderer.render(scene, sceneCamera);
     requestAnimFrame(loop);
+
+    stats.end();
   }
   requestAnimFrame(loop);
 }

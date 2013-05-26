@@ -1,7 +1,7 @@
 function Renderer(){
   this.canvas = document.createElement('canvas');
   gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
-  this.ext = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('WEBGL_depth_texture');
+  this.depthTextureExt = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('WEBGL_depth_texture');
 
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -9,9 +9,10 @@ function Renderer(){
   this.resize(window.innerWidth, window.innerHeight);
 
   // always have a scene target
-  this.screenPass = new ScreenPass(this);
+  this.composition = new CompositionPass(this);
   // render targets
-  this.targets = [new NormalPass(this), new AlbedoPass(this)];
+  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this)];
+  // this.passes = [new DepthPass(this)];
   this.mrtDebugger = new MRTDebugger(this);
 }
 var p = Renderer.prototype;
@@ -45,13 +46,13 @@ p.render = function(scene, camera){
   scene.meshes.sort(sortFunc);
 
   // draw to render target, normal, depth, albedo, etc.
-  len = this.targets.length;
+  len = this.passes.length;
   for(i=0; i<len; ++i){
-    this.targets[i].render(scene, camera);
+    this.passes[i].render(scene, camera);
   }
 
   // draw to screen.
-  this.screenPass.render(scene, camera);
+  this.composition.render(scene, camera);
 
   // debug mrt
   this.mrtDebugger.render();
