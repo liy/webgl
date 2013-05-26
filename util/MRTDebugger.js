@@ -1,32 +1,33 @@
 function MRTDebugger(renderer){
+  this.enabled = true;
+
   this.renderer = renderer;
   this.shader = this.renderer.screenPass.shader;
 
-  this.enabled = true;
-
-  this.camera = new OrthoCamera(0, window.innerWidth, 0, window.innerHeight);
-
   this.createViews();
+  this.camera = new OrthoCamera(0, window.innerWidth, window.innerHeight, 0);
 
   document.addEventListener('keyup', this.onKeyDown);
   window.addEventListener('resize', bind(this, this.resize));
 }
 var p = MRTDebugger.prototype;
 
-p.draw = function(){
+p.render = function(){
   if(this.enabled){
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
 
+    // make views transparent
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-    this.camera.project(this.shader);
+    this.camera.setUniforms(this.shader.uniforms);
 
     for(var i=0; i<this.views.length; ++i){
+      // manually update local and world matrix
       this.views[i].updateMatrix();
 
-      // model view matrix of the views
+      // use ortho camera's view matrix calculate the model view matrix
       mat4.mul(this.views[i].modelViewMatrix, this.camera.worldMatrix, this.views[i].worldMatrix);
 
       gl.bindTexture(gl.TEXTURE_2D, this.renderer.targets[i].texture);
@@ -38,7 +39,7 @@ p.draw = function(){
 }
 
 p.onKeyDown = function(e){
-  console.log(e.keyCode);
+  // console.log(e.keyCode);
   switch(e.keyCode){
     // normal target, 1
     case 49:
@@ -71,8 +72,7 @@ p.resize = function(e){
     this.views[i].scaleX = width/this.views[i].geometry.width;
     this.views[i].scaleY = -height/this.views[i].geometry.height;
     this.views[i].x = width/2 + tx;
-    this.views[i].y = height/2;
-
+    this.views[i].y = window.innerHeight - height/2;
     tx += width;
   }
 
@@ -89,9 +89,8 @@ p.createViews = function(){
   for(var i=0; i<this.renderer.targets.length; ++i){
     this.views[i] = new Mesh(new PlaneGeometry(width, height), new PhongMaterial());
     this.views[i].useColor = false;
-    this.views[i].scaleY *= -1;
     this.views[i].x = width/2 + tx;
-    this.views[i].y = height/2;
+    this.views[i].y = window.innerHeight - height/2;
 
     tx += width;
   }

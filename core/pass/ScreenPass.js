@@ -7,14 +7,14 @@ var p = ScreenPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);
-  this.shader.bindAttribute(this.program);
-  this.shader.bindUniform(this.program);
+  this.shader.bindAttributes(this.program);
+  this.shader.bindUniforms(this.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, window.innerWidth, window.innerHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  camera.project(this.shader);
+  camera.setUniforms(this.shader.uniforms);
 
   // light up the scene
   var len;

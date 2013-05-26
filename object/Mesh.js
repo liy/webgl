@@ -52,42 +52,42 @@ p.createBuffer = function(){
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.geometry.indices), gl.STATIC_DRAW);
 }
 
-p.setAttribute = function(attribute){
+p.setAttributes = function(attributes){
   // vertex buffer
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vb);
 
   // always have a vertex array
-  gl.vertexAttribPointer(attribute['a_Vertex'], 3, gl.FLOAT, false, 48, 0);
-  gl.enableVertexAttribArray(attribute['a_Vertex']);
+  gl.vertexAttribPointer(attributes['a_Vertex'], 3, gl.FLOAT, false, 48, 0);
+  gl.enableVertexAttribArray(attributes['a_Vertex']);
 
-  if(typeof attribute['a_Normal'] !== 'undefined'){
-    gl.vertexAttribPointer(attribute['a_Normal'], 3, gl.FLOAT, false, 48, 12);
-    gl.enableVertexAttribArray(attribute['a_Normal']);
+  if(typeof attributes['a_Normal'] !== 'undefined'){
+    gl.vertexAttribPointer(attributes['a_Normal'], 3, gl.FLOAT, false, 48, 12);
+    gl.enableVertexAttribArray(attributes['a_Normal']);
   }
-  if(typeof attribute['a_TexCoord'] !== 'undefined'){
-    gl.vertexAttribPointer(attribute['a_TexCoord'], 2, gl.FLOAT, false, 48, 24);
-    gl.enableVertexAttribArray(attribute['a_TexCoord']);
+  if(typeof attributes['a_TexCoord'] !== 'undefined'){
+    gl.vertexAttribPointer(attributes['a_TexCoord'], 2, gl.FLOAT, false, 48, 24);
+    gl.enableVertexAttribArray(attributes['a_TexCoord']);
   }
-  if(typeof attribute['a_Color'] !== 'undefined'){
-    gl.vertexAttribPointer(attribute['a_Color'], 4, gl.FLOAT, false, 48, 32);
-    gl.enableVertexAttribArray(attribute['a_Color']);
+  if(typeof attributes['a_Color'] !== 'undefined'){
+    gl.vertexAttribPointer(attributes['a_Color'], 4, gl.FLOAT, false, 48, 32);
+    gl.enableVertexAttribArray(attributes['a_Color']);
   }
 }
 
-p.setUniform = function(uniform){
-  gl.uniform1i(uniform['u_UseColor'], this.useColor);
+p.setUniforms = function(uniforms){
+  gl.uniform1i(uniforms['u_UseColor'], this.useColor);
   // normal, model view matrix
-  gl.uniformMatrix4fv(uniform['u_ModelViewMatrix'], false, this.modelViewMatrix);
-  gl.uniformMatrix3fv(uniform['u_NormalMatrix'], false, this.normalMatrix);
+  gl.uniformMatrix4fv(uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  gl.uniformMatrix3fv(uniforms['u_NormalMatrix'], false, this.normalMatrix);
   // set model matrix, for shadow mapping use
-  gl.uniformMatrix4fv(uniform['u_ModelMatrix'], false, this.worldMatrix);
+  gl.uniformMatrix4fv(uniforms['u_ModelMatrix'], false, this.worldMatrix);
 }
 
 p.draw = function(shader, camera){
   // setup uniform and attributes
-  this.setAttribute(shader.attribute);
-  this.material.setUniform(shader.uniform);
-  this.setUniform(shader.uniform);
+  this.setAttributes(shader.attributes);
+  this.material.setUniforms(shader.uniforms);
+  this.setUniforms(shader.uniforms);
 
   // bind texture
   if(this.material.texture){

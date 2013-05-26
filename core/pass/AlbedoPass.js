@@ -26,8 +26,8 @@ var p = AlbedoPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);
-  this.shader.bindAttribute(this.program);
-  this.shader.bindUniform(this.program);
+  this.shader.bindAttributes(this.program);
+  this.shader.bindUniforms(this.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
@@ -35,7 +35,7 @@ p.render = function(scene, camera){
   gl.clearColor(0.2, 0.2, 0.2, 0.2);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  camera.project(this.shader);
+  camera.setUniforms(this.shader.uniforms);
 
   var len = scene.meshes.length;
   for(var i=0; i<len; ++i){

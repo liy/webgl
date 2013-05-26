@@ -54,7 +54,7 @@ p.render = function(scene, camera){
   this.screenPass.render(scene, camera);
 
   // debug mrt
-  this.mrtDebugger.draw();
+  this.mrtDebugger.render();
 }
 
 p.resize = function(width, height){

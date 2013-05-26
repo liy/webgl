@@ -11,9 +11,9 @@ function OrthoCamera(left, right, bottom, top){
 var p = OrthoCamera.prototype = Object.create(Camera.prototype);
 
 // camera use look at method to update its matrix, so its matrix is actually the view matrix.
-p.updateMatrix = function(){
-  // TODO: do nothing.
-}
+// p.updateMatrix = function(){
+//   // TODO: do nothing.
+// }
 
 p.ortho = function(left, right, bottom, top){
   mat4.ortho(this.projectionMatrix, left, right, bottom, top, -0.1, 100);
