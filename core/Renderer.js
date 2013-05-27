@@ -8,10 +8,12 @@ function Renderer(){
 
   this.resize(window.innerWidth, window.innerHeight);
 
-  // always have a scene target
-  this.composition = new CompositionPass(this);
-  // render targets
+  // multiple render passes, since no multiple render target support in WebGL
   this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this)];
+
+  // Final composition, probably include post processing?
+  this.composition = new Composition(this);
+
   // this.passes = [new DepthPass(this)];
   this.mrtDebugger = new MRTDebugger(this);
 }
@@ -28,10 +30,10 @@ p.update = function(scene){
 p.render = function(scene, camera){
   var i, len;
 
-  // update matrix
+  // update all objects' matrix in the scene, include lights and cameras
   this.update(scene);
 
-  // calculate normal, model view matrix and view space position of the meshes
+  // calculate extra normal, model view matrix and view space position of the meshes
   len = scene.meshes.length;
   for(i=0; i<len; ++i){
     // update to model view matrix
@@ -51,7 +53,7 @@ p.render = function(scene, camera){
     this.passes[i].render(scene, camera);
   }
 
-  // draw to screen.
+  // combine all the textures rendered by different passes into final screen image
   this.composition.render(scene, camera);
 
   // debug mrt

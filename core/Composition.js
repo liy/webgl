@@ -1,4 +1,4 @@
-function CompositionPass(renderer){
+function Composition(renderer){
   RenderPass.call(this, renderer);
 
   this.shader = new Shader(this.program, './shader/composition.vert', './shader/composition.frag');
@@ -11,7 +11,7 @@ function CompositionPass(renderer){
 
   window.addEventListener('resize', bind(this, this.resize));
 }
-var p = CompositionPass.prototype = Object.create(RenderPass.prototype);
+var p = Composition.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);
