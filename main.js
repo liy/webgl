@@ -16,7 +16,7 @@ document.body.appendChild(renderer.canvas);
 var scene = new Scene();
 
 // scene camera
-var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 800);
+var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 10);
 scene.add(sceneCamera);
 sceneCamera.lookTarget = [0, 0, -2];
 
@@ -27,13 +27,12 @@ Texture.load(['img/square.png'], init);
 function init(textures){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:textures[0]}));
   cube.name = 'cube';
-  cube.z = -2;
+  cube.z = -1.5;
   scene.add(cube);
 
-  plane = new Mesh(new PlaneGeometry(3, 3), new PhongMaterial());
+  plane = new Mesh(new PlaneGeometry(5, 3), new PhongMaterial());
   plane.name = 'plane';
-  plane.z = -3;
-  plane.x = -1;
+  plane.z = -2.5;
   scene.add(plane);
 
   // cube.add(sceneCamera);

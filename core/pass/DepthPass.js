@@ -44,10 +44,12 @@ p.render = function(scene, camera){
 
   camera.setUniforms(this.shader.uniforms);
 
+  gl.colorMask(false, false, false, false);
   var len = scene.meshes.length;
   for(var i=0; i<len; ++i){
     scene.meshes[i].draw(this.shader, camera);
   }
+  gl.colorMask(true, true, true, true);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }

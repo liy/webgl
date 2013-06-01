@@ -9,6 +9,8 @@ function Composition(renderer){
   this.plane.y = window.innerHeight/2;
   this.plane.z = -1;
 
+  this.invertProjectionMatrix = mat4.create();
+
   window.addEventListener('resize', bind(this, this.resize));
 }
 var p = Composition.prototype = Object.create(RenderPass.prototype);
