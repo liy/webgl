@@ -36,8 +36,6 @@ p.render = function(){
       // use ortho camera's view matrix calculate the model view matrix
       mat4.mul(this.viewPanes[i].modelViewMatrix, this.camera.worldMatrix, this.viewPanes[i].worldMatrix);
 
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this.renderer.passes[i].texture);
       this.viewPanes[i].draw(this.shader, this.camera);
     }
 
@@ -94,7 +92,7 @@ p.createViews = function(){
   var tx = 0;
   this.viewPanes = [];
   for(var i=0; i<this.renderer.passes.length; ++i){
-    this.viewPanes[i] = new Mesh(new PlaneGeometry(width, height), new PhongMaterial());
+    this.viewPanes[i] = new Mesh(new PlaneGeometry(width, height), new PhongMaterial({texture: this.renderer.passes[i].texture}));
     this.viewPanes[i].useColor = false;
     this.viewPanes[i].x = width/2 + tx;
     this.viewPanes[i].y = window.innerHeight - height/2;

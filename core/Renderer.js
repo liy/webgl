@@ -8,13 +8,17 @@ function Renderer(){
 
   this.resize(window.innerWidth, window.innerHeight);
 
+  // the depth buffer shared by all the passes
+  this.depthBuffer = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
+
   // multiple render passes, since no multiple render target support in WebGL
   this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this)];
 
   // Final composition, probably include post processing?
   this.composition = new Composition(this);
 
-  // this.passes = [new DepthPass(this)];
   this.mrtDebugger = new MRTDebugger(this);
 }
 var p = Renderer.prototype;

@@ -11,16 +11,11 @@ function AlbedoPass(renderer){
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
-  // depth buffer to record z depth information for depth testing.
-  this.depthBuffer = gl.createRenderbuffer();
-  gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.renderer.canvas.width, this.renderer.canvas.height);
-
   // create off-screen framebuffer for drawing normal information
   this.framebuffer = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthBuffer);
 }
 var p = AlbedoPass.prototype = Object.create(RenderPass.prototype);
 

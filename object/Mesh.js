@@ -89,10 +89,13 @@ p.draw = function(shader, camera){
   this.material.setUniforms(shader.uniforms);
   this.setUniforms(shader.uniforms);
 
+  // always use texture 0 for mesh texture
+  gl.activeTexture(gl.TEXTURE0);
   // bind texture
-  if(this.material.texture){
-    Texture.bind(this.material.texture.textureID);
-  }
+  if(this.material.texture)
+    TextureLoader.bind(this.material.texture);
+  else
+    TextureLoader.bind(null);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);
   gl.drawElements(gl.TRIANGLES, this.geometry.indices.length, gl.UNSIGNED_SHORT, 0);

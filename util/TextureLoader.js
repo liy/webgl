@@ -1,7 +1,7 @@
-function Texture(){
-  this.id = Texture.id++;
+function TextureLoader(){
+  this.id = TextureLoader.id++;
 }
-var p = Texture.prototype;
+var p = TextureLoader.prototype;
 
 p.load = function(url, callback){
   var image = new Image();
@@ -15,8 +15,8 @@ p.load = function(url, callback){
 p.create = function(image){
   this.image = image;
 
-  this.textureID = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, this.textureID);
+  this.texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, this.texture);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -24,28 +24,28 @@ p.create = function(image){
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 }
 
-Texture.bind = function(textureID){
-  // if(Texture.boundID != textureID){
-    gl.bindTexture(gl.TEXTURE_2D, textureID);
-    Texture.boundID = textureID;
+TextureLoader.bind = function(texture){
+  // if(TextureLoader.boundTexture != texture){
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    TextureLoader.boundTexture = texture;
   // }
 }
 
 // load multiple textures
-Texture.load = function(urls, callback){
-  var textures = [];
+TextureLoader.load = function(urls, callback){
+  var textureLoaders = [];
   var imagesToLoad = urls.length;
 
   var onload = function(){
     --imagesToLoad;
     if(imagesToLoad == 0)
-      callback(textures);
+      callback(textureLoaders);
   }
 
   for(var i=0; i<urls.length; ++i){
-    textures[i] = new Texture();
-    textures[i].load(urls[i], onload);
+    textureLoaders[i] = new TextureLoader();
+    textureLoaders[i].load(urls[i], onload);
   }
 }
 
-Texture.id = 0;
+TextureLoader.id = 0;
