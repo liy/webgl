@@ -14,7 +14,9 @@ function Renderer(){
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
 
   // multiple render passes, since no multiple render target support in WebGL
-  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this)];
+  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this), new PositionalLightPass(this)];
+
+  // this.lighting = new PositionalLightPass(this);
 
   // Final composition, probably include post processing?
   this.composition = new Composition(this);
@@ -48,14 +50,24 @@ p.render = function(scene, camera){
     vec3.transformMat4(scene.meshes[i].viewSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
   }
 
+  // update lights' extra matrix
+  len = scene.lights.length;
+  for(i=0; i<len; ++i){
+    mat4.mul(scene.lights[i].modelViewMatrix, camera.worldMatrix, scene.lights[i].worldMatrix);
+    vec3.transformMat4(scene.lights[i].viewSpacePosition, Object3D.origin, scene.lights[i].modelViewMatrix);
+  }
+
   // do the state sorting
   scene.meshes.sort(sortFunc);
 
-  // draw to render target, normal, depth, albedo, etc.
+  // Fill G-Buffer, draw to render target, normal, depth, albedo, etc.
   len = this.passes.length;
   for(i=0; i<len; ++i){
     this.passes[i].render(scene, camera);
   }
+
+  // do lighting
+  // this.lighting.render(scene, camera);
 
   // combine all the textures rendered by different passes into final screen image
   this.composition.render(scene, camera);

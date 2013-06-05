@@ -20,10 +20,14 @@ var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/rendere
 scene.add(sceneCamera);
 sceneCamera.lookTarget = [0, 0, -2];
 
+var pointLight = new PointLight();
+pointLight.z = -2;
+pointLight.x = 1;
+scene.add(pointLight);
+
 // objects
 var cube;
 var plane;
-var ball;
 TextureLoader.load(['img/square.png', 'img/earth.jpg'], init);
 function init(loaders){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:loaders[0].texture}));
@@ -36,11 +40,6 @@ function init(loaders){
   plane.z = -2.5;
   scene.add(plane);
 
-  ball = new Mesh(new SphereGeometry(), new PhongMaterial({texture:loaders[1].texture}));
-  ball.z = -1.5;
-  ball.x = -1;
-  scene.add(ball);
-
   // cube.add(sceneCamera);
 
   // rendering
@@ -49,7 +48,6 @@ function init(loaders){
 
     // cube.rotationX += 0.02;
     cube.rotationY += 0.008;
-    ball.rotationY += 0.008;
 
     renderer.render(scene, sceneCamera);
     requestAnimFrame(loop);

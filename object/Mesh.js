@@ -8,8 +8,6 @@ function Mesh(geometry, material){
   this.geometry = geometry;
   this.material = material;
 
-  this.useColor = !this.material.texture;
-
   this.createBuffer();
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
@@ -75,7 +73,6 @@ p.setAttributes = function(attributes){
 }
 
 p.setUniforms = function(uniforms){
-  gl.uniform1i(uniforms['u_UseColor'], this.useColor);
   // normal, model view matrix
   gl.uniformMatrix4fv(uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
   gl.uniformMatrix3fv(uniforms['u_NormalMatrix'], false, this.normalMatrix);

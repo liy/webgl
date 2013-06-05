@@ -2,30 +2,21 @@
 function Light(){
   Object3D.call(this);
 
+  this.modelViewMatrix = mat4.create();
+  this.viewSpacePosition = vec3.create();
+
   this.enabled = true;
 
   // whether this light cast shadow or not
   this._castShadow = false;
   this.framebufferSize = 512;
 
-  // vec4
-  this.ambient = vec4.fromValues(0.1, 0.1, 0.1, 1.0);
-  // vec4
-  this.diffuse = vec4.fromValues(0.95, 0.95, 0.95, 1.0);
-  // vec4
-  this.specular = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec3, constant, linear and quadratic
-  this.attenuation = vec3.fromValues(1, 0, 0);
+  // color of the light
+  this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  // intensity of the light
+  this.intensity = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
-
-p.shadowMapping = function(shader, index){
-
-}
-
-p.lit = function(shader, camera){
-
-}
 
 Object.defineProperty(p, "castShadow", {
   set: function(value){
