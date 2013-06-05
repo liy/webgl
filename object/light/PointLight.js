@@ -3,7 +3,7 @@ function PointLight(){
 
   // TOOD: use attenuation to calculate the radius of the sphere
   // for now, just hardcode the radius
-  this._geometry = new SphereGeometry(1);
+  this._geometry = new SphereGeometry();
   this.createBuffer();
 }
 var p = PointLight.prototype = Object.create(PositionalLight.prototype);

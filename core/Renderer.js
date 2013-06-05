@@ -70,7 +70,7 @@ p.render = function(scene, camera){
   // this.lighting.render(scene, camera);
 
   // combine all the textures rendered by different passes into final screen image
-  this.composition.render(scene, camera);
+  // this.composition.render(scene, camera);
 
   // debug mrt
   this.mrtDebugger.render();

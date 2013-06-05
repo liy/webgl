@@ -21,7 +21,7 @@ scene.add(sceneCamera);
 sceneCamera.lookTarget = [0, 0, -2];
 
 var pointLight = new PointLight();
-pointLight.z = -2;
+pointLight.z = -1.5;
 pointLight.x = 1;
 scene.add(pointLight);
 
@@ -47,7 +47,7 @@ function init(loaders){
     stats.begin();
 
     // cube.rotationX += 0.02;
-    cube.rotationY += 0.008;
+    // cube.rotationY += 0.008;
 
     renderer.render(scene, sceneCamera);
     requestAnimFrame(loop);

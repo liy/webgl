@@ -27,7 +27,9 @@ p.render = function(scene, camera){
   this.shader.bindAttributes(this.program);
   this.shader.bindUniforms(this.program);
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+
+  gl.enable(gl.DEPTH_TEST);
 
   gl.viewport(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
