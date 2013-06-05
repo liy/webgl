@@ -12,7 +12,7 @@ uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_InvProjectionMatrix;
 
 vec2 getTexCoord(){
-  return (v_FragCoord.xy + 1.0) * 0.5;
+  return (v_FragCoord.xy/v_FragCoord.w + 1.0) * 0.5;
 }
 
 void main(){
