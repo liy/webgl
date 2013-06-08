@@ -15,7 +15,7 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
     cosTheta = Math.cos(theta);
     sinTheta = Math.sin(theta);
     for(var j=0; j<=this.longitudeBands; ++j){
-      phi = j * (Math.PI*2 / this.longitudeBands);
+      phi = -j * (Math.PI*2 / this.longitudeBands);
 
       x = cosTheta * Math.cos(phi);
       y = sinTheta;
@@ -30,7 +30,7 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
       this.vertices.push(y * this.radius);
       this.vertices.push(z * this.radius);
 
-      this.texCoords.push(1 - j/this.longitudeBands);
+      this.texCoords.push(j/this.longitudeBands);
       this.texCoords.push(i/this.latitudeBands);
     }
   }

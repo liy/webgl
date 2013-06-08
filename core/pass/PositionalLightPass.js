@@ -29,8 +29,6 @@ p.render = function(scene, camera){
 
   // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
-  gl.enable(gl.DEPTH_TEST);
-
   gl.viewport(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -44,6 +42,9 @@ p.render = function(scene, camera){
     gl.uniform1i(this.shader.uniforms['u_Sampler'][i], i+1);
   }
 
+  // set the resolution
+  gl.uniform2fv(this.shader.uniforms['u_Resolution'], [this.renderer.canvas.width, this.renderer.canvas.height]);
+
   // setup scene camera's projection matrix, needed for calculating eye-space Z value.
   camera.setUniforms(this.shader.uniforms);
   // inverse of the projection matrix
@@ -56,6 +57,10 @@ p.render = function(scene, camera){
     if(scene.lights[i] instanceof PositionalLight)
       scene.lights[i].draw(this.shader, camera);
   }
+
+  // reset front face cull to be normal CCW front face cull
+  gl.frontFace(gl.CCW);
+  gl.enable(gl.CULL_FACE);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);

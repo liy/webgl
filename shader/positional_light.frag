@@ -1,8 +1,7 @@
 precision mediump float;
 
-varying vec4 v_Color;
-varying vec4 v_FragCoord;
-varying vec4 v_Position;
+// clip space position, exactly the same as vertex shader's gl_Position
+varying vec4 v_ClipSpacePosition;
 
 // depth, normal and albedo(texture) passes rendered textures
 uniform sampler2D u_Sampler[3];
@@ -13,11 +12,11 @@ uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_InvProjectionMatrix;
 
 vec3 getNDC(){
-  return v_FragCoord.xyz/v_FragCoord.w;
+  return v_ClipSpacePosition.xyz/v_ClipSpacePosition.w;
 }
 
 vec2 getTexCoord(){
-  return (v_FragCoord.xy/v_FragCoord.w + 1.0) * 0.5;
+  return (v_ClipSpacePosition.xy/v_ClipSpacePosition.w + 1.0) * 0.5;
 }
 
 float getDepth(vec2 texCoord){
@@ -30,12 +29,8 @@ void main(){
   vec2 texCoord = getTexCoord();
   float depth = getDepth(texCoord);
 
-  if(ndc.z < depth){
     vec4 color = texture2D(u_Sampler[2], texCoord);
     gl_FragColor = color;
-  }
-  else
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-  // gl_FragColor = vec4(texCoord.xy, 0.0, 1.0);
-  // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+
+  // gl_FragColor += vec4(0.2, 0.2, 0.2, 1.0);
 }

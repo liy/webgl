@@ -16,12 +16,6 @@ p.createBuffer = function(){
     data.push(this._geometry.vertices[i*3]);
     data.push(this._geometry.vertices[i*3+1]);
     data.push(this._geometry.vertices[i*3+2]);
-
-    // color
-    data.push(this.color[0])
-    data.push(this.color[1])
-    data.push(this.color[2])
-    data.push(this.color[3])
   }
 
   // vertex buffer
@@ -40,11 +34,8 @@ p.setAttributes = function(attributes){
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vb);
 
   // always have a vertex array
-  gl.vertexAttribPointer(attributes['a_Vertex'], 3, gl.FLOAT, false, 28, 0);
+  gl.vertexAttribPointer(attributes['a_Vertex'], 3, gl.FLOAT, false, 12, 0);
   gl.enableVertexAttribArray(attributes['a_Vertex']);
-  // color
-  gl.vertexAttribPointer(attributes['a_Color'], 4, gl.FLOAT, false, 28, 12);
-  gl.enableVertexAttribArray(attributes['a_Color']);
 }
 
 p.setUniforms = function(uniforms){
@@ -58,6 +49,14 @@ p.draw = function(shader, camera){
   this.setAttributes(shader.attributes);
   this.setUniforms(shader.uniforms);
 
+  // if camera outside of the sphere cull back face; if the camera is inside the light geometry, cull front face
+  var distance = vec3.distance(this._position, camera._position);
+  // outside of the geometry, cull back face, back face is treated as CCW
+  if(distance > this._geometry.radius)
+    gl.frontFace(gl.CCW);
+  else
+    gl.frontFace(gl.CW);
+  gl.enable(gl.CULL_FACE);
 
   // draw light volume
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ib);

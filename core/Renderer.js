@@ -4,6 +4,7 @@ function Renderer(){
   this.depthTextureExt = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('WEBGL_depth_texture');
 
   gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
   this.resize(window.innerWidth, window.innerHeight);

@@ -6,7 +6,7 @@ function OrthoCamera(left, right, bottom, top){
   bottom = bottom || -1;
   top = top || 1;
 
-  mat4.ortho(this.projectionMatrix, left, right, bottom, top, -0.1, 100);
+  mat4.ortho(this.projectionMatrix, left, right, bottom, top, -10, 10);
 }
 var p = OrthoCamera.prototype = Object.create(Camera.prototype);
 
@@ -16,5 +16,5 @@ var p = OrthoCamera.prototype = Object.create(Camera.prototype);
 // }
 
 p.ortho = function(left, right, bottom, top){
-  mat4.ortho(this.projectionMatrix, left, right, bottom, top, -0.1, 100);
+  mat4.ortho(this.projectionMatrix, left, right, bottom, top, -10, 10);
 }

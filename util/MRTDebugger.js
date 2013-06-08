@@ -7,7 +7,7 @@ function MRTDebugger(renderer){
   this.renderer = renderer;
 
   this.createViews();
-  this.camera = new OrthoCamera(0, window.innerWidth, window.innerHeight, 0);
+  this.camera = new OrthoCamera(0, window.innerWidth, 0, window.innerHeight);
 
   document.addEventListener('keyup', this.onKeyDown);
   window.addEventListener('resize', bind(this, this.resize));
@@ -20,13 +20,18 @@ p.render = function(){
     this.shader.bindAttributes(this.program);
     this.shader.bindUniforms(this.program);
 
+    gl.disable(gl.DEPTH_TEST);
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
 
     // make views transparent
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    // FIXME: for some reason the result texture from framebuffer is upside down, have to flip Y and ensure the back face cull is disabled
+    gl.disable(gl.CULL_FACE);
 
+    this.camera.updateMatrix();
     this.camera.setUniforms(this.shader.uniforms);
 
     for(var i=0; i<this.viewPanes.length; ++i){
@@ -39,7 +44,10 @@ p.render = function(){
       this.viewPanes[i].draw(this.shader, this.camera);
     }
 
+    // re-enable back face cull
+    gl.enable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
+    gl.enable(gl.DEPTH_TEST);
   }
 }
 
@@ -75,13 +83,15 @@ p.resize = function(e){
   var tx = 0;
   for(var i=0; i<this.viewPanes.length; ++i){
     this.viewPanes[i].scaleX = width/this.viewPanes[i].geometry.width;
-    this.viewPanes[i].scaleY = height/this.viewPanes[i].geometry.height;
+    // FIXME: for some reason the result texture from framebuffer is upside down, have to flip Y and ensure the back face cull is disabled
+    this.viewPanes[i].scaleY = -height/this.viewPanes[i].geometry.height;
     this.viewPanes[i].x = width/2 + tx;
-    this.viewPanes[i].y = window.innerHeight - height/2;
+    this.viewPanes[i].y = height/2;
+    this.viewPanes[i].z = 2;
     tx += width;
   }
 
-  this.camera.ortho(0, window.innerWidth, window.innerHeight, 0);
+  this.camera.ortho(0, window.innerWidth, 0, window.innerHeight);
 }
 
 p.createViews = function(){
@@ -93,10 +103,11 @@ p.createViews = function(){
   this.viewPanes = [];
   for(var i=0; i<this.renderer.passes.length; ++i){
     this.viewPanes[i] = new Mesh(new PlaneGeometry(width, height), new PhongMaterial({texture: this.renderer.passes[i].texture}));
-    this.viewPanes[i].useColor = false;
     this.viewPanes[i].x = width/2 + tx;
-    this.viewPanes[i].y = window.innerHeight - height/2;
-
+    this.viewPanes[i].y = height/2;
+    this.viewPanes[i].z = 2;
+    // FIXME: for some reason the result texture from framebuffer is upside down, have to flip Y and ensure the back face cull is disabled
+    this.viewPanes[i].scaleY = -1;
     tx += width;
   }
 }
