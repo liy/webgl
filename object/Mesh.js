@@ -3,7 +3,6 @@ function Mesh(geometry, material){
 
   this.normalMatrix = mat3.create();
   this.modelViewMatrix = mat4.create();
-  this.viewSpacePosition = vec3.create();
 
   this.geometry = geometry;
   this.material = material;

@@ -27,6 +27,8 @@ p.render = function(scene, camera){
   this.shader.bindAttributes(this.program);
   this.shader.bindUniforms(this.program);
 
+
+
   // gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
   gl.viewport(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
@@ -43,7 +45,7 @@ p.render = function(scene, camera){
   }
 
   // set the resolution
-  gl.uniform2fv(this.shader.uniforms['u_Resolution'], [this.renderer.canvas.width, this.renderer.canvas.height]);
+  gl.uniform2fv(this.shader.uniforms['u_Viewport'], [this.renderer.canvas.width, this.renderer.canvas.height]);
 
   // setup scene camera's projection matrix, needed for calculating eye-space Z value.
   camera.setUniforms(this.shader.uniforms);

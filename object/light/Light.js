@@ -3,7 +3,6 @@ function Light(){
   Object3D.call(this);
 
   this.modelViewMatrix = mat4.create();
-  this.viewSpacePosition = vec3.create();
 
   this.enabled = true;
 
@@ -12,9 +11,9 @@ function Light(){
   this.framebufferSize = 512;
 
   // color of the light
-  this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  this.color = vec4.fromValues(1.0, 1.0, 1.0);
   // intensity of the light
-  this.intensity = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  this.intensity = 1.0;
 }
 var p = Light.prototype = Object.create(Object3D.prototype);
 

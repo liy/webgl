@@ -15,12 +15,12 @@ function Renderer(){
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
 
   // multiple render passes, since no multiple render target support in WebGL
-  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this), new PositionalLightPass(this)];
+  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this), new PositionPass(this), new PositionalLightPass(this)];
 
   // this.lighting = new PositionalLightPass(this);
 
   // Final composition, probably include post processing?
-  this.composition = new Composition(this);
+  // this.composition = new Composition(this);
 
   this.mrtDebugger = new MRTDebugger(this);
 }
@@ -45,17 +45,18 @@ p.render = function(scene, camera){
   for(i=0; i<len; ++i){
     // update to model view matrix
     mat4.mul(scene.meshes[i].modelViewMatrix, camera.worldMatrix, scene.meshes[i].worldMatrix);
+    // console.log(scene.meshes[i].modelViewMatrix);
     // normal matrix, it is inverse transpose of the model view matrix
     mat3.normalFromMat4(scene.meshes[i].normalMatrix, scene.meshes[i].modelViewMatrix);
     // calculate the view space position of the meshes, for states sorting
-    vec3.transformMat4(scene.meshes[i].viewSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
+    vec3.transformMat4(scene.meshes[i]._eyeSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
   }
 
   // update lights' extra matrix
   len = scene.lights.length;
   for(i=0; i<len; ++i){
     mat4.mul(scene.lights[i].modelViewMatrix, camera.worldMatrix, scene.lights[i].worldMatrix);
-    vec3.transformMat4(scene.lights[i].viewSpacePosition, Object3D.origin, scene.lights[i].modelViewMatrix);
+    vec3.transformMat4(scene.lights[i]._eyeSpacePosition, Object3D.origin, scene.lights[i].modelViewMatrix);
   }
 
   // do the state sorting
@@ -109,9 +110,9 @@ function sortFunc(a, b){
 
   // return 0;
 
-  if(a.viewSpacePosition[2] < b.viewSpacePosition[2])
+  if(a._eyeSpacePosition[2] < b._eyeSpacePosition[2])
     return 1;
-  else if(a.viewSpacePosition[2] > b.viewSpacePosition[2])
+  else if(a._eyeSpacePosition[2] > b._eyeSpacePosition[2])
     return -1
   else
     return 0;

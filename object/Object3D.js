@@ -1,5 +1,7 @@
 function Object3D(){
   this._position = vec3.create();
+  // eye space position
+  this._eyeSpacePosition = vec3.create();
   this._rotationX = 0;
   this._rotationY = 0;
   this._rotationZ = 0;

@@ -34,4 +34,5 @@ p.updateMatrix = function(){
 p.setUniforms = function(uniforms){
   // set shadow mapping projection matrix, for rendering the shadow map
   gl.uniformMatrix4fv(uniforms['u_ProjectionMatrix'], false, this.projectionMatrix);
+  gl.uniformMatrix4fv(uniforms['u_ViewMatrix'], false, this.worldMatrix);
 }

@@ -25,27 +25,28 @@ scene.add(sceneCamera);
 sceneCamera.lookTarget = [0, 0, -2];
 
 var pointLight = new PointLight();
-pointLight.z = -1.5;
-pointLight.y =  0.5;
+// pointLight.x = 0.6;
+pointLight.z = -0.9;
+// pointLight.y =  0.5;
 scene.add(pointLight);
 
 // objects
 var cube;
 var plane;
 var sphere;
-TextureLoader.load(['img/block.png', 'img/earth.jpg', 'img/square.png'], init);
+TextureLoader.load(['img/square.png', 'img/block.png', 'img/earth.jpg'], init);
 function init(loaders){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:loaders[0].texture}));
   cube.name = 'cube';
   cube.z = -1.5;
   scene.add(cube);
 
-  plane = new Mesh(new PlaneGeometry(5, 3), new PhongMaterial({texture:loaders[2].texture}));
+  plane = new Mesh(new PlaneGeometry(5, 3), new PhongMaterial({texture:loaders[0].texture}));
   plane.name = 'plane';
   plane.z = -2.5;
   scene.add(plane);
 
-  sphere = new Mesh(new SphereGeometry(0.5), new PhongMaterial({texture:loaders[1].texture}));
+  sphere = new Mesh(new SphereGeometry(0.5), new PhongMaterial({texture:loaders[2].texture}));
   sphere.z = -1.5;
   sphere.y = 0.5;
   scene.add(sphere);
@@ -58,6 +59,7 @@ function init(loaders){
     // cube.rotationY += 0.008;
 
     renderer.render(scene, sceneCamera);
+
     requestAnimFrame(loop);
 
     stats.end();
