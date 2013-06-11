@@ -15,7 +15,7 @@ function Renderer(){
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
 
   // multiple render passes, since no multiple render target support in WebGL
-  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this), new PositionPass(this), new PositionalLightPass(this)];
+  this.passes = [new DepthPass(this), new NormalPass(this), new AlbedoPass(this), new PositionalLightPass(this)];
 
   // this.lighting = new PositionalLightPass(this);
 
