@@ -30,6 +30,16 @@ pointLight.z = -0.9;
 // pointLight.y =  0.5;
 scene.add(pointLight);
 
+var light2 = new PointLight(0.3);
+light2.z = -0.95;
+light2.x = 0.6;
+scene.add(light2);
+
+var light3 = new PointLight(0.7);
+light3.z = -0.7;
+light3.y = 1.0;
+scene.add(light3);
+
 // objects
 var cube;
 var plane;
@@ -56,7 +66,8 @@ function init(loaders){
     stats.begin();
 
     // cube.rotationX += 0.02;
-    // cube.rotationY += 0.008;
+    cube.rotationY += 0.008;
+    sphere.rotationY -= 0.004;
 
     renderer.render(scene, sceneCamera);
 

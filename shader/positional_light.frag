@@ -83,7 +83,7 @@ void main(){
   vec2 ndcXY = v_ClipSpacePosition.xy/v_ClipSpacePosition.w;
   vec2 texCoord = (ndcXY + 1.0) * 0.5;
 
-  vec3 ndc = vec3(ndcXY, texture2D(u_Sampler[0], texCoord).x*2.0 - 1.0);
+  vec3 ndc = vec3(ndcXY, texture2D(u_Sampler[0], texCoord).z*2.0 - 1.0);
   vec4 surfacePosition = extractEyeSpace(ndc);
 
   float ratio = 0.0;
@@ -96,7 +96,7 @@ void main(){
 
     ratio = max(0.0, dot(lightDirection, normal));
   }
-  gl_FragColor = vec4(color * ratio, 1.0);
+  gl_FragColor = vec4(color, 1.0) * ratio;
 
 
 

@@ -1,7 +1,7 @@
-function PointLight(){
+function PointLight(radius){
   PositionalLight.call(this);
 
-  this.radius = 0.5;
+  this.radius = radius || 0.5;
   // TOOD: use attenuation to calculate the radius of the sphere
   // for now, just hardcode the radius
   this._geometry = new SphereGeometry(this.radius);
@@ -62,7 +62,7 @@ p.draw = function(shader, camera){
   // if camera outside of the sphere cull back face; if the camera is inside the light geometry, cull front face
   var distance = vec3.distance(this._position, camera._position);
   // outside of the geometry, cull back face, back face is treated as CCW
-  if(distance > this._geometry.radius)
+  if(distance > this.radius)
     gl.frontFace(gl.CCW);
   else
     gl.frontFace(gl.CW);

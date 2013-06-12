@@ -35,6 +35,10 @@ p.render = function(scene, camera){
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  gl.disable(gl.DEPTH_TEST);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
   // bind different textures
   var passes = this.renderer.passes;
   var len = passes.length-1;
@@ -63,6 +67,8 @@ p.render = function(scene, camera){
   // reset front face cull to be normal CCW front face cull
   gl.frontFace(gl.CCW);
   gl.enable(gl.CULL_FACE);
+  gl.disable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
