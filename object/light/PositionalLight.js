@@ -3,7 +3,7 @@ function PositionalLight(){
   Light.call(this);
 
   // vec3, constant, linear and quadratic
-  this.attenuation = vec3.fromValues(1, 0, 0);
+  this.attenuation = vec3.fromValues(0, 0, 0);
 }
 var p = PositionalLight.prototype = Object.create(Light.prototype);
 

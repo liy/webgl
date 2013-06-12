@@ -5,6 +5,11 @@ function PointLight(radius){
   // TOOD: use attenuation to calculate the radius of the sphere
   // for now, just hardcode the radius
   this._geometry = new SphereGeometry(this.radius);
+
+  this.attenuation[0] = 1;
+  // this.attenuation[1] = 2/this.radius;
+  // this.attenuation[2] = 1/(this.radius*this.radius);
+
   this.createBuffer();
 }
 var p = PointLight.prototype = Object.create(PositionalLight.prototype);
@@ -43,7 +48,6 @@ p.setUniforms = function(uniforms){
   gl.uniformMatrix4fv(uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
   gl.uniformMatrix4fv(uniforms['u_ModelMatrix'], false, this.worldMatrix);
 
-  this.color = [0, 0, 1];
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
   gl.uniform3fv(uniforms['u_Light.position'], this._eyeSpacePosition);
   gl.uniform1f(uniforms['u_Light.intensity'], this.intensity);

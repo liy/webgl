@@ -89,12 +89,18 @@ void main(){
   float ratio = 0.0;
   vec3 color = texture2D(u_Sampler[2], texCoord).rgb;
 
+  float dis = distance(u_Light.position, surfacePosition.xyz);
+
+  float attenuation = 1.0;
+
   // check whether the position under fragment is in the light volume, the do the expensive lighting calculation.
-  if(distance(u_Light.position, surfacePosition.xyz) <= u_Light.radius){
+  if(dis <= u_Light.radius){
     vec3 lightDirection = normalize(u_Light.position - surfacePosition.xyz);
     vec3 normal = normalize(texture2D(u_Sampler[1], texCoord).xyz*2.0 - 1.0);
 
-    ratio = max(0.0, dot(lightDirection, normal));
+    attenuation = 1.0/(u_Light.attenuation[0] + dis*u_Light.attenuation[1] + dis*dis*u_Light.attenuation[2]);
+
+    ratio = max(0.0, dot(lightDirection, normal)) * attenuation;
   }
   gl_FragColor = vec4(color, 1.0) * ratio;
 

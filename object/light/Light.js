@@ -11,7 +11,7 @@ function Light(){
   this.framebufferSize = 512;
 
   // color of the light
-  this.color = vec4.fromValues(1.0, 1.0, 1.0);
+  this.color = vec3.fromValues(1.0, 1.0, 1.0);
   // intensity of the light
   this.intensity = 1.0;
 }
