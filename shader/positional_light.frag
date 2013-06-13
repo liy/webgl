@@ -4,9 +4,11 @@ struct Light {
   // eye space position
   vec3 position;
   vec3 color;
-  vec3 attenuation;
   bool enabled;
+  // radius will control the attenuation of the light, smooth drop off at the edge.
   float radius;
+  // extra light intensity factor
+  float intensity;
 };
 
 // The clip space position of the light volume. Use it to find out the texture coordinate.
@@ -86,23 +88,23 @@ void main(){
   vec3 ndc = vec3(ndcXY, texture2D(u_Sampler[0], texCoord).z*2.0 - 1.0);
   vec4 surfacePosition = extractEyeSpace(ndc);
 
-  float ratio = 0.0;
-  vec3 color = texture2D(u_Sampler[2], texCoord).rgb;
+  float diffuse = 0.0;
+  vec3 color = texture2D(u_Sampler[2], texCoord).rgb * u_Light.color;
 
   float dis = distance(u_Light.position, surfacePosition.xyz);
-
-  float attenuation = 1.0;
 
   // check whether the position under fragment is in the light volume, the do the expensive lighting calculation.
   if(dis <= u_Light.radius){
     vec3 lightDirection = normalize(u_Light.position - surfacePosition.xyz);
     vec3 normal = normalize(texture2D(u_Sampler[1], texCoord).xyz*2.0 - 1.0);
 
-    attenuation = 1.0/(u_Light.attenuation[0] + dis*u_Light.attenuation[1] + dis*dis*u_Light.attenuation[2]);
+    float attenuation = clamp(1.0 - dis/u_Light.radius, 0.0, 1.0);
 
-    ratio = max(0.0, dot(lightDirection, normal)) * attenuation;
+    // attenuation = 1.0/(u_Light.attenuation[0] + dis*u_Light.attenuation[1] + dis*dis*u_Light.attenuation[2]);
+
+    diffuse = max(0.0, dot(lightDirection, normal)) * attenuation * u_Light.intensity;
   }
-  gl_FragColor = vec4(color, 1.0) * ratio;
+  gl_FragColor = vec4(color, 1.0) * diffuse;
 
 
 

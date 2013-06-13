@@ -24,21 +24,22 @@ var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/rendere
 scene.add(sceneCamera);
 sceneCamera.lookTarget = [0, 0, -2];
 
-var pointLight = new PointLight();
+var pointLight = new PointLight(1);
+pointLight.intensity = 2;
 // pointLight.x = 0.6;
 pointLight.z = -1.4;
-// pointLight.y =  0.5;
+pointLight.y =  0.5;
 scene.add(pointLight);
 
-// var light2 = new PointLight(0.3);
-// light2.z = -0.95;
-// light2.x = 0.6;
-// scene.add(light2);
-
-// var light3 = new PointLight(0.7);
-// light3.z = -0.7;
-// light3.y = 1.0;
-// scene.add(light3);
+// for(var i=0; i<50; ++i){
+//   var light = new PointLight(Math.random() * 0.5 + 0.5);
+//   light.x = Math.random()*4 - 2;
+//   light.y = Math.random()*4 - 2;
+//   light.z = Math.random()*-2.0;
+//   light.intensity = Math.random()*3;
+//   light.color = vec3.fromValues(Math.random(), Math.random(), Math.random());
+//   scene.add(light);
+// }
 
 // objects
 var cube;
@@ -49,6 +50,7 @@ function init(loaders){
   cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:loaders[0].texture}));
   cube.name = 'cube';
   cube.z = -2;
+  // cube.x = -0.5;
   scene.add(cube);
 
   plane = new Mesh(new PlaneGeometry(5, 3), new PhongMaterial({texture:loaders[0].texture}));
@@ -56,7 +58,7 @@ function init(loaders){
   plane.z = -2.5;
   scene.add(plane);
 
-  sphere = new Mesh(new SphereGeometry(0.5), new PhongMaterial({texture:loaders[2].texture}));
+  sphere = new Mesh(new SphereGeometry(0.5, 20, 20), new PhongMaterial({texture:loaders[2].texture}));
   sphere.z = -2;
   sphere.y = 0.5;
   scene.add(sphere);
@@ -67,7 +69,7 @@ function init(loaders){
 
     // cube.rotationX += 0.01;
     // cube.rotationY += 0.008;
-    // sphere.rotationY -= 0.004;
+    sphere.rotationY -= 0.004;
 
     renderer.render(scene, sceneCamera);
 
