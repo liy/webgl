@@ -31,15 +31,15 @@ pointLight.z = -1.4;
 pointLight.y =  0.5;
 scene.add(pointLight);
 
-// for(var i=0; i<50; ++i){
-//   var light = new PointLight(Math.random() * 0.5 + 0.5);
-//   light.x = Math.random()*4 - 2;
-//   light.y = Math.random()*4 - 2;
-//   light.z = Math.random()*-2.0;
-//   light.intensity = Math.random()*3;
-//   light.color = vec3.fromValues(Math.random(), Math.random(), Math.random());
-//   scene.add(light);
-// }
+for(var i=0; i<200; ++i){
+  var light = new PointLight(Math.random() * 0.5 + 0.5);
+  light.x = Math.random()*4 - 2;
+  light.y = Math.random()*4 - 2;
+  light.z = Math.random()*-2.0;
+  light.intensity = Math.random()*3;
+  light.color = vec3.fromValues(Math.random(), Math.random(), Math.random());
+  scene.add(light);
+}
 
 // objects
 var cube;
