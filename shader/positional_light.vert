@@ -1,3 +1,5 @@
+precision mediump float;
+
 attribute vec3 a_Vertex;
 
 uniform mat4 u_ProjectionMatrix;
