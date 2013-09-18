@@ -7,94 +7,58 @@ stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
 document.body.appendChild( stats.domElement );
 
+var canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+canvas.width = 800;
+canvas.height = 600;
+
+var gl = canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+var depthTextureExt = gl.getExtension('WEBKIT_WEBGL_depth_texture') || gl.getExtension('WEBGL_depth_texture');
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.viewport(0, 0, canvas.width, canvas.height);
+
+var program = gl.createProgram();
+var shader = new Shader(program, 'shader/generic.vert', 'shader/generic.frag');
+
+var camera = new PerspectiveCamera(Math.PI/3, canvas.width/canvas.height, 0.1, 10);
+camera.lookTarget = [0, 0, -2];
+
+var mesh = new Mesh(new CubeGeometry(), new PhongMaterial());
+mesh.z = -2;
+
+// rendering
+-function loop(){
+  stats.begin();
+
+
+
+  // calculate extra normal, model view matrix and view space position of the meshes
+  // update to model view matrix
+  mat4.mul(mesh.modelViewMatrix, camera.worldMatrix, mesh.worldMatrix);
+  // console.log(mesh.modelViewMatrix);
+  // normal matrix, it is inverse transpose of the model view matrix
+  mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
+  // calculate the view space position of the meshes, for states sorting
+  vec3.transformMat4(mesh._eyeSpacePosition, Object3D.origin, mesh.modelViewMatrix);
 
 
 
 
+  gl.useProgram(program);
+  shader.bindAttributes(program);
+  shader.bindUniforms(program);
 
-// renderer render the scene.
-var renderer = new Renderer();
-document.body.appendChild(renderer.canvas);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-// scene
-var scene = new Scene();
+  camera.setUniforms(shader.uniforms);
 
-// scene camera
-var sceneCamera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 10);
-scene.add(sceneCamera);
-sceneCamera.lookTarget = [0, 0, -2];
+  mesh.draw(shader, camera);
 
-var pointLight = new PointLight(1);
-pointLight.intensity = 2;
-// pointLight.x = 0.6;
-pointLight.z = -1.4;
-pointLight.y =  0.5;
-scene.add(pointLight);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-for(var i=0; i<200; ++i){
-  var light = new PointLight(Math.random() * 0.5 + 0.5);
-  light.x = Math.random()*4 - 2;
-  light.y = Math.random()*4 - 2;
-  light.z = Math.random()*-2.0;
-  light.intensity = Math.random()*3;
-  light.color = vec3.fromValues(Math.random(), Math.random(), Math.random());
-  scene.add(light);
-}
 
-// objects
-var cube;
-var plane;
-var sphere;
-TextureLoader.load(['img/square.png', 'img/block.png', 'img/earth.jpg'], init);
-function init(loaders){
-  cube = new Mesh(new CubeGeometry(), new PhongMaterial({texture:loaders[0].texture}));
-  cube.name = 'cube';
-  cube.z = -2;
-  // cube.x = -0.5;
-  scene.add(cube);
 
-  plane = new Mesh(new PlaneGeometry(5, 3), new PhongMaterial({texture:loaders[0].texture}));
-  plane.name = 'plane';
-  plane.z = -2.5;
-  scene.add(plane);
-
-  sphere = new Mesh(new SphereGeometry(0.5, 20, 20), new PhongMaterial({texture:loaders[2].texture}));
-  sphere.z = -2;
-  sphere.y = 0.5;
-  scene.add(sphere);
-
-  // rendering
-  function loop(){
-    stats.begin();
-
-    // cube.rotationX += 0.01;
-    // cube.rotationY += 0.008;
-    sphere.rotationY -= 0.004;
-
-    renderer.render(scene, sceneCamera);
-
-    requestAnimFrame(loop);
-
-    stats.end();
-  }
   requestAnimFrame(loop);
-}
-
-
-
-
-
-
-
-
-
-
-document.addEventListener ("mousemove", function(evt){
-  sceneCamera.x = 5 * (evt.clientX - window.innerWidth/2)/window.innerWidth;
-  sceneCamera.y = -2 * (evt.clientY - window.innerHeight/2)/window.innerHeight;
-});
-
-window.addEventListener('resize', function() {
-  renderer.resize(window.innerWidth, window.innerHeight);
-  sceneCamera.perspective(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0, 10);
-});
+  stats.end();
+}();

@@ -40,6 +40,8 @@ p.updateMatrix = function(){
     mat4.scale(this._matrix, this._matrix, this._scale);
   }
 
+  // console.log(this._matrix);
+
   // update the world matrix apply to this object
   this._updateWorldMatrix();
 
