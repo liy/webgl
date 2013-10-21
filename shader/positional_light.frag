@@ -104,7 +104,24 @@ void main(){
 
     diffuse = max(0.0, dot(lightDirection, normal)) * attenuation * u_Light.intensity;
   }
-  gl_FragColor = vec4(color, 1.0) * diffuse;
+
+
+  // no gamma correction
+  // gl_FragColor = vec4(color, 1.0) * diffuse;
+  // Gamma corrected, translate linear space color to gamma space to compensate the monitor's 2.2 display curve.
+  gl_FragColor = pow(vec4(color, 1.0) * diffuse, vec4(1.0/2.2));
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
