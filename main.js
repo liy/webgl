@@ -4,7 +4,7 @@ stats.setMode(1); // 0: fps, 1: ms
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
-document.body.appendChild( stats.domElement );
+// document.body.appendChild( stats.domElement );
 
 
 
@@ -18,7 +18,7 @@ gl.clearColor(0.6, 0.6, 0.6, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 gl.enable(gl.CULL_FACE);
 
-var loader = new ObjectLoader('data/teapot/sponza.txt', bind(this, onload));
+var loader = new ObjectLoader('data/teapot/teapot.txt', bind(this, onload));
 
 function onload(){
   var program = gl.createProgram();
@@ -74,25 +74,25 @@ function onload(){
   // vertex buffer
   var vb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader._vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
   gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(vertexLocation);
   // texture buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader._texCoords), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
   gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(texCoordLocation);
   // normal buffer
   var nb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader._vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
   gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(normalLocation);
   // sphere.indices buffer
   var ib = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.getTriangleIndices()), gl.STATIC_DRAW);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
 
   // load texture
   var image = new Image();
@@ -114,7 +114,7 @@ function onload(){
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [0, 10, -80.0]);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -30, -100.0]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
       // update inverse model view matrix
@@ -123,10 +123,10 @@ function onload(){
 
       // transform light
       mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [1.0, 0.0, -1.0]);
+      mat4.translate(lightMatrix, lightMatrix, [100.0, 0.0, -1.0]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
-      gl.drawElements(gl.TRIANGLES, loader.getTriangleIndices().length, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
       stats.end();

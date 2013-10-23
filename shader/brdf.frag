@@ -92,6 +92,6 @@ void main(){
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
   // gl_FragColor = texture2D(u_Sampler, v_TexCoord) * (diffuseContrib + specularContrib + ambientContrib);
-  // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
-  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
+  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
