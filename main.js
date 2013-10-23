@@ -59,7 +59,7 @@ function onload(){
   // material
   gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // shininess
-  gl.uniform1f(glossLocation, 10);
+  gl.uniform1f(glossLocation, 20);
 
   // setup buffer
   // matrix
@@ -80,13 +80,13 @@ function onload(){
   // texture buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
   gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(texCoordLocation);
   // normal buffer
   var nb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.normals), gl.STATIC_DRAW);
   gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(normalLocation);
   // sphere.indices buffer
@@ -98,6 +98,7 @@ function onload(){
   var image = new Image();
   image.onload = init;
   image.src = 'img/earth.jpg';
+  var rotationY = 0;
   function init(){
     // texture
     var texture = gl.createTexture();
@@ -113,8 +114,11 @@ function onload(){
       stats.begin();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+      rotationY-=0.002;
+
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -30, -100.0]);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [1, 0, -30.0]);
+      mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
       // update inverse model view matrix
@@ -123,7 +127,7 @@ function onload(){
 
       // transform light
       mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [100.0, 0.0, -1.0]);
+      mat4.translate(lightMatrix, lightMatrix, [200.0, 0.0, -30.0]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
       gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
