@@ -55,11 +55,11 @@ function onload(){
   gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
   // light source
   gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
-  gl.uniform4fv(lightColorLocation, [4.0, 4.0, 4.0, 1.0]);
+  gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // material
   gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // shininess
-  gl.uniform1f(glossLocation, 20);
+  gl.uniform1f(glossLocation, 10);
 
   // setup buffer
   // matrix
@@ -114,11 +114,10 @@ function onload(){
       stats.begin();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      rotationY-=0.002;
+      rotationY-=0.005;
 
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [1, 0, -30.0]);
-      mat4.rotateY(modelViewMatrix, modelViewMatrix, rotationY);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [1, -5, -30.0]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
       // update inverse model view matrix
@@ -127,7 +126,8 @@ function onload(){
 
       // transform light
       mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [200.0, 0.0, -30.0]);
+      mat4.rotateY(lightMatrix, modelViewMatrix, rotationY);
+      mat4.translate(lightMatrix, lightMatrix, [100.0, 20.0, 0.0]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
       gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
