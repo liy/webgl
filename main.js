@@ -28,7 +28,8 @@ function onload(){
   shader.bindUniforms(program);
 
   // sphere
-  // var sphere = new SphereGeometry(0.5, 10, 10);
+  var sphere = new SphereGeometry(0.5, 10, 10);
+  var cube = new CubeGeometry();
 
   // attributes
   var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
@@ -59,7 +60,7 @@ function onload(){
   // material
   gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // shininess
-  gl.uniform1f(glossLocation, 10);
+  gl.uniform1f(glossLocation, 50);
 
   // setup buffer
   // matrix
@@ -98,7 +99,12 @@ function onload(){
   var image = new Image();
   image.onload = init;
   image.src = 'img/earth.jpg';
-  var rotationY = 0;
+  var lightRotateX = 0;
+  var lightRotateY = 0;
+  var lightRotateZ = 0;
+  var objRotateX = Math.PI/4;
+  var objRotateY = Math.PI/4;
+  var objRotateZ = Math.PI/4;
   function init(){
     // texture
     var texture = gl.createTexture();
@@ -114,23 +120,35 @@ function onload(){
       stats.begin();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      rotationY-=0.005;
+      objRotateX += 0.001;
+      objRotateY += 0.002;
+      objRotateZ += 0.0022;
 
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [1, -5, -30.0]);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -50, -200.0]);
+      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateX, [1, 0, 0]);
+      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
+      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateZ, [0, 0, 1]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
       // update inverse model view matrix
       mat3.normalFromMat4(normalMatrix, modelViewMatrix);
       gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
+
+      lightRotateX-=0.01;
+      lightRotateY-=0.012;
+      lightRotateZ-=0.015;
       // transform light
       mat4.identity(lightMatrix);
-      mat4.rotateY(lightMatrix, modelViewMatrix, rotationY);
-      mat4.translate(lightMatrix, lightMatrix, [100.0, 20.0, 0.0]);
+      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -200.0]);
+      // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+      mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
+      // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+      mat4.translate(lightMatrix, lightMatrix, [0.0, 10.0, -200.0]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
-      gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(gl.LINES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
       stats.end();

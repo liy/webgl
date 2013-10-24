@@ -6,15 +6,20 @@ function TriangleFace(i1, i2, i3){
 TriangleFace.prototype.calculateNormal = function(loader){
   var vertices = loader.vertices;
   var m = vec3.fromValues(
-    vertices[this.indices[1]]   - vertices[this.indices[0]],
-    vertices[this.indices[1]+1] - vertices[this.indices[0]+1],
-    vertices[this.indices[1]+2] - vertices[this.indices[0]+2]);
+    vertices[this.indices[1]*3]   - vertices[this.indices[0]*3],
+    vertices[this.indices[1]*3+1] - vertices[this.indices[0]*3+1],
+    vertices[this.indices[1]*3+2] - vertices[this.indices[0]*3+2]);
   var n = vec3.fromValues(
-    vertices[this.indices[2]]   - vertices[this.indices[0]],
-    vertices[this.indices[2]+1] - vertices[this.indices[0]+1],
-    vertices[this.indices[2]+2] - vertices[this.indices[0]+2]);
+    vertices[this.indices[2]*3]   - vertices[this.indices[0]*3],
+    vertices[this.indices[2]*3+1] - vertices[this.indices[0]*3+1],
+    vertices[this.indices[2]*3+2] - vertices[this.indices[0]*3+2]);
   vec3.cross(this.normal, m, n);
   vec3.normalize(this.normal, this.normal);
+
+  // console.log(vertices[this.indices[0]], vertices[this.indices[0]+1], vertices[this.indices[0]+2])
+  // console.log(vertices[this.indices[1]], vertices[this.indices[1]+1], vertices[this.indices[1]+2])
+  // console.log(vertices[this.indices[2]], vertices[this.indices[2]+1], vertices[this.indices[2]+2])
+  // console.log(this.indices);
 
   // accumulate the normals. Needs normalization when all faces' normals are generated
   for(var i=0; i<3; ++i){
@@ -121,9 +126,9 @@ p.onload = function(e){
         faces.push(new TriangleFace(faceVertexIndices[0], faceVertexIndices[1], faceVertexIndices[2]));
         if(faceVertexIndices.length > 3){
           this.indices.push(faceVertexIndices[0]);
-          this.indices.push(faceVertexIndices[1]);
           this.indices.push(faceVertexIndices[2]);
-          faces.push(new TriangleFace(faceVertexIndices[2], faceVertexIndices[0], faceVertexIndices[3]));
+          this.indices.push(faceVertexIndices[3]);
+          faces.push(new TriangleFace(faceVertexIndices[0], faceVertexIndices[2], faceVertexIndices[3]));
         }
         break;
     }
@@ -154,10 +159,11 @@ p.onload = function(e){
   else
     this.normals = normals_temp;
 
-  console.log(this.normals.length, this.vertices.length, this.indices.length);
-  console.log(this.texCoords);
-  console.log(this.vertices);
-  console.log(this.indices);
+  // console.log(this.normals.length, this.vertices.length, this.indices.length);
+  // console.log(this.texCoords);
+  // console.log(this.vertices);
+  // console.log(this.indices);
+  // console.log(this.normals);
 
   console.timeEnd('split');
   this.callback();
