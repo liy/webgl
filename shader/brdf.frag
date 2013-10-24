@@ -68,7 +68,8 @@ void main(){
   // roughness
   float m = sqrt(2.0/(2.0+u_Gloss));
 
-  vec3 F0 = vec3(0.21,0.21,0.21);
+  // vec3 F0 = vec3(1.0,0.71,0.29);
+  vec3 F0 = vec3(0.2,0.2,0.2);
 
   vec3 F = fresnel(F0, ndoth);
   float D = ((u_Gloss + 2.0)/2.0*pi) * pow(ndoth, u_Gloss);
@@ -86,9 +87,10 @@ void main(){
   // specular
   vec4 specularMicrofacetTerm = vec4(F*G*D, 1.0)/(4.0*ndotl*ndotv);
   vec4 specularTerm = u_LightColor * pow(max(ndoth, 0.0), u_Gloss) * specularMicrofacetTerm * specularConservation();
-  vec4 specularContrib =  specularTerm *  max(ndotl, 0.0);
+  vec4 specularContrib = specularTerm *  max(ndotl, 0.0);
   // diffuse
-  vec4 diffuseTerm = u_LightColor * diffuseConservation() * vec4(1.0 - F0, 1.0);
+  // vec4 diffuseTerm = u_LightColor * diffuseConservation() * vec4(1.0 - F0, 1.0);
+  vec4 diffuseTerm = u_LightColor * diffuseConservation() * (1.0 - (F0[0]+F0[1]+F0[2])/3.0);
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
   // gl_FragColor = texture2D(u_Sampler, v_TexCoord) * (diffuseContrib + specularContrib + ambientContrib);
