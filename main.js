@@ -57,10 +57,11 @@ function onload(){
   // light source
   gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
   gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
-  // material
-  gl.uniform4fv(materialColorLocation, [1.0, 0.0, 0.0, 1.0]);
+  // material diffuse
+  gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
+  // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
   // shininess
-  gl.uniform1f(glossLocation, 2);
+  gl.uniform1f(glossLocation, 10);
 
   // setup buffer
   // matrix
