@@ -18,7 +18,7 @@ gl.clearColor(0.6, 0.6, 0.6, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 gl.enable(gl.CULL_FACE);
 
-var loader = new ObjectLoader('data/teapot/bunny.txt', bind(this, onload));
+var loader = new ObjectLoader('data/teapot/buddha.txt', bind(this, onload));
 
 function onload(){
   var program = gl.createProgram();
