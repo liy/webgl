@@ -18,7 +18,7 @@ gl.clearColor(0.6, 0.6, 0.6, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 gl.enable(gl.CULL_FACE);
 
-var loader = new ObjectLoader('data/teapot/teapot.txt', bind(this, onload));
+var loader = new ObjectLoader('data/teapot/bunny.txt', bind(this, onload));
 
 function onload(){
   var program = gl.createProgram();
@@ -125,9 +125,9 @@ function onload(){
       objRotateZ += 0.0022;
 
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -50, -200.0]);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -5, -10.5]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateX, [1, 0, 0]);
-      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
+      mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateZ, [0, 0, 1]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
@@ -141,14 +141,14 @@ function onload(){
       lightRotateZ-=0.015;
       // transform light
       mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -200.0]);
-      // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+      // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -2.0]);
+      mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
       mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
-      // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 10.0, -200.0]);
+      mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -10.0]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
-      gl.drawElements(gl.LINES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
       stats.end();

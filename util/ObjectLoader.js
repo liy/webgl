@@ -141,6 +141,14 @@ p.onload = function(e){
   //     this.texCoords[i*texCoordsCompSize + j] = texCoords_temp[texCoordIndices[i]*texCoordsCompSize + j];
   //    }
   // }
+  
+  // make sure all indices are positive
+  // len = this.indices.length;
+  // for(i=0; i<len; ++i){
+  //   if(this.indices[i] < 0)
+  //     this.indices[i] += len;
+  // }
+
   this.texCoords = texCoords_temp;
 
   if(normals_temp.length == 0){
@@ -150,6 +158,8 @@ p.onload = function(e){
     }
     // normalize vertex normal
     for(i=0; i<this._vertexNormals.length; ++i){
+      if(!this._vertexNormals[i])
+        continue;
       vec3.normalize(this._vertexNormals[i], this._vertexNormals[i]);
       this.normals[i*3] = this._vertexNormals[i][0];
       this.normals[i*3+1] = this._vertexNormals[i][1];
@@ -165,6 +175,7 @@ p.onload = function(e){
   // console.log(this.indices);
   // console.log(this.normals);
 
+  console.log('vertices: ' + this.vertices.length);
   console.timeEnd('split');
   this.callback();
 }
