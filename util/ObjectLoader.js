@@ -1,33 +1,67 @@
-function TriangleFace(i1, i2, i3){
-  // vertex indices
-  this.indices = [i1, i2, i3];
+function Face(){
+  this.vi = new Array();
+  this.ti = new Array();
+  this.ni = new Array();
+
   this.normal = vec3.create();
 }
-TriangleFace.prototype.calculateNormal = function(loader){
+
+Face.prototype.addIndices = function(vi, ti, ni){
+  this.vi.push(vi);
+
+  if(!isNaN(ti)){
+    this.ti.push(ti);
+  }
+
+  if(!isNaN(ni)){
+    this.ni.push(ni);
+  }
+}
+
+Face.prototype.correction = function(numVertices, numTexCoords, numNormals){
+  var i;
+  for(i=0; i<this.vi.length; ++i){
+    if(this.vi[i] < 0)
+      this.vi[i] = numVertices + this.vi[i];
+    else
+      this.vi[i]--;
+  }
+
+  for(i=0; i<this.ti.length; ++i){
+    if(this.ti[i] < 0)
+      this.ti[i] = numTexCoords + this.ti[i];
+    else
+      this.ti[i]--;
+  }
+
+  for(i=0; i<this.ni.length; ++i){
+    if(this.ni[i] < 0)
+      this.ni[i] = numNormals + this.ni[i];
+    else
+      this.ni[i]--;
+  }
+}
+
+Face.prototype.calculateNormal = function(loader){
   var vertices = loader.vertices;
   var m = vec3.fromValues(
-    vertices[this.indices[1]*3]   - vertices[this.indices[0]*3],
-    vertices[this.indices[1]*3+1] - vertices[this.indices[0]*3+1],
-    vertices[this.indices[1]*3+2] - vertices[this.indices[0]*3+2]);
+    vertices[this.vi[1]*3]   - vertices[this.vi[0]*3],
+    vertices[this.vi[1]*3+1] - vertices[this.vi[0]*3+1],
+    vertices[this.vi[1]*3+2] - vertices[this.vi[0]*3+2]);
   var n = vec3.fromValues(
-    vertices[this.indices[2]*3]   - vertices[this.indices[0]*3],
-    vertices[this.indices[2]*3+1] - vertices[this.indices[0]*3+1],
-    vertices[this.indices[2]*3+2] - vertices[this.indices[0]*3+2]);
+    vertices[this.vi[2]*3]   - vertices[this.vi[0]*3],
+    vertices[this.vi[2]*3+1] - vertices[this.vi[0]*3+1],
+    vertices[this.vi[2]*3+2] - vertices[this.vi[0]*3+2]);
   vec3.cross(this.normal, m, n);
   vec3.normalize(this.normal, this.normal);
 
-  // console.log(vertices[this.indices[0]], vertices[this.indices[0]+1], vertices[this.indices[0]+2])
-  // console.log(vertices[this.indices[1]], vertices[this.indices[1]+1], vertices[this.indices[1]+2])
-  // console.log(vertices[this.indices[2]], vertices[this.indices[2]+1], vertices[this.indices[2]+2])
-  // console.log(this.indices);
-
   // accumulate the normals. Needs normalization when all faces' normals are generated
   for(var i=0; i<3; ++i){
-    var vertexNormal = loader._vertexNormals[this.indices[i]];
+    var vertexNormal = loader._vertexNormals[this.vi[i]];
     if(vertexNormal)
-      vec3.add(loader._vertexNormals[this.indices[i]], vertexNormal, this.normal);
+      vec3.add(loader._vertexNormals[this.vi[i]], vertexNormal, this.normal);
     else
-      loader._vertexNormals[this.indices[i]] = this.normal;
+      loader._vertexNormals[this.vi[i]] = this.normal;
   }
 }
 
@@ -50,29 +84,26 @@ p.onload = function(e){
   var text = e.target.responseText;
   var lines = text.split('\n');
 
-  this.vertices = new Array();
-  this.texCoords = new Array();
-  this.normals = new Array();
-
-  var texCoords_temp = new Array();
-  var normals_temp = new Array();
-
-  var vertexIndices = new Array();
-  var texCoordIndices = new Array();
-  var normalIndices = new Array();
-
-  var faces = new Array();
-
-  // keeping values of the line
-  var values;
+  // keeping token string of the line
+  var tokens, parts;
   // for loop index
   var i,j,k,len;
 
-  // number of texture coordinate components
-  var texCoordsCompSize = 3;
+  // vertex, texture coordinates, normals and faces
+  this.vertices = new Array();
+  this.texCoords = new Array();
+  this.normals = new Array();
+  var faces = new Array();
 
-  // for WebGL drawElements
+  // indices
   this.indices = new Array();
+
+  // temporary look up array
+  var texCoordsLookup = new Array();
+  var normalsLookup = new Array();
+
+  // texture coordinate component size.
+  var t_size = 2;
 
   // every time a face normal is generated, the normal will be added against corresponding vertex's _vertexNormals.
   // When all the face normals generation completed, all the vertices's _vertexNormals will be normalized
@@ -88,70 +119,77 @@ p.onload = function(e){
 
     switch(line.substr(0, 2)){
       case 'v ':
-        values = line.substr(1).trim().split(' ');
+        tokens = line.substr(1).trim().split(' ');
         for(j=0; j<3; ++j){
-          this.vertices.push(Number(values[j]));
+          this.vertices.push(Number(tokens[j]));
         }
         break;
       case 'vt':
-        values = line.substr(2).trim().split(' ');
-        texCoordsCompSize = values.length;
-        for(j=0; j<texCoordsCompSize; ++j){
-          texCoords_temp.push(Number(values[j]));
+        tokens = line.substr(2).trim().split(' ');
+        t_size = tokens.length;
+        for(j=0; j<t_size; ++j){
+          texCoordsLookup.push(Number(tokens[j]));
         }
         break;
       case 'vn':
-        values = line.substr(2).trim().split(' ');
+        tokens = line.substr(2).trim().split(' ');
         for(j=0; j<3; ++j){
-          normals_temp.push(Number(values[j]));
+          normalsLookup.push(Number(tokens[j]));
         }
         break;
       case 'f ':
-        var faceVertexIndices = new Array();
-
-        values = line.substr(1).trim().split(' ');
-        for(j=0; j<values.length; ++j){
-          var parts = values[j].split('/');
-
-          faceVertexIndices.push(parseInt(parts[0])-1);
-          vertexIndices.push(parseInt(parts[0])-1);
-          texCoordIndices.push(parseInt(parts[1])-1);
-          normalIndices.push(parseInt(parts[2])-1);
+        var face = new Face();
+        tokens = line.substr(1).trim().split(' ');
+        for(j=0; j<tokens.length; ++j){
+          parts = tokens[j].split('/');
+          face.addIndices(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
         }
-
-        // face
-        this.indices.push(faceVertexIndices[0]);
-        this.indices.push(faceVertexIndices[1]);
-        this.indices.push(faceVertexIndices[2]);
-        faces.push(new TriangleFace(faceVertexIndices[0], faceVertexIndices[1], faceVertexIndices[2]));
-        if(faceVertexIndices.length > 3){
-          this.indices.push(faceVertexIndices[0]);
-          this.indices.push(faceVertexIndices[2]);
-          this.indices.push(faceVertexIndices[3]);
-          faces.push(new TriangleFace(faceVertexIndices[0], faceVertexIndices[2], faceVertexIndices[3]));
-        }
+        faces.push(face);
         break;
     }
   }
 
-  // fix up the indices.
-  // len = vertexIndices.length;
-  // for(i=0; i<len; ++i){
-  //   for(j=0; j<texCoordsCompSize; ++j){
-  //     this.texCoords[i*texCoordsCompSize + j] = texCoords_temp[texCoordIndices[i]*texCoordsCompSize + j];
-  //    }
-  // }
-  
-  // make sure all indices are positive
-  // len = this.indices.length;
-  // for(i=0; i<len; ++i){
-  //   if(this.indices[i] < 0)
-  //     this.indices[i] += len;
-  // }
+  var numVertices = this.vertices.length/3;
+  var numTexCoords = texCoordsLookup.length/t_size;
+  var numNormals = normalsLookup.length/3;
 
-  this.texCoords = texCoords_temp;
+  // face's indices correction
+  len = faces.length;
+  for(i=0; i<len; ++i){
+    faces[i].correction(numVertices, numTexCoords, numNormals);
+  }
 
-  if(normals_temp.length == 0){
+  // re-organize the texCoords and normals(if any)
+  for(i=0; i<faces.length; ++i){
+    var face = faces[i];
+
+    if(face.ti.length !== 0){
+      for(j=0; j<face.vi.length; ++j){
+
+        // ******** the texCoords index is
+        this.texCoords[ face.vi[j]*t_size ] = texCoordsLookup[ face.ti[j]*t_size ];
+        this.texCoords[ face.vi[j]*t_size+1 ] = texCoordsLookup[ face.ti[j]*t_size+1 ];
+
+        // console.log(texCoordsLookup);
+        console.log(face.ti);
+        // console.log(face.ti[j]*t_size, face.ti[j]*t_size+1)
+        // console.log(texCoordsLookup[ face.ti[j]*t_size ], texCoordsLookup[ face.ti[j]*t_size+1 ])
+        // if(t_size === 3)
+        //   this.texCoords[ face.vi[j]*t_size+2 ] = texCoordsLookup[ face.ti[j]*t_size+2 ];
+      }
+    }
+
+    if(face.ni.length !== 0){
+      for(j=0; j<face.ni.length; ++j){
+        this.normals[ face.ni[j]*3 ] = normalsLookup[ face.ni[j]*3 ];
+        this.normals[ face.ni[j]*3+1 ] = normalsLookup[ face.ni[j]*3+1 ];
+        this.normals[ face.ni[j]*3+2 ] = normalsLookup[ face.ni[j]*3+2 ];
+      }
+    }
+  }
+
+  // calculate normals if no normals are given
+  if(this.normals.length === 0){
     // calculate normals
     for(i=0; i<faces.length; ++i){
       faces[i].calculateNormal(this);
@@ -166,16 +204,27 @@ p.onload = function(e){
       this.normals[i*3+2] = this._vertexNormals[i][2];
     }
   }
-  else
-    this.normals = normals_temp;
 
-  // console.log(this.normals.length, this.vertices.length, this.indices.length);
+  // indices
+  for(i=0; i<faces.length; ++i){
+    var face = faces[i];
+    this.indices.push(face.vi[0]);
+    this.indices.push(face.vi[1]);
+    this.indices.push(face.vi[2]);
+
+    if(face.vi.length > 3){
+      this.indices.push(face.vi[0]);
+      this.indices.push(face.vi[2]);
+      this.indices.push(face.vi[3]);
+    }
+  }
+
   // console.log(this.texCoords);
-  // console.log(this.vertices);
-  // console.log(this.indices);
-  // console.log(this.normals);
 
-  console.log('vertices: ' + this.vertices.length);
+  // console.log(this.vertices, this.texCoords);
+
+  // console.log(this.indices);
+
   console.timeEnd('split');
   this.callback();
 }

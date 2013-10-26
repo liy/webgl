@@ -16,9 +16,9 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-gl.enable(gl.CULL_FACE);
+// gl.enable(gl.CULL_FACE);
 
-var loader = new ObjectLoader('data/teapot/teapot.txt', bind(this, onload));
+var loader = new ObjectLoader('data/teapot/cube.obj', bind(this, onload));
 
 function onload(){
   var program = gl.createProgram();
@@ -55,7 +55,7 @@ function onload(){
   // position
   gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
   // light source
-  gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
+  gl.uniform4fv(lightAmbientLocation, [0.4, 0.4, 0.4, 1.0]);
   gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // material diffuse
   gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
@@ -82,7 +82,7 @@ function onload(){
   // texture buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
   gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(texCoordLocation);
   // normal buffer
@@ -99,9 +99,10 @@ function onload(){
   // load texture
   var image = new Image();
   image.onload = init;
-  image.src = 'img/earth.jpg';
+  // image.src = 'img/earth.jpg';
+  image.src = 'data/teapot/default.png'
   var lightRotateX = 0;
-  var lightRotateY = 0;
+  var lightRotateY = -Math.PI;
   var lightRotateZ = 0;
   var objRotateX = 0;
   var objRotateY = 0;
@@ -126,9 +127,9 @@ function onload(){
       objRotateZ += 0.0022;
 
       mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -40, -150]);
+      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -2, -5]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateX, [1, 0, 0]);
-      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
+      mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateZ, [0, 0, 1]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
@@ -137,16 +138,16 @@ function onload(){
       gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
 
-      lightRotateX-=0.01;
-      lightRotateY-=0.012;
-      lightRotateZ-=0.015;
+      // lightRotateX-=0.01;
+      // lightRotateY-=0.012;
+      // lightRotateZ-=0.015;
       // transform light
       mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -150]);
+      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
       // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
-      mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
+      // mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
       // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -150]);
+      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
       gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
