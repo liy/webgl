@@ -199,10 +199,10 @@ p.onload = function(e){
 
   // console.log(this.vertices.length, this.texCoords.length, this.normals.length);
 
-  console.log(this.vertices);
-  console.log(this.texCoords);
+  // console.log(this.vertices);
+  // console.log(this.texCoords);
   // console.log(this.normals);
-  console.log(this.indices);
+  // console.log(this.indices);
 
 
   console.timeEnd('split');
