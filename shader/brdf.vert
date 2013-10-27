@@ -17,4 +17,6 @@ void main(){
   gl_Position = u_ProjectionMatrix * v_Vertex;
   v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
+
+  // gl_PointSize = 2.0;
 }
