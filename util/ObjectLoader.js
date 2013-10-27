@@ -111,8 +111,12 @@ p.onload = function(e){
   var tLookup = new Array();
   var nLookup = new Array();
 
+  var hasNormal = false;
+
   // texture coordinate component size.
   this.t_size = 2;
+
+  var doIndexRearrangement = true;
 
   // every time a face normal is generated, the normal will be added against corresponding vertex's _vertexNormals.
   // When all the face normals generation completed, all the vertices's _vertexNormals will be normalized
@@ -141,31 +145,30 @@ p.onload = function(e){
         }
         break;
       case 'vn':
+        hasNormal = true;
         tokens = line.substr(2).trim().split(' ');
         for(j=0; j<3; ++j){
           nLookup.push(Number(tokens[j]));
         }
         break;
       case 'f ':
-        // var face = new Face();
-        // tokens = line.substr(1).trim().split(' ');
-        // for(j=0; j<tokens.length; ++j){
-        //   parts = tokens[j].split('/');
-        //   face.addIndices(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
-        // }
-        // faces.push(face);
-
         var vi = new Array();
         var ti = new Array();
         var ni = new Array();
         tokens = line.substr(1).trim().split(' ');
         for(j=0; j<tokens.length; ++j){
           parts = tokens[j].split('/');
+
+          // whether to do look up process.
+          // if faces only contains vertex index, no need to perform index re-arrangement process.
+          if(doIndexRearrangement && parts.length === 1)
+            doIndexRearrangement = false;
+
+          hasNormal = (parts.length === 3)
+
           vi.push(parseInt(parts[0]));
           ti.push(parseInt(parts[1]));
           ni.push(parseInt(parts[2]));
-
-          this.indices.push(parseInt(parts[0])-1);
         }
 
         var face = new Face();
@@ -192,7 +195,7 @@ p.onload = function(e){
   }
 
   // calculate face normals
-  for(i=0; i<faces.length; ++i){
+  for(i=0; i<len; ++i){
     faces[i].calculateNormal(vLookup, vertexNormals);
   }
   // normalize all the normals
@@ -201,23 +204,61 @@ p.onload = function(e){
       vec3.normalize(vertexNormals[i], vertexNormals[i]);
   }
 
-  var index = 0;
-  for(i=0; i<len; ++i){
-    var face = faces[i];
-    for(j=0; j<face.vi.length; ++j){
-      this.vertices.push(vLookup[ face.vi[j]*3 ]);
-      this.vertices.push(vLookup[ face.vi[j]*3+1 ]);
-      this.vertices.push(vLookup[ face.vi[j]*3+2 ]);
+  if(doIndexRearrangement){
+    var index = 0;
+    for(i=0; i<len; ++i){
+      var face = faces[i];
+      for(j=0; j<face.vi.length; ++j){
+          this.vertices.push(vLookup[ face.vi[j]*3 ]);
+          this.vertices.push(vLookup[ face.vi[j]*3+1 ]);
+          this.vertices.push(vLookup[ face.vi[j]*3+2 ]);
 
-      // this.indices.push(face.vi[j]);
-    }
+          this.indices.push(index++);
+      }
 
-    for(j=0; j<face.ti.length; ++j){
-      this.texCoords.push(tLookup[ face.ti[j]*this.t_size ]);
-      this.texCoords.push(tLookup[ face.ti[j]*this.t_size+1 ]);
-      if(this.t_size === 3)
-        this.texCoords.push(tLookup[ face.ti[j]*this.t_size+2 ]);
+      for(j=0; j<face.ti.length; ++j){
+        this.texCoords.push(tLookup[ face.ti[j]*this.t_size ]);
+        this.texCoords.push(tLookup[ face.ti[j]*this.t_size+1 ]);
+        if(this.t_size === 3)
+          this.texCoords.push(tLookup[ face.ti[j]*this.t_size+2 ]);
+      }
+
+      for(j=0; j<face.ni.length; ++j){
+        this.normals.push(nLookup[ face.ni[j]*3 ]);
+        this.normals.push(nLookup[ face.ni[j]*3+1 ]);
+        this.normals.push(nLookup[ face.ni[j]*3+2 ]);
+      }
+
+      // use calculated normals
+      if(!hasNormal){
+        for(j=0; j<face.vi.length; ++j){
+          this.normals.push(vertexNormals[ face.vi[j] ][0]);
+          this.normals.push(vertexNormals[ face.vi[j] ][1]);
+          this.normals.push(vertexNormals[ face.vi[j] ][2]);
+        }
+      }
     }
+  }
+  else{
+    this.vertices = vLookup;
+    this.texCoords = tLookup;
+    this.normals = nLookup;
+
+    for(i=0; i<len; ++i){
+      var face = faces[i];
+      for(j=0; j<face.vi.length; ++j){
+        this.indices.push(face.vi[j]);
+
+        if(!hasNormal){
+          this.normals[ face.vi[j]*3 ] = vertexNormals[ face.vi[j] ][0];
+          this.normals[ face.vi[j]*3+1 ] = vertexNormals[ face.vi[j] ][1];
+          this.normals[ face.vi[j]*3+2 ] = vertexNormals[ face.vi[j] ][2];
+        }
+      }
+    }
+  }
+
+
 
     // for(j=0; j<face.ni.length; ++j){
     //   this.normals.push(nLookup[ face.ni[j]*3 ]);
@@ -225,18 +266,12 @@ p.onload = function(e){
     //   this.normals.push(nLookup[ face.ni[j]*3+2 ]);
     // }
 
-    for(j=0; j<face.vi.length; ++j){
-      this.normals.push(vertexNormals[ face.vi[j] ][0]);
-      this.normals.push(vertexNormals[ face.vi[j] ][1]);
-      this.normals.push(vertexNormals[ face.vi[j] ][2]);
-    }
-  }
-
-  this.vertices = vLookup;
+  console.log(doIndexRearrangement);
 
 
   console.log('vLookup: ' + vLookup.length);
   console.log('vertices: ' + this.vertices.length);
+  console.log('normals: ' + this.normals.length);
   console.log('faces: ' + faces.length + ' *3*3: ' + faces.length*3*3);
   console.log('indices: ' + this.indices.length + ' *3: ' + this.indices.length*3);
 
