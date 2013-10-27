@@ -1,3 +1,5 @@
+var check = 0;
+
 function Face(){
   this.vi = new Array();
   this.ti = new Array();
@@ -42,7 +44,27 @@ Face.prototype.correction = function(vLookupSize, tLookupSize, nLookupSize){
   }
 }
 
+Face.prototype.calculateNormal = function(vLookup, vertexNormals){
+  var m = vec3.fromValues(
+    vLookup[this.vi[1]*3]   - vLookup[this.vi[0]*3],
+    vLookup[this.vi[1]*3+1] - vLookup[this.vi[0]*3+1],
+    vLookup[this.vi[1]*3+2] - vLookup[this.vi[0]*3+2]);
+  var n = vec3.fromValues(
+    vLookup[this.vi[2]*3]   - vLookup[this.vi[0]*3],
+    vLookup[this.vi[2]*3+1] - vLookup[this.vi[0]*3+1],
+    vLookup[this.vi[2]*3+2] - vLookup[this.vi[0]*3+2]);
+  vec3.cross(this.normal, m, n);
+  vec3.normalize(this.normal, this.normal);
 
+  // accumulate the normals for every vertices on the face.
+  for(var i=0; i<this.vi.length; ++i){
+    var vertexNormal = vertexNormals[this.vi[i]];
+    if(vertexNormal)
+      vec3.add(vertexNormals[this.vi[i]], vertexNormal, this.normal);
+    else
+      vertexNormals[this.vi[i]] = vec3.clone(this.normal);
+  }
+}
 
 
 
@@ -94,7 +116,7 @@ p.onload = function(e){
 
   // every time a face normal is generated, the normal will be added against corresponding vertex's _vertexNormals.
   // When all the face normals generation completed, all the vertices's _vertexNormals will be normalized
-  this._vertexNormals = new Array();
+  vertexNormals = new Array();
 
   len = lines.length;
   for(var i=0; i<len; ++i){
@@ -142,14 +164,16 @@ p.onload = function(e){
           vi.push(parseInt(parts[0]));
           ti.push(parseInt(parts[1]));
           ni.push(parseInt(parts[2]));
+
+          this.indices.push(parseInt(parts[0])-1);
         }
-        // console.log(vi);
 
         var face = new Face();
         face.addIndices(vi[0], ti[0], ni[0]);
         face.addIndices(vi[1], ti[1], ni[1]);
         face.addIndices(vi[2], ti[2], ni[2]);
         faces.push(face);
+
         if(vi.length === 4){
           face = new Face();
           face.addIndices(vi[2], ti[2], ni[2]);
@@ -167,6 +191,16 @@ p.onload = function(e){
     faces[i].correction(vLookup.length/3, tLookup.length/this.t_size, nLookup.length/3);
   }
 
+  // calculate face normals
+  for(i=0; i<faces.length; ++i){
+    faces[i].calculateNormal(vLookup, vertexNormals);
+  }
+  // normalize all the normals
+  for(i=0; i<vertexNormals.length; ++i){
+    if(vertexNormals[i])
+      vec3.normalize(vertexNormals[i], vertexNormals[i]);
+  }
+
   var index = 0;
   for(i=0; i<len; ++i){
     var face = faces[i];
@@ -175,8 +209,7 @@ p.onload = function(e){
       this.vertices.push(vLookup[ face.vi[j]*3+1 ]);
       this.vertices.push(vLookup[ face.vi[j]*3+2 ]);
 
-      // assign indices
-      this.indices.push(index++);
+      // this.indices.push(face.vi[j]);
     }
 
     for(j=0; j<face.ti.length; ++j){
@@ -184,25 +217,28 @@ p.onload = function(e){
       this.texCoords.push(tLookup[ face.ti[j]*this.t_size+1 ]);
       if(this.t_size === 3)
         this.texCoords.push(tLookup[ face.ti[j]*this.t_size+2 ]);
-
-
-      // console.log(this.texCoords);
     }
 
-    for(j=0; j<face.ni.length; ++j){
-      this.normals.push(nLookup[ face.ni[j]*3 ]);
-      this.normals.push(nLookup[ face.ni[j]*3+1 ]);
-      this.normals.push(nLookup[ face.ni[j]*3+2 ]);
+    // for(j=0; j<face.ni.length; ++j){
+    //   this.normals.push(nLookup[ face.ni[j]*3 ]);
+    //   this.normals.push(nLookup[ face.ni[j]*3+1 ]);
+    //   this.normals.push(nLookup[ face.ni[j]*3+2 ]);
+    // }
+
+    for(j=0; j<face.vi.length; ++j){
+      this.normals.push(vertexNormals[ face.vi[j] ][0]);
+      this.normals.push(vertexNormals[ face.vi[j] ][1]);
+      this.normals.push(vertexNormals[ face.vi[j] ][2]);
     }
   }
 
+  this.vertices = vLookup;
 
-  // console.log(this.vertices.length, this.texCoords.length, this.normals.length);
 
-  // console.log(this.vertices);
-  // console.log(this.texCoords);
-  // console.log(this.normals);
-  // console.log(this.indices);
+  console.log('vLookup: ' + vLookup.length);
+  console.log('vertices: ' + this.vertices.length);
+  console.log('faces: ' + faces.length + ' *3*3: ' + faces.length*3*3);
+  console.log('indices: ' + this.indices.length + ' *3: ' + this.indices.length*3);
 
 
   console.timeEnd('split');
