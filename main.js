@@ -4,7 +4,7 @@ stats.setMode(1); // 0: fps, 1: ms
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
-// document.body.appendChild( stats.domElement );
+document.body.appendChild( stats.domElement );
 
 
 
@@ -16,9 +16,10 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// gl.enable(gl.CULL_FACE);
+gl.enable(gl.CULL_FACE);
 
-var loader = new ObjLoader('data/teapot/buddha.txt', bind(this, onload));
+var loader = new ObjLoader();
+loader.load('data/teapot/buddha.txt', bind(this, onload));
 
 function onload(){
   var program = gl.createProgram();
@@ -61,7 +62,7 @@ function onload(){
   gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
   // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
   // shininess
-  gl.uniform1f(glossLocation, 40);
+  gl.uniform1f(glossLocation, 30);
 
   // setup buffer
   // matrix
@@ -84,7 +85,7 @@ function onload(){
     var tb = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, tb);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(texCoordLocation, loader.t_size, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(texCoordLocation, loader.texCoordComponentSize, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(texCoordLocation);
   }
   // normal buffer
@@ -133,7 +134,7 @@ function onload(){
       mat4.identity(modelViewMatrix);
       mat4.translate(modelViewMatrix, modelViewMatrix, [0, -5, -10]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateX, [1, 0, 0]);
-      mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
+      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
       // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateZ, [0, 0, 1]);
       gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
@@ -142,21 +143,20 @@ function onload(){
       gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
 
-      // lightRotateX-=0.01;
+      lightRotateX-=0.01;
       lightRotateY-=0.012;
-      // lightRotateZ-=0.015;
+      lightRotateZ-=0.015;
       // transform light
       mat4.identity(lightMatrix);
       mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -10]);
-      // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+      mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
       mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
-      // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+      mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
       mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -10]);
       gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
-      gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
-      // gl.drawArrays(gl.TRIANGLES, 0, loader.indices.length/3);
-
+      gl.drawArrays(gl.TRIANGLES, 0, loader.vertices.length/3);
+      // gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
 
       stats.end();
       requestAnimFrame(render);

@@ -18,5 +18,5 @@ void main(){
   v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
 
-  // gl_PointSize = 2.0;
+  gl_PointSize = 2.0;
 }
