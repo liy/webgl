@@ -1,3 +1,24 @@
+var lightRotateX = 0;
+var lightRotateY = -Math.PI;
+var lightRotateZ = 0;
+var objRotationX = 0;
+var objRotationY = 0;
+var objRotationZ = 0;
+
+var velocity = vec3.create();
+var position = vec3.create();
+var targetRotationY = 0;
+var targetRotationX = 0;
+
+var translationMatrix = mat4.create();
+var rotationMatrix = mat4.create();
+
+var vx = 0;
+var vy = 0;
+var vz = 0;
+
+
+
 var stats = new Stats();
 stats.setMode(1); // 0: fps, 1: ms
 // Align top-left
@@ -6,7 +27,7 @@ stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
 document.body.appendChild( stats.domElement );
 
-
+var textureManager = new TextureManager();
 
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -16,12 +37,28 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-gl.enable(gl.CULL_FACE);
+// gl.enable(gl.CULL_FACE);
 
-var loader = new ObjLoader();
-loader.load('data/teapot/buddha.txt', bind(this, onload));
+var loader = new ObjLoader(false);
+var modelPath = 'data/crytek-sponza/';
+var fileName = 'sponza.obj';
+loader.load(modelPath, fileName, bind(this, loadTextures));
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-function onload(){
+function loadTextures(){
+  var materialMap = loader.mtlLoader.materialMap;
+  for(var key in materialMap){
+    var material = materialMap[key];
+    if(material.map_Kd != ''){
+      textureManager.add(modelPath + material.map_Kd, material.map_Kd);
+    }
+  }
+  textureManager.load(bind(this, onTexturesLoaded));
+}
+
+function onTexturesLoaded(){
+  console.log(textureManager.map);
+
   var program = gl.createProgram();
   var shader = new Shader(program, 'shader/brdf.vert', 'shader/brdf.frag');
   gl.useProgram(program);
@@ -67,7 +104,7 @@ function onload(){
   // setup buffer
   // matrix
   var projectionMatrix = mat4.create();
-  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 800);
+  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 2000);
   gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
   var modelViewMatrix = mat4.create();
   var normalMatrix = mat3.create();
@@ -101,66 +138,101 @@ function onload(){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
 
-  // load texture
-  var image = new Image();
-  image.onload = init;
-  // image.src = 'img/earth.jpg';
-  image.src = 'data/teapot/default.png'
-  var lightRotateX = 0;
-  var lightRotateY = -Math.PI;
-  var lightRotateZ = 0;
-  var objRotateX = 0;
-  var objRotateY = 0;
-  var objRotateZ = 0;
-  function init(){
-    // texture
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.generateMipmap(gl.TEXTURE_2D);
+  function render(){
+    stats.begin();
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    function render(){
-      stats.begin();
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-      objRotateX += 0.001;
-      objRotateY += 0.002;
-      objRotateZ += 0.0022;
-
-      mat4.identity(modelViewMatrix);
-      mat4.translate(modelViewMatrix, modelViewMatrix, [0, -5, -10]);
-      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateX, [1, 0, 0]);
-      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateY, [0, 1, 0]);
-      // mat4.rotate(modelViewMatrix, modelViewMatrix, objRotateZ, [0, 0, 1]);
-      gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
-
-      // update inverse model view matrix
-      mat3.normalFromMat4(normalMatrix, modelViewMatrix);
-      gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+    objRotationX += (targetRotationX - objRotationX)/10;
+    objRotationY += (targetRotationY - objRotationY)/10;
 
 
-      lightRotateX-=0.01;
-      lightRotateY-=0.012;
-      lightRotateZ-=0.015;
-      // transform light
-      mat4.identity(lightMatrix);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -10]);
-      mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
-      mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
-      mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-      mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -10]);
-      gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
+    mat4.identity(rotationMatrix);
+    mat4.rotate(rotationMatrix, rotationMatrix, objRotationX, [1, 0, 0]);
+    mat4.rotate(rotationMatrix, rotationMatrix, objRotationY, [0, 1, 0]);
+    vec3.set(velocity, vx, 0, vz);
+    vec3.transformMat4(velocity, velocity, rotationMatrix);
+    vec3.add(position, position, velocity);
+    mat4.identity(translationMatrix);
+    mat4.translate(translationMatrix, translationMatrix, position);
 
-      gl.drawArrays(gl.TRIANGLES, 0, loader.vertices.length/3);
-      // gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
+    mat4.identity(modelViewMatrix);
+    mat4.mul(modelViewMatrix, modelViewMatrix, rotationMatrix);
+    mat4.mul(modelViewMatrix, modelViewMatrix, translationMatrix);
+    gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
-      stats.end();
-      requestAnimFrame(render);
+    // update inverse model view matrix
+    mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+    gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+
+    lightRotateX-=0.01;
+    lightRotateY-=0.012;
+    lightRotateZ-=0.015;
+    // transform light
+    mat4.identity(lightMatrix);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -0]);
+    mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+    mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
+    mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -0]);
+    gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
+
+    for(var i=0; i<loader.meshes.length; ++i){
+      var mesh = loader.meshes[i];
+      textureManager.bind(loader.mtlLoader.materialMap[mesh.usemtl].map_Kd);
+      gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
+
+    // gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    stats.end();
     requestAnimFrame(render);
   }
+  requestAnimFrame(render);
 }
+
+document.onmousemove = function(evt){
+  targetRotationX = (evt.y - window.innerHeight/2)/window.innerHeight * Math.PI;
+  targetRotationY = (evt.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+}
+
+document.addEventListener('keydown', function(evt){
+  // console.log(evt.keyCode);
+  switch(evt.keyCode){
+    // w
+    case 87:
+      vz = 2;
+      break;
+    // s
+    case 83:
+      vz = -2;
+      break;
+    // a
+    case 65:
+      vx = 2;
+      break;
+    case 68:
+      vx = -2;
+      break;
+  }
+});
+
+document.addEventListener('keyup', function(evt){
+  // console.log(evt.keyCode);
+  switch(evt.keyCode){
+    // w
+    case 87:
+      vz = 0;
+      break;
+    // s
+    case 83:
+      vz = 0;
+      break;
+    // a
+    case 65:
+      vx = 0;
+      break;
+    case 68:
+      vx = 0;
+      break;
+  }
+});
