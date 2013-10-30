@@ -40,7 +40,7 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 // gl.enable(gl.CULL_FACE);
 
 var loader = new ObjLoader(false);
-var modelPath = 'data/crytek-sponza/';
+var modelPath = '../webgl-meshes/crytek-sponza/';
 var fileName = 'sponza.obj';
 loader.load(modelPath, fileName, bind(this, loadTextures));
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
