@@ -1,23 +1,19 @@
 var lightRotateX = 0;
 var lightRotateY = -Math.PI;
 var lightRotateZ = 0;
-var objRotationX = 0;
-var objRotationY = 0;
-var objRotationZ = 0;
 
-var velocity = vec3.create();
-var position = vec3.create();
-var targetRotationY = 0;
+var UP_VECTOR = vec3.fromValues(0, 1, 0);
+var cameraPosition = vec3.create();
+var cameraDirection = vec3.fromValues(0, 0, 0);
 var targetRotationX = 0;
+var targetRotationY = 0;
 
-var translationMatrix = mat4.create();
-var rotationMatrix = mat4.create();
-
-var vx = 0;
-var vy = 0;
-var vz = 0;
-
-
+var modelViewMatrix = mat4.create();
+var modelMatrix = mat4.create();
+var viewMatrix = mat4.create();
+var normalMatrix = mat3.create();
+// light matrix
+var lightMatrix = mat4.create();
 
 var stats = new Stats();
 stats.setMode(1); // 0: fps, 1: ms
@@ -37,7 +33,10 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// gl.enable(gl.CULL_FACE);
+gl.enable(gl.CULL_FACE);
+// gl.disable(gl.DEPTH_TEST);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 var loader = new ObjLoader(false);
 var modelPath = '../webgl-meshes/crytek-sponza/';
@@ -106,10 +105,6 @@ function onTexturesLoaded(){
   var projectionMatrix = mat4.create();
   mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 2000);
   gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-  var modelViewMatrix = mat4.create();
-  var normalMatrix = mat3.create();
-  // light matrix
-  var lightMatrix = mat4.create();
 
   // vertex buffer
   var vb = gl.createBuffer();
@@ -142,22 +137,20 @@ function onTexturesLoaded(){
     stats.begin();
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    objRotationX += (targetRotationX - objRotationX)/10;
-    objRotationY += (targetRotationY - objRotationY)/10;
-
-
-    mat4.identity(rotationMatrix);
-    mat4.rotate(rotationMatrix, rotationMatrix, objRotationX, [1, 0, 0]);
-    mat4.rotate(rotationMatrix, rotationMatrix, objRotationY, [0, 1, 0]);
-    vec3.set(velocity, vx, 0, vz);
-    vec3.transformMat4(velocity, velocity, rotationMatrix);
-    vec3.add(position, position, velocity);
-    mat4.identity(translationMatrix);
-    mat4.translate(translationMatrix, translationMatrix, position);
-
     mat4.identity(modelViewMatrix);
-    mat4.mul(modelViewMatrix, modelViewMatrix, rotationMatrix);
-    mat4.mul(modelViewMatrix, modelViewMatrix, translationMatrix);
+
+    mat4.identity(viewMatrix);
+    mat4.rotateX(viewMatrix, viewMatrix, targetRotationX);
+    mat4.rotateY(viewMatrix, viewMatrix, targetRotationY);
+
+
+    mat4.translate(viewMatrix, viewMatrix, cameraPosition);
+
+
+    mat4.mul(modelViewMatrix, viewMatrix, modelMatrix);
+
+
+
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
     // update inverse model view matrix
@@ -197,42 +190,40 @@ document.onmousemove = function(evt){
 
 document.addEventListener('keydown', function(evt){
   // console.log(evt.keyCode);
+  // TODO: might be better move to update method.
   switch(evt.keyCode){
-    // w
+    // w, forward
     case 87:
-      vz = 2;
+      vec3.set(cameraDirection, 0, 0, -1);
       break;
-    // s
+    // s, backward
     case 83:
-      vz = -2;
+      vec3.set(cameraDirection, 0, 0, 1);
       break;
-    // a
+    // a, shift left
     case 65:
-      vx = 2;
+      vec3.set(cameraDirection, -1, 0, 0);
       break;
+    // d, shift right
     case 68:
-      vx = -2;
+      vec3.set(cameraDirection, 1, 0, 0);
       break;
   }
 });
 
 document.addEventListener('keyup', function(evt){
   // console.log(evt.keyCode);
+  // TODO: might be better move to update method.
   switch(evt.keyCode){
-    // w
+    // w, forward
     case 87:
-      vz = 0;
-      break;
-    // s
+    // s, backward
     case 83:
-      vz = 0;
-      break;
-    // a
+    // a, shift left
     case 65:
-      vx = 0;
-      break;
+    // d, shift right
     case 68:
-      vx = 0;
+      vec3.set(cameraDirection, 0, 0, 0);
       break;
   }
 });
