@@ -10,7 +10,7 @@ var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
 var stats = new Stats();
-stats.setMode(1); // 0: fps, 1: ms
+stats.setMode(0); // 0: fps, 1: ms
 // Align top-left
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.left = '0px';
@@ -97,7 +97,7 @@ function onTexturesLoaded(){
   // setup buffer
   // matrix
   var projectionMatrix = mat4.create();
-  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 2000);
+  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 3000);
   gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
   // vertex buffer
@@ -172,52 +172,17 @@ function onTexturesLoaded(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * Controls
+ */
 var KeyStates = Object.create(null);
 KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = 0;
 
 var UP_VECTOR = vec3.fromValues(0, 1, 0);
 
 // rotation for the camera
-var cameraRotationX = cameraRotationY = 0;
+var cameraRotationX = 0;
+var cameraRotationY = 0;
 var cameraRotationMatrix = mat4.create();
 
 // scalar for the velocity, easier to modify, MUST >= 0
@@ -239,6 +204,8 @@ function update(){
   mat4.identity(modelViewMatrix);
   mat4.identity(viewMatrix);
   mat4.identity(cameraRotationMatrix);
+
+  // console.log(cameraRotationX, cameraRotationY)
 
   // rotate the camera
   mat4.rotateY(cameraRotationMatrix, cameraRotationMatrix, cameraRotationY);
@@ -268,8 +235,8 @@ function update(){
   mat4.mul(modelViewMatrix, modelMatrix, viewMatrix);
 }
 
-var mouseX = 0;
-var mouseY = 0;
+var mouseX = window.innerWidth/2;
+var mouseY = window.innerHeight/2;
 document.onmousemove = function(e){
   // cameraRotationX = -(e.y - window.innerHeight/2)/window.innerHeight * Math.PI;
   // cameraRotationY = -(e.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
@@ -278,21 +245,17 @@ document.onmousemove = function(e){
   var movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
   mouseX += movementX;
   mouseY += movementY;
+  if(mouseY > window.innerHeight - 1)
+    mouseY = window.innerHeight - 1;
+  if(mouseY < 1)
+    mouseY = 1;
   cameraRotationX = -(mouseY - window.innerHeight/2)/window.innerHeight * Math.PI;
   cameraRotationY = -(mouseX - window.innerWidth/2)/window.innerWidth * Math.PI*2;
-
-  // lock the X axis rotation
-  if(cameraRotationX <= -Math.PI/2)
-    cameraRotationX = -Math.PI/2
-  if(cameraRotationX >= Math.PI/2)
-    cameraRotationX = Math.PI/2
 
   // console.log(movementX, movementY);
 }
 
 document.addEventListener('keydown', function(e){
-  // console.log(e.keyCode);
-  // TODO: might be better move to update method.
   switch(e.keyCode){
     // w, forward
     case 87:
@@ -314,8 +277,6 @@ document.addEventListener('keydown', function(e){
 });
 
 document.addEventListener('keyup', function(e){
-  // console.log(e.keyCode);
-  // TODO: might be better move to update method.
   switch(e.keyCode){
     // w, forward
     case 87:
