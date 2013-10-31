@@ -28,6 +28,8 @@ uniform float u_Gloss;
 // light matrix
 uniform mat4 u_LightMatrix;
 
+uniform bool u_TextureAvailable;
+
 vec3 fresnel(vec3 R0, float ndotl){
   return R0 + (1.0 - R0) * pow(1.0-max(ndotl, 0.0), 5.0);
 }
@@ -105,7 +107,10 @@ void main(){
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
   // gl_FragColor = toRGB(toLinear(texture2D(u_Sampler, v_TexCoord)) * (diffuseContrib + ambientContrib));
-  gl_FragColor = toRGB(toLinear(texture2D(u_Sampler, v_TexCoord)) * (diffuseContrib + specularContrib + ambientContrib));
+  if(u_TextureAvailable)
+    gl_FragColor = toRGB(toLinear(texture2D(u_Sampler, v_TexCoord)) * (diffuseContrib + specularContrib + ambientContrib));
+  else
+    gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));

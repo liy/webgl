@@ -33,11 +33,12 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 var loader = new ObjLoader(true);
-var modelPath = '../webgl-meshes/sibenik/';
-var fileName = 'sibenik.obj';
+var modelPath = '../webgl-meshes/dragon/';
+var fileName = 'dragon.obj';
 loader.load(modelPath, fileName, bind(this, loadTextures));
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
+var textureAvailable = true;
 function loadTextures(){
   var materialMap = loader.mtlLoader.materialMap;
   for(var key in materialMap){
@@ -46,12 +47,16 @@ function loadTextures(){
       textureManager.add(modelPath + material.map_Kd, material.map_Kd);
     }
   }
-  textureManager.load(bind(this, onTexturesLoaded));
+
+  if(textureManager.loaders.length !== 0)
+    textureManager.load(bind(this, onTexturesLoaded));
+  else{
+    textureAvailable = false;
+    onTexturesLoaded();
+  }
 }
 
 function onTexturesLoaded(){
-  console.log(textureManager.map);
-
   var program = gl.createProgram();
   var shader = new Shader(program, 'shader/brdf.vert', 'shader/brdf.frag');
   gl.useProgram(program);
@@ -81,6 +86,8 @@ function onTexturesLoaded(){
   var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
   // shininess
   var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
+  // whether texture available
+  var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
 
 
   // position
@@ -93,6 +100,8 @@ function onTexturesLoaded(){
   // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
   // shininess
   gl.uniform1f(glossLocation, 30);
+  // texture availability
+  gl.uniform1i(textureAvailableLocation, textureAvailable);
 
   // setup buffer
   // matrix
@@ -134,7 +143,7 @@ function onTexturesLoaded(){
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    
+
 
 
 
@@ -149,16 +158,18 @@ function onTexturesLoaded(){
     lightRotateZ-=0.015;
     // transform light
     mat4.identity(lightMatrix);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -0]);
-    mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
+    // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
     mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
-    mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -0]);
+    // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
     gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
     for(var i=0; i<loader.meshes.length; ++i){
       var mesh = loader.meshes[i];
-      textureManager.bind(loader.mtlLoader.materialMap[mesh.usemtl].map_Kd);
+      var material = loader.mtlLoader.materialMap[mesh.usemtl];
+      if(material)
+        textureManager.bind(material.map_Kd);
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
 
@@ -168,6 +179,8 @@ function onTexturesLoaded(){
     requestAnimFrame(render);
   }
   requestAnimFrame(render);
+
+  console.log('%crendering... use AWSD and mouse to navigate', 'color: cyan');
 }
 
 
@@ -176,7 +189,7 @@ function onTexturesLoaded(){
  * Controls
  */
 var KeyStates = Object.create(null);
-KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = 0;
+KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = KeyStates.SHIFT = 0;
 
 var UP_VECTOR = vec3.fromValues(0, 1, 0);
 
@@ -193,12 +206,12 @@ var forwardDirection = vec3.fromValues(0, 0, -1);
 var rotatedForwardDirection = vec3.create();
 var forwardVelocity = vec3.create();
 
-// shift 
+// shift
 var shiftDirection = vec3.create();
 var shiftVelocity = vec3.create();
 
 // camera position
-var position = vec3.create();
+var position = vec3.fromValues(0, 0, 5);
 
 function update(){
   mat4.identity(modelViewMatrix);
@@ -226,7 +239,7 @@ function update(){
 
   // apply rotation matrix to the view matrix
   mat4.mul(viewMatrix, viewMatrix, cameraRotationMatrix);
-  
+
 
   // invert the view matrix, since the matrix is going to apply to the models:
   // you move left, means models move right; just opposite.
@@ -273,6 +286,20 @@ document.addEventListener('keydown', function(e){
     case 68:
       KeyStates.D = 1;
       break;
+    // shift
+    case 16:
+      KeyStates.SHIFT = 1;
+      break;
+    // +
+    case 187:
+      speed += KeyStates.SHIFT * (20 - speed)/10;
+      console.log('speed down: ' + speed);
+      break;
+    // -
+    case 189:
+      speed += KeyStates.SHIFT * (0.001 - speed)/10;
+      console.log('speed up: ' + speed);
+      break;
   }
 });
 
@@ -294,9 +321,29 @@ document.addEventListener('keyup', function(e){
     case 68:
       KeyStates.D = 0;
       break;
+    case 16:
+      KeyStates.SHIFT = 0;
+      break;
   }
 });
 
 canvas.addEventListener('click', function(){
   lockPointer();
 });
+
+// ui
+var FizzyText = function() {
+  this.message = 'dat.gui';
+  this.speed = 0.8;
+  this.displayOutline = false;
+  // Define render logic ...
+};
+
+window.onload = function() {
+  var text = new FizzyText();
+  var gui = new dat.GUI();
+  gui.add(text, 'message');
+  gui.add(text, 'speed', -5, 5);
+  gui.add(text, 'displayOutline');
+  gui.add(text, 'explode');
+};
