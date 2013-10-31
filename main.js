@@ -2,12 +2,6 @@ var lightRotateX = 0;
 var lightRotateY = -Math.PI;
 var lightRotateZ = 0;
 
-var UP_VECTOR = vec3.fromValues(0, 1, 0);
-var cameraPosition = vec3.create();
-var cameraDirection = vec3.fromValues(0, 0, 0);
-var targetRotationX = 0;
-var targetRotationY = 0;
-
 var modelViewMatrix = mat4.create();
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
@@ -26,10 +20,6 @@ document.body.appendChild( stats.domElement );
 var textureManager = new TextureManager();
 
 var canvas = document.createElement('canvas');
-canvas.addEventListener('click', function(){
-  lockPointer();
-});
-
 document.body.appendChild(canvas);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -42,7 +32,7 @@ gl.enable(gl.CULL_FACE);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-var loader = new ObjLoader(false);
+var loader = new ObjLoader(true);
 var modelPath = '../webgl-meshes/sibenik/';
 var fileName = 'sibenik.obj';
 loader.load(modelPath, fileName, bind(this, loadTextures));
@@ -139,19 +129,12 @@ function onTexturesLoaded(){
 
   function render(){
     stats.begin();
+
+    update();
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    mat4.identity(modelViewMatrix);
-
-    mat4.identity(viewMatrix);
-    mat4.rotateX(viewMatrix, viewMatrix, targetRotationX);
-    mat4.rotateY(viewMatrix, viewMatrix, targetRotationY);
-
-
-    mat4.translate(viewMatrix, viewMatrix, cameraPosition);
-
-
-    mat4.mul(modelViewMatrix, viewMatrix, modelMatrix);
+    
 
 
 
@@ -187,47 +170,172 @@ function onTexturesLoaded(){
   requestAnimFrame(render);
 }
 
-document.onmousemove = function(evt){
-  targetRotationX = (evt.y - window.innerHeight/2)/window.innerHeight * Math.PI;
-  targetRotationY = (evt.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var KeyStates = Object.create(null);
+KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = 0;
+
+var UP_VECTOR = vec3.fromValues(0, 1, 0);
+
+// rotation for the camera
+var cameraRotationX = cameraRotationY = 0;
+var cameraRotationMatrix = mat4.create();
+
+// scalar for the velocity, easier to modify, MUST >= 0
+var speed = 0.2;
+
+// forward
+var forwardDirection = vec3.fromValues(0, 0, -1);
+var rotatedForwardDirection = vec3.create();
+var forwardVelocity = vec3.create();
+
+// shift 
+var shiftDirection = vec3.create();
+var shiftVelocity = vec3.create();
+
+// camera position
+var position = vec3.create();
+
+function update(){
+  mat4.identity(modelViewMatrix);
+  mat4.identity(viewMatrix);
+  mat4.identity(cameraRotationMatrix);
+
+  // rotate the camera
+  mat4.rotateY(cameraRotationMatrix, cameraRotationMatrix, cameraRotationY);
+  mat4.rotateX(cameraRotationMatrix, cameraRotationMatrix, cameraRotationX);
+
+  // TODO: apply rotation matrix to the forward direction.
+  vec3.transformMat4(rotatedForwardDirection, forwardDirection, cameraRotationMatrix);
+
+  // forward
+  vec3.scale(forwardVelocity, rotatedForwardDirection, (KeyStates.W+KeyStates.S)*speed);
+  vec3.add(position, position, forwardVelocity);
+  // shift
+  vec3.cross(shiftDirection, rotatedForwardDirection, UP_VECTOR);
+  vec3.scale(shiftVelocity, shiftDirection, (KeyStates.A+KeyStates.D)*speed);
+  vec3.add(position, position, shiftVelocity);
+  // update position
+  mat4.translate(viewMatrix, viewMatrix, position);
+
+  // apply rotation matrix to the view matrix
+  mat4.mul(viewMatrix, viewMatrix, cameraRotationMatrix);
+  
+
+  // invert the view matrix, since the matrix is going to apply to the models:
+  // you move left, means models move right; just opposite.
+  mat4.invert(viewMatrix, viewMatrix);
+
+  mat4.mul(modelViewMatrix, modelMatrix, viewMatrix);
 }
 
-document.addEventListener('keydown', function(evt){
-  // console.log(evt.keyCode);
+var mouseX = 0;
+var mouseY = 0;
+document.onmousemove = function(e){
+  // cameraRotationX = -(e.y - window.innerHeight/2)/window.innerHeight * Math.PI;
+  // cameraRotationY = -(e.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+
+  var movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+  var movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+  mouseX += movementX;
+  mouseY += movementY;
+  cameraRotationX = -(mouseY - window.innerHeight/2)/window.innerHeight * Math.PI;
+  cameraRotationY = -(mouseX - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+
+  // lock the X axis rotation
+  if(cameraRotationX <= -Math.PI/2)
+    cameraRotationX = -Math.PI/2
+  if(cameraRotationX >= Math.PI/2)
+    cameraRotationX = Math.PI/2
+
+  // console.log(movementX, movementY);
+}
+
+document.addEventListener('keydown', function(e){
+  // console.log(e.keyCode);
   // TODO: might be better move to update method.
-  switch(evt.keyCode){
+  switch(e.keyCode){
     // w, forward
     case 87:
-      vec3.set(cameraDirection, 0, 0, -1);
+      KeyStates.W = 1;
       break;
     // s, backward
     case 83:
-      vec3.set(cameraDirection, 0, 0, 1);
+      KeyStates.S = -1;
       break;
     // a, shift left
     case 65:
-      vec3.set(cameraDirection, -1, 0, 0);
+      KeyStates.A = -1;
       break;
     // d, shift right
     case 68:
-      vec3.set(cameraDirection, 1, 0, 0);
+      KeyStates.D = 1;
       break;
   }
 });
 
-document.addEventListener('keyup', function(evt){
-  // console.log(evt.keyCode);
+document.addEventListener('keyup', function(e){
+  // console.log(e.keyCode);
   // TODO: might be better move to update method.
-  switch(evt.keyCode){
+  switch(e.keyCode){
     // w, forward
     case 87:
+      KeyStates.W = 0;
+      break;
     // s, backward
     case 83:
+      KeyStates.S = 0;
+      break;
     // a, shift left
     case 65:
+      KeyStates.A = 0;
+      break;
     // d, shift right
     case 68:
-      vec3.set(cameraDirection, 0, 0, 0);
+      KeyStates.D = 0;
       break;
   }
+});
+
+canvas.addEventListener('click', function(){
+  lockPointer();
 });
