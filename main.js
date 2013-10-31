@@ -26,6 +26,10 @@ document.body.appendChild( stats.domElement );
 var textureManager = new TextureManager();
 
 var canvas = document.createElement('canvas');
+canvas.addEventListener('click', function(){
+  lockPointer();
+});
+
 document.body.appendChild(canvas);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -39,8 +43,8 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 var loader = new ObjLoader(false);
-var modelPath = '../webgl-meshes/crytek-sponza/';
-var fileName = 'sponza.obj';
+var modelPath = '../webgl-meshes/sibenik/';
+var fileName = 'sibenik.obj';
 loader.load(modelPath, fileName, bind(this, loadTextures));
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
