@@ -1,14 +1,3 @@
-var lightRotateX = 0;
-var lightRotateY = -Math.PI;
-var lightRotateZ = 0;
-
-var modelViewMatrix = mat4.create();
-var modelMatrix = mat4.create();
-var viewMatrix = mat4.create();
-var normalMatrix = mat3.create();
-// light matrix
-var lightMatrix = mat4.create();
-
 var stats = new Stats();
 stats.setMode(0); // 0: fps, 1: ms
 // Align top-left
@@ -17,7 +6,6 @@ stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
 document.body.appendChild( stats.domElement );
 
-var textureManager = new TextureManager();
 
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -32,120 +20,113 @@ gl.enable(gl.CULL_FACE);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+// texture manager
+var textureManager = new TextureManager();
+
+// load the object file
 var loader = new ObjLoader(true);
-var modelPath = '../webgl-meshes/teapot/';
-var fileName = 'teapot.obj';
-loader.load(modelPath, fileName, bind(this, loadTextures));
+var path = '../webgl-meshes/buddha/';
+var file = 'buddha.obj';
+loader.load(path, file, loadTextures);
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-var textureAvailable = true;
-function loadTextures(){
-  var materialMap = loader.mtlLoader.materialMap;
-  for(var key in materialMap){
-    var material = materialMap[key];
-    if(material.map_Kd != ''){
-      textureManager.add(modelPath + material.map_Kd, material.map_Kd);
-    }
-  }
 
-  if(textureManager.loaders.length !== 0)
-    textureManager.load(bind(this, onTexturesLoaded));
-  else{
-    textureAvailable = false;
-    onTexturesLoaded();
-  }
-}
-
-function onTexturesLoaded(){
-  var program = gl.createProgram();
-  var shader = new Shader(program, 'shader/brdf.vert', 'shader/brdf.frag');
-  gl.useProgram(program);
-  shader.bindAttributes(program);
-  shader.bindUniforms(program);
-
-  // sphere
-  var sphere = new SphereGeometry(0.5, 10, 10);
-  var cube = new CubeGeometry();
-
-  // attributes
-  var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
-  var normalLocation = gl.getAttribLocation(program, 'a_Normal');
-  var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
-  // matrix
-  var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
-  var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
-  var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
-  // position
-  var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
-  // light matrix
-  var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
-  // light source
-  var lightAmbientLocation = gl.getUniformLocation(program, 'u_LightAmbient');
-  var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
-  // material
-  var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
-  // shininess
-  var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
-  // whether texture available
-  var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
+// vertex buffer, texture buffer, normal buffer and index buffer
+var vb, tb, nb, ib;
 
 
-  // position
-  gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
-  // light source
-  gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
-  gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
-  // material diffuse
-  gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
-  // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
-  // shininess
-  gl.uniform1f(glossLocation, 30);
-  // texture availability
-  gl.uniform1i(textureAvailableLocation, textureAvailable);
+// matrix etc.
+var lightRotateX = 0;
+var lightRotateY = -Math.PI;
+var lightRotateZ = 0;
+var modelViewMatrix = mat4.create();
+var modelMatrix = mat4.create();
+var viewMatrix = mat4.create();
+var normalMatrix = mat3.create();
+var lightMatrix = mat4.create();
 
-  // setup buffer
-  // matrix
-  var projectionMatrix = mat4.create();
-  mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 3000);
-  gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+/**
+ * Camera user controls related 
+ */
+var KeyStates = Object.create(null);
+KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = KeyStates.SHIFT = 0;
+// update vector
+var UP_VECTOR = vec3.fromValues(0, 1, 0);
+// rotation for the camera
+var cameraRotationX = 0;
+var cameraRotationY = 0;
+var cameraRotationMatrix = mat4.create();
 
-  // vertex buffer
-  var vb = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(vertexLocation);
-  // texture buffer
-  if(loader.texCoords.length > 0){
-    var tb = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(texCoordLocation, loader.texCoordComponentSize, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(texCoordLocation);
-  }
-  // normal buffer
-  if(loader.normals.length > 0){
-    var nb = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.normals), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(normalLocation);
-  }
-  // sphere.indices buffer
-  var ib = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
+// forward
+var forwardDirection = vec3.fromValues(0, 0, -1);
+var rotatedForwardDirection = vec3.create();
+var forwardVelocity = vec3.create();
+// shift
+var shiftDirection = vec3.create();
+var shiftVelocity = vec3.create();
+// camera position
+var position = vec3.fromValues(0, 0, 5);
+// keep track of mouse x and y, for avoiding gimbal lock
+var mouseX = window.innerWidth/2;
+var mouseY = window.innerHeight/2;
 
-  function render(){
-    stats.begin();
 
+// setup shader program
+var program = gl.createProgram();
+var shader = new Shader(program, 'shader/brdf.vert', 'shader/brdf.frag');
+gl.useProgram(program);
+shader.bindAttributes(program);
+shader.bindUniforms(program);
+
+// attributes
+var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
+var normalLocation = gl.getAttribLocation(program, 'a_Normal');
+var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
+// matrix
+var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
+var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
+var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
+// position
+var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
+// light matrix
+var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
+// light source
+var lightAmbientLocation = gl.getUniformLocation(program, 'u_LightAmbient');
+var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
+// material
+var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
+// shininess
+var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
+// whether texture available
+var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
+
+
+// position
+gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
+// light source
+gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
+gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
+// material diffuse
+gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
+// gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
+// shininess
+gl.uniform1f(glossLocation, 30);
+
+// setup buffer
+// matrix
+var projectionMatrix = mat4.create();
+mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 3000);
+gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+
+
+function render(){
+  stats.begin();
+
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // meshes is loaded
+  if(loader.meshes){
     update();
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-
-
 
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
@@ -174,46 +155,198 @@ function onTexturesLoaded(){
         textureManager.bind(material.map_Kd);
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
-
-    // gl.drawElements(gl.TRIANGLES, loader.indices.length, gl.UNSIGNED_SHORT, 0);
-
-    stats.end();
-    requestAnimFrame(render);
   }
+  
+
+  stats.end();
   requestAnimFrame(render);
+}
+requestAnimFrame(render);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function loadTextures(){
+  var materialMap = loader.mtlLoader.materialMap;
+  for(var key in materialMap){
+    var material = materialMap[key];
+    if(material.map_Kd != ''){
+      textureManager.add(path + material.map_Kd, material.map_Kd);
+    }
+  }
+
+  if(textureManager.loaders.length !== 0){
+    gl.uniform1i(textureAvailableLocation, true);
+    textureManager.load(bind(this, onTexturesLoaded));
+  }
+  else{
+    gl.uniform1i(textureAvailableLocation, false);
+    onTexturesLoaded();
+  }
+}
+
+function onTexturesLoaded(){
+  console.log('texture loaded');
+
+  // vertex buffer
+  vb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(vertexLocation);
+  // texture buffer
+  if(loader.texCoords.length > 0){
+    tb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(texCoordLocation, loader.texCoordComponentSize, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(texCoordLocation);
+  }
+  // normal buffer
+  if(loader.normals.length > 0){
+    nb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.normals), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(normalLocation);
+  }
+  // sphere.indices buffer
+  ib = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
+
+ 
 
   console.log('%crendering... use AWSD and mouse to navigate', 'color: cyan');
 }
 
 
 
-/**
- * Controls
- */
-var KeyStates = Object.create(null);
-KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = KeyStates.SHIFT = 0;
 
-var UP_VECTOR = vec3.fromValues(0, 1, 0);
 
-// rotation for the camera
-var cameraRotationX = 0;
-var cameraRotationY = 0;
-var cameraRotationMatrix = mat4.create();
 
-// scalar for the velocity, easier to modify, MUST >= 0
-var speed = 0.2;
 
-// forward
-var forwardDirection = vec3.fromValues(0, 0, -1);
-var rotatedForwardDirection = vec3.create();
-var forwardVelocity = vec3.create();
 
-// shift
-var shiftDirection = vec3.create();
-var shiftVelocity = vec3.create();
 
-// camera position
-var position = vec3.fromValues(0, 0, 5);
+
+
+
+
+
+
+
+// control control and dat GUI
+var ControlPanel = function(){
+  this.model = '';
+  // scalar for the velocity, easier to modify, MUST >= 0
+  this.speed = 0.5;
+  this.flatShading = true;
+  this.lockPointer = function(){
+    lockPointer();
+  }
+};
+
+var gui = new dat.GUI();
+var control = new ControlPanel();
+gui.add(control, 'lockPointer');
+gui.add(control, 'flatShading').onFinishChange(function(value){
+  reload();
+});
+gui.add(control, 'speed', 0.01, 20).step(0.01);
+var modelChangeController = gui.add(control, 'model', {
+  buddha: 'buddha',
+  'crytek-sponza': 'crytek-sponza',
+  cube: 'cube',
+  dragon: 'dragon',
+  head: 'head',
+  'lost-empire': 'lost-empire',
+  sibenik: 'sibenik',
+  teapot: 'teapot',
+  teapot_low: 'teapot_low',
+  bunny: 'bunny',
+  bunny_low: 'bunny_low'
+});
+
+modelChangeController.onFinishChange(function(value){
+  path = '../webgl-meshes/';
+  file = control.model + '.obj';
+  switch(control.model){
+    case 'lost-empire':
+      path += control.model + '/';
+      file = 'lost_empire.obj';
+      break;
+    case 'bunny':
+      path = '';
+      file = 'bunny.obj';
+      break;
+    case 'bunny_low':
+      path = '';
+      file = 'bunny_low.obj';
+      break;
+    case 'teapot_low':
+      path = '';
+      file = 'teapot_low.obj';
+      break;
+    case 'crytek-sponza':
+      path += 'crytek-sponza/';
+      file = 'sponza.obj';
+      break;
+    default:
+      path += control.model + '/';
+      break;
+  }
+
+  console.log('model changed');
+  reload();
+})
+
+
+function reload(){
+  // reset camera related matrix
+  mat4.identity(viewMatrix);
+  mat4.identity(cameraRotationMatrix);
+
+  mouseX = window.innerWidth/2;
+  mouseY = window.innerHeight/2;
+
+  textureManager.clear();
+  loader.clear();
+  loader.flatShading = control.flatShading;
+  loader.load(path, file, loadTextures);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function update(){
   mat4.identity(modelViewMatrix);
@@ -222,7 +355,7 @@ function update(){
   mat4.identity(modelMatrix);
 
   // TODO model transformation
-  // mat4.translate(modelMatrix, modelMatrix, [0, 200, 0]);
+  // mat4.translate(modelMatrix, modelMatrix, [0, -10, 0]);
 
   // rotate the camera
   mat4.rotateY(cameraRotationMatrix, cameraRotationMatrix, cameraRotationY);
@@ -232,11 +365,11 @@ function update(){
   vec3.transformMat4(rotatedForwardDirection, forwardDirection, cameraRotationMatrix);
 
   // forward
-  vec3.scale(forwardVelocity, rotatedForwardDirection, (KeyStates.W+KeyStates.S)*speed);
+  vec3.scale(forwardVelocity, rotatedForwardDirection, (KeyStates.W+KeyStates.S)*control.speed);
   vec3.add(position, position, forwardVelocity);
   // shift
   vec3.cross(shiftDirection, rotatedForwardDirection, UP_VECTOR);
-  vec3.scale(shiftVelocity, shiftDirection, (KeyStates.A+KeyStates.D)*speed);
+  vec3.scale(shiftVelocity, shiftDirection, (KeyStates.A+KeyStates.D)*control.speed);
   vec3.add(position, position, shiftVelocity);
   // update position
   mat4.translate(viewMatrix, viewMatrix, position);
@@ -257,8 +390,6 @@ function update(){
   mat4.mul(modelViewMatrix, viewMatrix, modelMatrix);
 }
 
-var mouseX = window.innerWidth/2;
-var mouseY = window.innerHeight/2;
 document.onmousemove = function(e){
   // cameraRotationX = -(e.y - window.innerHeight/2)/window.innerHeight * Math.PI;
   // cameraRotationY = -(e.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
@@ -301,13 +432,21 @@ document.addEventListener('keydown', function(e){
       break;
     // +
     case 187:
-      speed += KeyStates.SHIFT * (20 - speed)/10;
-      console.log('speed down: ' + speed);
+      control.speed += KeyStates.SHIFT * (20 - control.speed)/10;
+      console.log('speed down: ' + control.speed);
+      // Iterate over all controllers
+      for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+      }
       break;
     // -
     case 189:
-      speed += KeyStates.SHIFT * (0.001 - speed)/10;
-      console.log('speed up: ' + speed);
+      control.speed += KeyStates.SHIFT * (0.001 - control.speed)/10;
+      console.log('speed up: ' + control.speed);
+      // Iterate over all controllers
+      for (var i in gui.__controllers) {
+        gui.__controllers[i].updateDisplay();
+      }
       break;
   }
 });
@@ -335,24 +474,3 @@ document.addEventListener('keyup', function(e){
       break;
   }
 });
-
-canvas.addEventListener('click', function(){
-  lockPointer();
-});
-
-// // ui
-// var FizzyText = function() {
-//   this.message = 'dat.gui';
-//   this.speed = 0.8;
-//   this.displayOutline = false;
-//   // Define render logic ...
-// };
-
-// window.onload = function() {
-//   var text = new FizzyText();
-//   var gui = new dat.GUI();
-//   gui.add(text, 'message');
-//   gui.add(text, 'speed', -5, 5);
-//   gui.add(text, 'displayOutline');
-//   gui.add(text, 'explode');
-// };

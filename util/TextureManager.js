@@ -1,6 +1,6 @@
 function TextureManager(){
   this.loaders = new Array();
-  this.map = new Object();
+  this.map = Object.create(null);
 
   this.boundTexture = null;
 }
@@ -41,4 +41,10 @@ p.bind = function(key){
   if(loader && this.boundTexture !== loader.texture){
     this.boundTexture = loader.bind();
   }
+}
+
+p.clear = function(){
+  this.loaders.length = 0;
+  this.map = Object.create(null);
+  this.boundTexture = null;
 }
