@@ -33,8 +33,8 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 var loader = new ObjLoader(true);
-var modelPath = '../webgl-meshes/dragon/';
-var fileName = 'dragon.obj';
+var modelPath = '../webgl-meshes/teapot/';
+var fileName = 'teapot.obj';
 loader.load(modelPath, fileName, bind(this, loadTextures));
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
@@ -158,11 +158,13 @@ function onTexturesLoaded(){
     lightRotateZ-=0.015;
     // transform light
     mat4.identity(lightMatrix);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
+    // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
     // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
     mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
     // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -5]);
+    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -200]);
+
+    mat4.mul(lightMatrix, viewMatrix, lightMatrix);
     gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
     for(var i=0; i<loader.meshes.length; ++i){
@@ -217,8 +219,10 @@ function update(){
   mat4.identity(modelViewMatrix);
   mat4.identity(viewMatrix);
   mat4.identity(cameraRotationMatrix);
+  mat4.identity(modelMatrix);
 
-  // console.log(cameraRotationX, cameraRotationY)
+  // TODO model transformation
+  // mat4.translate(modelMatrix, modelMatrix, [0, 200, 0]);
 
   // rotate the camera
   mat4.rotateY(cameraRotationMatrix, cameraRotationMatrix, cameraRotationY);
@@ -245,7 +249,12 @@ function update(){
   // you move left, means models move right; just opposite.
   mat4.invert(viewMatrix, viewMatrix);
 
-  mat4.mul(modelViewMatrix, modelMatrix, viewMatrix);
+  // It is called model view matrix is because that the order of transformation is:
+  // apply model first, apply view matrix second.
+  // However, OpenGL do the multiplication in reverse order:
+  // ModelViewMatrix * V = ViewMatrix * ModelMatrix * V
+  // So it is view matrix * model matrix.
+  mat4.mul(modelViewMatrix, viewMatrix, modelMatrix);
 }
 
 var mouseX = window.innerWidth/2;
@@ -331,19 +340,19 @@ canvas.addEventListener('click', function(){
   lockPointer();
 });
 
-// ui
-var FizzyText = function() {
-  this.message = 'dat.gui';
-  this.speed = 0.8;
-  this.displayOutline = false;
-  // Define render logic ...
-};
+// // ui
+// var FizzyText = function() {
+//   this.message = 'dat.gui';
+//   this.speed = 0.8;
+//   this.displayOutline = false;
+//   // Define render logic ...
+// };
 
-window.onload = function() {
-  var text = new FizzyText();
-  var gui = new dat.GUI();
-  gui.add(text, 'message');
-  gui.add(text, 'speed', -5, 5);
-  gui.add(text, 'displayOutline');
-  gui.add(text, 'explode');
-};
+// window.onload = function() {
+//   var text = new FizzyText();
+//   var gui = new dat.GUI();
+//   gui.add(text, 'message');
+//   gui.add(text, 'speed', -5, 5);
+//   gui.add(text, 'displayOutline');
+//   gui.add(text, 'explode');
+// };
