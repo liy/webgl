@@ -15,7 +15,7 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-gl.enable(gl.CULL_FACE);
+// gl.enable(gl.CULL_FACE);
 // gl.disable(gl.DEPTH_TEST);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -24,7 +24,7 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 var textureManager = new TextureManager();
 
 // load the object file
-var loader = new ObjLoader(true);
+var loader = new ObjLoader(false);
 var path = '../webgl-meshes/buddha/';
 var file = 'buddha.obj';
 loader.load(path, file, loadTextures);
@@ -45,11 +45,20 @@ var viewMatrix = mat4.create();
 var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
+// model rotation. When pointer is not lock use these for rotating model
+var modelRotationX = 0;
+var modelRotationY = 0;
+// for calculating rotation, current mouse down point needs to be tracked.
+var dragStartX = dragStartY = 0;
+var dragDeltaX = dragDeltaY = 0;
+
 /**
  * Camera user controls related 
  */
-var KeyStates = Object.create(null);
-KeyStates.W = KeyStates.S = KeyStates.A = KeyStates.D = KeyStates.SHIFT = 0;
+var InputStates = Object.create(null);
+InputStates.W = InputStates.S = InputStates.A = InputStates.D = InputStates.SHIFT = InputStates.MOUSE_DOWN = 0;
+var Mouse = Object.create(null);
+Mouse.clientX = Mouse.clientY = Mouse.movementX = Mouse.movementY = 0;
 // update vector
 var UP_VECTOR = vec3.fromValues(0, 1, 0);
 // rotation for the camera
@@ -65,7 +74,7 @@ var forwardVelocity = vec3.create();
 var shiftDirection = vec3.create();
 var shiftVelocity = vec3.create();
 // camera position
-var position = vec3.fromValues(0, 0, 5);
+var cameraPosition = vec3.create();
 // keep track of mouse x and y, for avoiding gimbal lock
 var mouseX = window.innerWidth/2;
 var mouseY = window.innerHeight/2;
@@ -86,22 +95,19 @@ var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
-// position
+// light 
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
-// light matrix
 var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
-// light source
+// light attributes
 var lightAmbientLocation = gl.getUniformLocation(program, 'u_LightAmbient');
 var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
 // material
 var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
-// shininess
 var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
 // whether texture available
 var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
 
-
-// position
+// light position
 gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
 // light source
 gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
@@ -148,11 +154,13 @@ function render(){
     mat4.mul(lightMatrix, viewMatrix, lightMatrix);
     gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
+      // console.log(loader.meshes.length);
     for(var i=0; i<loader.meshes.length; ++i){
       var mesh = loader.meshes[i];
       var material = loader.mtlLoader.materialMap[mesh.usemtl];
       if(material)
         textureManager.bind(material.map_Kd);
+
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
   }
@@ -255,10 +263,10 @@ function onTexturesLoaded(){
 
 // control control and dat GUI
 var ControlPanel = function(){
-  this.model = '';
+  this.model = 'buddha';
   // scalar for the velocity, easier to modify, MUST >= 0
   this.speed = 0.5;
-  this.flatShading = true;
+  this.flatShading = false;
   this.lockPointer = function(){
     lockPointer();
   }
@@ -294,15 +302,15 @@ modelChangeController.onFinishChange(function(value){
       file = 'lost_empire.obj';
       break;
     case 'bunny':
-      path = '';
+      path += '';
       file = 'bunny.obj';
       break;
     case 'bunny_low':
-      path = '';
+      path += '';
       file = 'bunny_low.obj';
       break;
     case 'teapot_low':
-      path = '';
+      path += '';
       file = 'teapot_low.obj';
       break;
     case 'crytek-sponza':
@@ -314,7 +322,9 @@ modelChangeController.onFinishChange(function(value){
       break;
   }
 
-  console.log('model changed');
+  // setup camera position, etc.
+  setDefaults();
+
   reload();
 })
 
@@ -322,10 +332,12 @@ modelChangeController.onFinishChange(function(value){
 function reload(){
   // reset camera related matrix
   mat4.identity(viewMatrix);
+  mat4.identity(modelMatrix);
   mat4.identity(cameraRotationMatrix);
 
   mouseX = window.innerWidth/2;
   mouseY = window.innerHeight/2;
+  modelRotationX = modelRotationY = 0;
 
   textureManager.clear();
   loader.clear();
@@ -333,6 +345,62 @@ function reload(){
   loader.load(path, file, loadTextures);
 }
 
+function setDefaults(){
+  switch(control.model){
+    case 'buddha':
+      vec3.set(cameraPosition, 0, 4.5, 10);
+      control.flatShading = false;
+      break;
+    case 'crytek-sponza':
+      vec3.set(cameraPosition, 0, 100, 0);
+      control.flatShading = true;
+      break;
+    case 'cube':
+      vec3.set(cameraPosition, 0, 0, 3);
+      control.flatShading = true;
+      break;
+    case 'dragon':
+      vec3.set(cameraPosition, 0, 4, 10);
+      control.flatShading = false;
+      break;
+    case 'head':
+      vec3.set(cameraPosition, 0, -0.1, 0.5);
+      control.flatShading = false;
+      break;
+    case 'lost-empire':
+      vec3.set(cameraPosition, -10, 20, 0);
+      control.flatShading = true;
+      break;
+    case 'sibenik':
+      vec3.set(cameraPosition, 0, -10, 0);
+      control.flatShading = true;
+      break;
+    case 'teapot':
+      vec3.set(cameraPosition, 0, 30, 100);
+      control.flatShading = false;
+      break;
+    case 'teapot_low':
+      vec3.set(cameraPosition, 0, 0, 20);
+      control.flatShading = false;
+      break;
+    case 'bunny':
+      vec3.set(cameraPosition, 0, 3.8, 10);
+      control.flatShading = false;
+      break;
+    case 'bunny_low':
+      vec3.set(cameraPosition, 0, 0.1, 0.2);
+      control.flatShading = false;
+      break;
+  }
+
+  // Iterate over all controllers
+  for (var i in gui.__controllers) {
+    gui.__controllers[i].updateDisplay();
+  }
+
+  console.log(cameraPosition);
+}
+setDefaults();
 
 
 
@@ -354,8 +422,8 @@ function update(){
   mat4.identity(cameraRotationMatrix);
   mat4.identity(modelMatrix);
 
-  // TODO model transformation
-  // mat4.translate(modelMatrix, modelMatrix, [0, -10, 0]);
+  mat4.rotateY(modelMatrix, modelMatrix, modelRotationY);
+  mat4.rotateX(modelMatrix, modelMatrix, modelRotationX);
 
   // rotate the camera
   mat4.rotateY(cameraRotationMatrix, cameraRotationMatrix, cameraRotationY);
@@ -365,14 +433,14 @@ function update(){
   vec3.transformMat4(rotatedForwardDirection, forwardDirection, cameraRotationMatrix);
 
   // forward
-  vec3.scale(forwardVelocity, rotatedForwardDirection, (KeyStates.W+KeyStates.S)*control.speed);
-  vec3.add(position, position, forwardVelocity);
+  vec3.scale(forwardVelocity, rotatedForwardDirection, (InputStates.W+InputStates.S)*control.speed);
+  vec3.add(cameraPosition, cameraPosition, forwardVelocity);
   // shift
   vec3.cross(shiftDirection, rotatedForwardDirection, UP_VECTOR);
-  vec3.scale(shiftVelocity, shiftDirection, (KeyStates.A+KeyStates.D)*control.speed);
-  vec3.add(position, position, shiftVelocity);
-  // update position
-  mat4.translate(viewMatrix, viewMatrix, position);
+  vec3.scale(shiftVelocity, shiftDirection, (InputStates.A+InputStates.D)*control.speed);
+  vec3.add(cameraPosition, cameraPosition, shiftVelocity);
+  // update cameraPosition
+  mat4.translate(viewMatrix, viewMatrix, cameraPosition);
 
   // apply rotation matrix to the view matrix
   mat4.mul(viewMatrix, viewMatrix, cameraRotationMatrix);
@@ -391,48 +459,67 @@ function update(){
 }
 
 document.onmousemove = function(e){
-  // cameraRotationX = -(e.y - window.innerHeight/2)/window.innerHeight * Math.PI;
-  // cameraRotationY = -(e.x - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+  Mouse.clientX = e.clientX;
+  Mouse.clientY = e.clientY;
+  Mouse.movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+  Mouse.movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+  if(isPointerLocked()){
+    mouseX += Mouse.movementX;
+    mouseY += Mouse.movementY;
+    if(mouseY > window.innerHeight - 1)
+      mouseY = window.innerHeight - 1;
+    if(mouseY < 1)
+      mouseY = 1;
+    cameraRotationX = -(mouseY - window.innerHeight/2)/window.innerHeight * Math.PI;
+    cameraRotationY = -(mouseX - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+  }
+  else{
+    // TODO model transformation
+    if(InputStates.MOUSE_DOWN === 1){
+      dragDeltaX += Mouse.movementX * 3;
+      dragDeltaY += Mouse.movementY * 3;
+      modelRotationX = dragDeltaY/window.innerHeight;
+      modelRotationY = dragDeltaX/window.innerWidth;
+    }
+  }
+}
 
-  var movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-  var movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-  mouseX += movementX;
-  mouseY += movementY;
-  if(mouseY > window.innerHeight - 1)
-    mouseY = window.innerHeight - 1;
-  if(mouseY < 1)
-    mouseY = 1;
-  cameraRotationX = -(mouseY - window.innerHeight/2)/window.innerHeight * Math.PI;
-  cameraRotationY = -(mouseX - window.innerWidth/2)/window.innerWidth * Math.PI*2;
+document.onmousedown = function(e){
+  InputStates.MOUSE_DOWN = 1;
+  // does not matter it is the real position of the mouse, eventually we only interested the differences while dragging.
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+}
 
-  // console.log(movementX, movementY);
+document.onmouseup = function(e){
+  InputStates.MOUSE_DOWN = 0;
 }
 
 document.addEventListener('keydown', function(e){
   switch(e.keyCode){
     // w, forward
     case 87:
-      KeyStates.W = 1;
+      InputStates.W = 1;
       break;
     // s, backward
     case 83:
-      KeyStates.S = -1;
+      InputStates.S = -1;
       break;
     // a, shift left
     case 65:
-      KeyStates.A = -1;
+      InputStates.A = -1;
       break;
     // d, shift right
     case 68:
-      KeyStates.D = 1;
+      InputStates.D = 1;
       break;
     // shift
     case 16:
-      KeyStates.SHIFT = 1;
+      InputStates.SHIFT = 1;
       break;
     // +
     case 187:
-      control.speed += KeyStates.SHIFT * (20 - control.speed)/10;
+      control.speed += InputStates.SHIFT * (20 - control.speed)/10;
       console.log('speed down: ' + control.speed);
       // Iterate over all controllers
       for (var i in gui.__controllers) {
@@ -441,7 +528,7 @@ document.addEventListener('keydown', function(e){
       break;
     // -
     case 189:
-      control.speed += KeyStates.SHIFT * (0.001 - control.speed)/10;
+      control.speed += InputStates.SHIFT * (0.001 - control.speed)/10;
       console.log('speed up: ' + control.speed);
       // Iterate over all controllers
       for (var i in gui.__controllers) {
@@ -455,22 +542,22 @@ document.addEventListener('keyup', function(e){
   switch(e.keyCode){
     // w, forward
     case 87:
-      KeyStates.W = 0;
+      InputStates.W = 0;
       break;
     // s, backward
     case 83:
-      KeyStates.S = 0;
+      InputStates.S = 0;
       break;
     // a, shift left
     case 65:
-      KeyStates.A = 0;
+      InputStates.A = 0;
       break;
     // d, shift right
     case 68:
-      KeyStates.D = 0;
+      InputStates.D = 0;
       break;
     case 16:
-      KeyStates.SHIFT = 0;
+      InputStates.SHIFT = 0;
       break;
   }
 });
