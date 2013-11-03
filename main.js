@@ -20,16 +20,6 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-// texture manager
-var textureManager = new TextureManager();
-
-// load the object file
-var loader = new ObjLoader(false);
-var path = '../webgl-meshes/buddha/';
-var file = 'buddha.obj';
-loader.load(path, file, loadTextures);
-gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
 
 // vertex buffer, texture buffer, normal buffer and index buffer
 var vb, tb, nb, ib;
@@ -53,7 +43,7 @@ var dragStartX = dragStartY = 0;
 var dragDeltaX = dragDeltaY = 0;
 
 /**
- * Camera user controls related 
+ * Camera user controls related
  */
 var InputStates = Object.create(null);
 InputStates.W = InputStates.S = InputStates.A = InputStates.D = InputStates.SHIFT = InputStates.MOUSE_DOWN = 0;
@@ -95,7 +85,7 @@ var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
-// light 
+// light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
 var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
 // light attributes
@@ -164,7 +154,7 @@ function render(){
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
   }
-  
+
 
   stats.end();
   requestAnimFrame(render);
@@ -190,7 +180,15 @@ requestAnimFrame(render);
 
 
 
+// texture manager
+var textureManager = new TextureManager();
 
+// load the object file
+var loader = new ObjLoader(false);
+var path = '../webgl-meshes/buddha/';
+var file = 'buddha.obj';
+loader.load(path, file, loadTextures);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 function loadTextures(){
   var materialMap = loader.mtlLoader.materialMap;
@@ -241,7 +239,7 @@ function onTexturesLoaded(){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
 
- 
+
 
   console.log('%crendering... use AWSD and mouse to navigate', 'color: cyan');
 }
