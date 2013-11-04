@@ -6,6 +6,7 @@ const float gamma = 2.2;
 varying vec4 v_Vertex;
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
+varying vec3 v_Tangent;
 
 // texture sampling.
 uniform sampler2D u_Sampler;

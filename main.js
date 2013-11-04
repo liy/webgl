@@ -23,7 +23,7 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 // vertex buffer, texture buffer, normal buffer and index buffer
 var vb, tb, nb, ib;
-
+var tangentBuffer;
 
 // matrix etc.
 var lightRotateX = 0;
@@ -81,6 +81,7 @@ shader.bindUniforms(program);
 var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
 var normalLocation = gl.getAttribLocation(program, 'a_Normal');
 var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
+var tangentLocation = gl.getAttribLocation(program, 'a_Tangent');
 // matrix
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
@@ -185,8 +186,8 @@ var textureManager = new TextureManager();
 
 // load the object file
 var loader = new ObjLoader(false);
-var path = '../webgl-meshes/buddha/';
-var file = 'buddha.obj';
+var path = '../webgl-meshes/head/';
+var file = 'head.obj';
 loader.load(path, file, loadTextures);
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
@@ -234,10 +235,18 @@ function onTexturesLoaded(){
     gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(normalLocation);
   }
+
+  if(loader.tangents.length > 0){
+    tangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.tangents), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(tangentLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(tangentLocation);
+  }
   // sphere.indices buffer
-  ib = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
+  // ib = gl.createBuffer();
+  // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+  // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
 
 
 
@@ -261,7 +270,7 @@ function onTexturesLoaded(){
 
 // control control and dat GUI
 var ControlPanel = function(){
-  this.model = 'buddha';
+  this.model = 'head';
   // scalar for the velocity, easier to modify, MUST >= 0
   this.speed = 0.5;
   this.flatShading = false;
