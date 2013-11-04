@@ -149,8 +149,10 @@ function render(){
     for(var i=0; i<loader.meshes.length; ++i){
       var mesh = loader.meshes[i];
       var material = loader.mtlLoader.materialMap[mesh.usemtl];
-      if(material)
+      if(material){
+        // console.log('bind: ' + material.map_Kd);
         textureManager.bind(material.map_Kd);
+      }
 
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
     }
@@ -197,6 +199,9 @@ function loadTextures(){
     var material = materialMap[key];
     if(material.map_Kd != ''){
       textureManager.add(path + material.map_Kd, material.map_Kd);
+    }
+    if(material.map_bump != ''){
+      textureManager.add(path + material.map_bump, material.map_bump);
     }
   }
 
@@ -248,6 +253,7 @@ function onTexturesLoaded(){
   // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
   // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
 
+  console.log(textureManager.map);
 
 
   console.log('%crendering... use AWSD and mouse to navigate', 'color: cyan');
