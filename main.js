@@ -97,6 +97,10 @@ var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
 var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
 // whether texture available
 var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
+// textures
+var diffuseTextureLocation = gl.getUniformLocation(program, 'diffuseTexture');
+var bumpTextureLocation = gl.getUniformLocation(program, 'bumpTexture');
+
 
 // light position
 gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
@@ -108,6 +112,11 @@ gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
 gl.uniform1f(glossLocation, 30);
+// diffuse textures
+gl.uniform1i(diffuseTextureLocation, 0);
+// bump texture
+gl.uniform1i(bumpTextureLocation, 1);
+
 
 // setup buffer
 // matrix
@@ -150,8 +159,10 @@ function render(){
       var mesh = loader.meshes[i];
       var material = loader.mtlLoader.materialMap[mesh.usemtl];
       if(material){
-        // console.log('bind: ' + material.map_Kd);
-        textureManager.bind(material.map_Kd);
+        // bind diffuse texture
+        textureManager.bindTexture(material.map_Kd, gl.TEXTURE0);
+        // bind
+        textureManager.bindTexture(material.map_bump, gl.TEXTURE0+1);
       }
 
       gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
@@ -163,9 +174,6 @@ function render(){
   requestAnimFrame(render);
 }
 requestAnimFrame(render);
-
-
-
 
 
 

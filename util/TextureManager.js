@@ -2,7 +2,7 @@ function TextureManager(){
   this.loaders = new Array();
   this.map = Object.create(null);
 
-  this.boundTexture = null;
+  this.boundTextureMap = Object.create(null);
 }
 var p = TextureManager.prototype;
 
@@ -30,17 +30,26 @@ p.load = function(callback){
   }
 }
 
-p.bind = function(key){
-  var loader = this.map[key];
-  if(!loader){
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    this.boundTexture = null;
-    return;
-  }
+p.bindTexture = function(key, unit){
+  if(isNaN(unit)) unit = 0;
+  var texture = null;
 
-  if(loader && this.boundTexture !== loader.texture){
-    this.boundTexture = loader.bind();
-  }
+  if(this.map[key])
+    texture = this.map[key].texture;
+
+  // if(this.boundTextureMap[unit] !== texture){
+    gl.activeTexture(unit);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    this.boundTextureMap[unit] = texture;
+  // }
+}
+
+p.unbindTexture = function(key, unit){
+  if(isNaN(unit)) unit = 0;
+
+  gl.activeTexture(unit);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  this.boundTextureMap[unit] = null;
 }
 
 p.clear = function(){

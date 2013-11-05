@@ -19,7 +19,9 @@ void main(){
   gl_Position = u_ProjectionMatrix * v_Vertex;
   v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
-  v_Tangent = a_Tangent;
+
+
+  v_Tangent = (u_ModelViewMatrix * vec4(a_Tangent, 1.0)).xyz;
 
   gl_PointSize = 2.0;
 }
