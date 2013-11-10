@@ -15,7 +15,7 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.73, 0.73, 0.73, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// gl.enable(gl.CULL_FACE);
+gl.enable(gl.CULL_FACE);
 // gl.disable(gl.DEPTH_TEST);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -27,11 +27,11 @@ var tangentBuffer;
 
 // matrix etc.
 var lightRotateX = 0;
-var lightRotateY = -Math.PI;
+var lightRotateY = 0;
 var lightRotateZ = 0;
-var modelViewMatrix = mat4.create();
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
+var modelViewMatrix = mat4.create();
 var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
@@ -85,6 +85,8 @@ var tangentLocation = gl.getAttribLocation(program, 'a_Tangent');
 // matrix
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
+var modelMatrixLocation = gl.getUniformLocation(program, 'u_ModelMatrix');
+var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
 var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
@@ -117,7 +119,6 @@ gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
 gl.uniform1i(bumpTextureLocation, 1);
 
-
 // setup buffer
 // matrix
 var projectionMatrix = mat4.create();
@@ -125,49 +126,88 @@ mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 3
 gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
 
+// cube mesh
+var cube = new CubeGeometry();
+
+
+// texture manager
+var textureManager = new TextureManager();
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+// textureManager.add('../webgl-meshes/cube_bump/normal.png', 'normalMap');
+textureManager.add('../webgl-meshes/cube_bump/brick.png', 'normalMap');
+textureManager.load(bind(this, onTexturesLoaded));
+
+function onTexturesLoaded(){
+  console.log('texture loaded');
+
+  // vertex buffer
+  vb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertices), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(vertexLocation);
+  // texture buffer
+  if(cube.texCoords.length > 0){
+    tb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.texCoords), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(texCoordLocation);
+  }
+  // normal buffer
+  if(cube.normals.length > 0){
+    nb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.normals), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(normalLocation);
+  }
+
+  if(cube.tangents){
+    tangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.tangents), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(tangentLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(tangentLocation);
+  }
+
+  ib = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cube.indices), gl.STATIC_DRAW);
+}
+
+
 function render(){
   stats.begin();
-
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // meshes is loaded
-  if(loader.meshes){
-    update();
+  update();
 
-    gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
+  gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
+  gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
 
-    // update inverse model view matrix
-    mat3.normalFromMat4(normalMatrix, modelViewMatrix);
-    gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+  gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
+  // update inverse model view matrix
+  mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+  gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
-    lightRotateX-=0.01;
-    lightRotateY-=0.012;
-    lightRotateZ-=0.015;
-    // transform light
-    mat4.identity(lightMatrix);
-    // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
-    // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
-    mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
-    // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-    mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -200]);
+  lightRotateX-=0.01;
+  lightRotateY-=0.012;
+  lightRotateZ-=0.015;
+  // transform light
+  mat4.identity(lightMatrix);
+  // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
+  // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
+  // mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
+  // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
+  mat4.translate(lightMatrix, lightMatrix, [30.0, 0.0, 200]);
 
-    mat4.mul(lightMatrix, viewMatrix, lightMatrix);
-    gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
+  gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
 
-      // console.log(loader.meshes.length);
-    for(var i=0; i<loader.meshes.length; ++i){
-      var mesh = loader.meshes[i];
-      var material = loader.mtlLoader.materialMap[mesh.usemtl];
-      if(material){
-        // bind diffuse texture
-        textureManager.bindTexture(material.map_Kd, gl.TEXTURE0);
-        // bind
-        textureManager.bindTexture(material.map_bump, gl.TEXTURE0+1);
-      }
+  textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
 
-      gl.drawArrays(gl.TRIANGLES, loader.meshes[i].startIndex, loader.meshes[i].vertices.length/3);
-    }
-  }
+  gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
   stats.end();
@@ -191,252 +231,9 @@ requestAnimFrame(render);
 
 
 
-// texture manager
-var textureManager = new TextureManager();
-
-// load the object file
-var loader = new ObjLoader(false);
-var path = '../webgl-meshes/head/';
-var file = 'head.obj';
-loader.load(path, file, loadTextures);
-gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-function loadTextures(){
-  var materialMap = loader.mtlLoader.materialMap;
-  for(var key in materialMap){
-    var material = materialMap[key];
-    if(material.map_Kd != ''){
-      textureManager.add(path + material.map_Kd, material.map_Kd);
-    }
-    if(material.map_bump != ''){
-      textureManager.add(path + material.map_bump, material.map_bump);
-    }
-  }
-
-  if(textureManager.loaders.length !== 0){
-    gl.uniform1i(textureAvailableLocation, true);
-    textureManager.load(bind(this, onTexturesLoaded));
-  }
-  else{
-    gl.uniform1i(textureAvailableLocation, false);
-    onTexturesLoaded();
-  }
-}
-
-function onTexturesLoaded(){
-  console.log('texture loaded');
-
-  // vertex buffer
-  vb = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.vertices), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(vertexLocation);
-  // texture buffer
-  if(loader.texCoords.length > 0){
-    tb = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, tb);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.texCoords), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(texCoordLocation, loader.texCoordComponentSize, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(texCoordLocation);
-  }
-  // normal buffer
-  if(loader.normals.length > 0){
-    nb = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.normals), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(normalLocation);
-  }
-
-  if(loader.tangents.length > 0){
-    tangentBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(loader.tangents), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(tangentLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(tangentLocation);
-  }
-  // sphere.indices buffer
-  // ib = gl.createBuffer();
-  // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-  // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(loader.indices), gl.STATIC_DRAW);
-
-  console.log(textureManager.map);
 
 
-  console.log('%crendering... use AWSD and mouse to navigate', 'color: cyan');
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// control control and dat GUI
-var ControlPanel = function(){
-  this.model = 'head';
-  // scalar for the velocity, easier to modify, MUST >= 0
-  this.speed = 0.5;
-  this.flatShading = false;
-  this.lockPointer = function(){
-    lockPointer();
-  }
-};
-
-var gui = new dat.GUI();
-var control = new ControlPanel();
-gui.add(control, 'lockPointer');
-gui.add(control, 'flatShading').onFinishChange(function(value){
-  reload();
-});
-gui.add(control, 'speed', 0.01, 20).step(0.01);
-var modelChangeController = gui.add(control, 'model', {
-  buddha: 'buddha',
-  'crytek-sponza': 'crytek-sponza',
-  cube: 'cube',
-  dragon: 'dragon',
-  head: 'head',
-  'lost-empire': 'lost-empire',
-  sibenik: 'sibenik',
-  teapot: 'teapot',
-  teapot_low: 'teapot_low',
-  bunny: 'bunny',
-  bunny_low: 'bunny_low'
-});
-
-modelChangeController.onFinishChange(function(value){
-  path = '../webgl-meshes/';
-  file = control.model + '.obj';
-  switch(control.model){
-    case 'lost-empire':
-      path += control.model + '/';
-      file = 'lost_empire.obj';
-      break;
-    case 'bunny':
-      path += '';
-      file = 'bunny.obj';
-      break;
-    case 'bunny_low':
-      path += '';
-      file = 'bunny_low.obj';
-      break;
-    case 'teapot_low':
-      path += '';
-      file = 'teapot_low.obj';
-      break;
-    case 'crytek-sponza':
-      path += 'crytek-sponza/';
-      file = 'sponza.obj';
-      break;
-    default:
-      path += control.model + '/';
-      break;
-  }
-
-  // setup camera position, etc.
-  setDefaults();
-
-  reload();
-})
-
-
-function reload(){
-  // reset camera related matrix
-  mat4.identity(viewMatrix);
-  mat4.identity(modelMatrix);
-  mat4.identity(cameraRotationMatrix);
-
-  mouseX = window.innerWidth/2;
-  mouseY = window.innerHeight/2;
-  modelRotationX = modelRotationY = 0;
-
-  textureManager.clear();
-  loader.clear();
-  loader.flatShading = control.flatShading;
-  loader.load(path, file, loadTextures);
-}
-
-function setDefaults(){
-  switch(control.model){
-    case 'buddha':
-      vec3.set(cameraPosition, 0, 4.5, 10);
-      control.flatShading = false;
-      break;
-    case 'crytek-sponza':
-      vec3.set(cameraPosition, 0, 100, 0);
-      control.flatShading = true;
-      break;
-    case 'cube':
-      vec3.set(cameraPosition, 0, 0, 3);
-      control.flatShading = true;
-      break;
-    case 'dragon':
-      vec3.set(cameraPosition, 0, 4, 10);
-      control.flatShading = false;
-      break;
-    case 'head':
-      vec3.set(cameraPosition, 0, -0.1, 0.5);
-      control.flatShading = false;
-      break;
-    case 'lost-empire':
-      vec3.set(cameraPosition, -10, 20, 0);
-      control.flatShading = true;
-      break;
-    case 'sibenik':
-      vec3.set(cameraPosition, 0, -10, 0);
-      control.flatShading = true;
-      break;
-    case 'teapot':
-      vec3.set(cameraPosition, 0, 30, 100);
-      control.flatShading = false;
-      break;
-    case 'teapot_low':
-      vec3.set(cameraPosition, 0, 0, 20);
-      control.flatShading = false;
-      break;
-    case 'bunny':
-      vec3.set(cameraPosition, 0, 3.8, 10);
-      control.flatShading = false;
-      break;
-    case 'bunny_low':
-      vec3.set(cameraPosition, 0, 0.1, 0.2);
-      control.flatShading = false;
-      break;
-  }
-
-  // Iterate over all controllers
-  for (var i in gui.__controllers) {
-    gui.__controllers[i].updateDisplay();
-  }
-
-  console.log(cameraPosition);
-}
-setDefaults();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+vec3.set(cameraPosition, 0, 0, 2);
 function update(){
   mat4.identity(modelViewMatrix);
   mat4.identity(viewMatrix);
@@ -454,11 +251,11 @@ function update(){
   vec3.transformMat4(rotatedForwardDirection, forwardDirection, cameraRotationMatrix);
 
   // forward
-  vec3.scale(forwardVelocity, rotatedForwardDirection, (InputStates.W+InputStates.S)*control.speed);
+  vec3.scale(forwardVelocity, rotatedForwardDirection, (InputStates.W+InputStates.S)*0.01);
   vec3.add(cameraPosition, cameraPosition, forwardVelocity);
   // shift
   vec3.cross(shiftDirection, rotatedForwardDirection, UP_VECTOR);
-  vec3.scale(shiftVelocity, shiftDirection, (InputStates.A+InputStates.D)*control.speed);
+  vec3.scale(shiftVelocity, shiftDirection, (InputStates.A+InputStates.D)*0.01);
   vec3.add(cameraPosition, cameraPosition, shiftVelocity);
   // update cameraPosition
   mat4.translate(viewMatrix, viewMatrix, cameraPosition);
