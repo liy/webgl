@@ -29,6 +29,8 @@ var tangentBuffer;
 var lightRotateX = 0;
 var lightRotateY = 0;
 var lightRotateZ = 0;
+var lightPosition = vec3.create();
+
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
 var modelViewMatrix = mat4.create();
@@ -90,7 +92,8 @@ var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
 var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
-var lightMatrixLocation = gl.getUniformLocation(program, 'u_LightMatrix');
+// camera
+var cameraPositionLocation = gl.getUniformLocation(program, 'u_CameraPosition');
 // light attributes
 var lightAmbientLocation = gl.getUniformLocation(program, 'u_LightAmbient');
 var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
@@ -103,9 +106,6 @@ var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailabl
 var diffuseTextureLocation = gl.getUniformLocation(program, 'diffuseTexture');
 var bumpTextureLocation = gl.getUniformLocation(program, 'bumpTexture');
 
-
-// light position
-gl.uniform3fv(lightPositionLocation, [0.0, 0.0, 0.0]);
 // light source
 gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
 gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
@@ -134,8 +134,8 @@ var cube = new CubeGeometry();
 var textureManager = new TextureManager();
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-// textureManager.add('../webgl-meshes/cube_bump/normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/cube_bump/brick.png', 'normalMap');
+// textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
 function onTexturesLoaded(){
@@ -186,24 +186,27 @@ function render(){
 
   gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
-
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
   // update inverse model view matrix
-  mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+  // mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+  mat3.normalFromMat4(normalMatrix, modelMatrix);
   gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
 
+  // light position
   lightRotateX-=0.01;
   lightRotateY-=0.012;
   lightRotateZ-=0.015;
-  // transform light
   mat4.identity(lightMatrix);
   // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
-  // mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
+  mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
   mat4.translate(lightMatrix, lightMatrix, [30.0, 0.0, 200]);
+  vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
+  gl.uniform3fv(lightPositionLocation, lightPosition);
 
-  gl.uniformMatrix4fv(lightMatrixLocation, false, lightMatrix);
+  // camera position
+  gl.uniform3fv(cameraPositionLocation, cameraPosition);
 
   textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
 

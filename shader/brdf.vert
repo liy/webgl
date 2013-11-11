@@ -19,20 +19,22 @@ uniform sampler2D bumpTexture;
 
 
 uniform vec3 u_LightPosition;
-uniform mat4 u_LightMatrix;
+
+uniform vec3 u_CameraPosition;
 
 varying vec3 v_LightDirTangentSpace;
 varying vec3 v_viewDirTangentSpace;
 
 void main(){
-  v_Vertex = u_ViewMatrix * u_ModelMatrix * vec4(a_Vertex, 1.0);
+  vec4 vertexWorldPosition = u_ModelMatrix * vec4(a_Vertex, 1.0);
+  v_Vertex = u_ViewMatrix * vertexWorldPosition;
   gl_Position = u_ProjectionMatrix * v_Vertex;
   v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
 
   // tangent space related calculation
   vec3 N = normalize(v_Normal);
-  vec3 T = normalize(a_Tangent);
+  vec3 T = normalize(u_NormalMatrix * a_Tangent);
   T = normalize(T - dot(T, N) * N);
   vec3 B = cross(T, N);
   mat3 TBN;
@@ -41,13 +43,25 @@ void main(){
   TBN[1] = vec3(B.x, B.y, B.z);
   TBN[2] = vec3(N.x, N.y, N.z);
 
-  // light's world location
-  vec4 lightPosition = u_LightMatrix * vec4(u_LightPosition, 1.0);
-  vec3 lightDirWorldSpace = normalize(lightPosition.xyz - (u_ModelMatrix * vec4(a_Vertex, 1.0)).xyz);
+  // direction from vertex to light source
+  vec3 lightDirWorldSpace = normalize(u_LightPosition - vertexWorldPosition.xyz);
+  // direction from vertex to camera
+  vec3 cameraDirWorldSpace = normalize(u_CameraPosition - vertexWorldPosition.xyz);
+
 
   // light tangent space direction
-  v_LightDirTangentSpace = TBN * lightDirWorldSpace;
+  v_LightDirTangentSpace = vec3( dot(T, lightDirWorldSpace),
+          dot(B, lightDirWorldSpace),
+          dot(N, lightDirWorldSpace));
 
   // view's tangent space direction
-  v_viewDirTangentSpace  = TBN * -v_Vertex.xyz;
+  v_viewDirTangentSpace  = vec3( dot(T, cameraDirWorldSpace),
+          dot(B, cameraDirWorldSpace),
+          dot(N, cameraDirWorldSpace));
+
+  // // light tangent space direction
+  // v_LightDirTangentSpace = TBN * lightDirWorldSpace;
+
+  // // view's tangent space direction
+  // v_viewDirTangentSpace  = TBN * cameraDirWorldSpace;
 }

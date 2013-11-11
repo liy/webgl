@@ -50,8 +50,7 @@ vec4 toRGB(vec4 color){
 
 vec3 calculateNormal(){
   vec3 newNormal;
-  newNormal = normalize(texture2D(bumpTexture, v_TexCoord)).xyz;
-  newNormal = 2.0 * newNormal - vec3(1.0, 1.0, 1.0);
+  newNormal = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
 
   return newNormal;
 }
@@ -107,8 +106,8 @@ void main(){
 
   // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib));
   // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
-  // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
-  gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
+  gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
+  // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
   // gl_FragColor = vec4(n, 1.0);
 }
