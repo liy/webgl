@@ -89,7 +89,7 @@ var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatri
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var modelMatrixLocation = gl.getUniformLocation(program, 'u_ModelMatrix');
 var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
-var normalMatrixLocation = gl.getUniformLocation(program, 'u_NormalMatrix');
+var modelMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelMatrixInverseTranspose');
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
 // camera
@@ -190,7 +190,7 @@ function render(){
   // update inverse model view matrix
   // mat3.normalFromMat4(normalMatrix, modelViewMatrix);
   mat3.normalFromMat4(normalMatrix, modelMatrix);
-  gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+  gl.uniformMatrix3fv(modelMatrixInverseTransposeLocation, false, normalMatrix);
 
   // light position
   lightRotateX-=0.01;
