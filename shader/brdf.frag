@@ -59,7 +59,7 @@ void main(){
   vec3 l = normalize(v_LightDirTangentSpace);
   vec3 v = normalize(v_viewDirTangentSpace);
   vec3 h = normalize(l + v);
-  vec3 n = calculateNormal();
+  vec3 n = normalize(calculateNormal());
 
   float ndotl = dot(n, l);
   float ndoth = dot(n, h);
@@ -105,11 +105,10 @@ void main(){
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
   // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib));
-  // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
-  // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
+  gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
-  gl_FragColor = vec4(n, 1.0);
+  // gl_FragColor = vec4(n, 1.0);
 }
 
 

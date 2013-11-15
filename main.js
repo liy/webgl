@@ -113,7 +113,7 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 50);
+gl.uniform1f(glossLocation, 30);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
