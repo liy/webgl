@@ -108,6 +108,7 @@ void main(){
   // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
+  gl_FragColor = toRGB(ambientContrib + diffuseContrib);
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
   // gl_FragColor = vec4(n, 1.0);
 }

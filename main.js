@@ -168,7 +168,7 @@ function onTexturesLoaded(){
     tangentBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.tangents), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(tangentLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(tangentLocation, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(tangentLocation);
   }
 
@@ -184,6 +184,7 @@ function render(){
 
   update();
 
+  mat4.rotateY(modelMatrix, modelMatrix, -0.2);
   gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
@@ -202,7 +203,8 @@ function render(){
   mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
   mat4.translate(lightMatrix, lightMatrix, [30.0, 0.0, 200]);
-  vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
+  // vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
+  vec3.set(lightPosition, 0, 0, 0);
   gl.uniform3fv(lightPositionLocation, lightPosition);
 
   // camera position
