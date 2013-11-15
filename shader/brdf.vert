@@ -46,8 +46,18 @@ void main(){
   vec3 cameraDirWorldSpace = normalize(u_CameraPosition - vertexWorldPosition.xyz);
 
   // // light tangent space direction
-  v_LightDirTangentSpace = TBN * lightDirWorldSpace;
+  // v_LightDirTangentSpace = TBN * lightDirWorldSpace;
 
   // // view's tangent space direction
-  v_viewDirTangentSpace  = TBN * cameraDirWorldSpace;
+  // v_viewDirTangentSpace  = TBN * cameraDirWorldSpace;
+
+  // light tangent space direction
+  v_LightDirTangentSpace = vec3( dot(T, lightDirWorldSpace),
+          dot(B, lightDirWorldSpace),
+          dot(N, lightDirWorldSpace));
+
+  // view's tangent space direction
+  v_viewDirTangentSpace  = vec3( dot(T, cameraDirWorldSpace),
+          dot(B, cameraDirWorldSpace),
+          dot(N, cameraDirWorldSpace));
 }
