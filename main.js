@@ -113,7 +113,7 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 30);
+gl.uniform1f(glossLocation, 50);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
@@ -134,8 +134,8 @@ var cube = new CubeGeometry();
 var textureManager = new TextureManager();
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-// textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
+// textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
 function onTexturesLoaded(){
@@ -204,7 +204,7 @@ function render(){
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
   mat4.translate(lightMatrix, lightMatrix, [30.0, 0.0, 200]);
   vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
-  // vec3.set(lightPosition, 0, 0, 2);
+  vec3.set(lightPosition, 0, 0, 0);
   gl.uniform3fv(lightPositionLocation, lightPosition);
 
   // camera position

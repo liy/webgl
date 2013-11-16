@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 attribute vec3 a_Vertex;
 attribute vec3 a_Normal;
@@ -36,7 +36,7 @@ void main(){
   vec3 N = normalize(v_Normal);
   vec3 T = normalize(u_ModelMatrixInverseTranspose * a_Tangent.xyz);
   T = normalize(T - dot(T, N) * N);
-  vec3 B = cross(T, N) * a_Tangent.w;
+  vec3 B = normalize(cross(T, N) * a_Tangent.w);
   // T,B,N corresponds to first, second and third column?
   mat3 TBN = mat3(T, B, N);
 
