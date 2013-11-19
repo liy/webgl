@@ -9,6 +9,7 @@ uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat3 u_ModelMatrixInverseTranspose;
+uniform mat3 u_ModelViewMatrixInverseTranspoe;
 
 varying vec4 v_Vertex;
 varying vec3 v_Normal;
@@ -29,7 +30,7 @@ void main(){
   vec4 vertexWorldPosition = u_ModelMatrix * vec4(a_Vertex, 1.0);
   v_Vertex = u_ViewMatrix * vertexWorldPosition;
   gl_Position = u_ProjectionMatrix * v_Vertex;
-  v_Normal = u_ModelMatrixInverseTranspose * a_Normal;
+  v_Normal = u_ModelViewMatrixInverseTranspoe * a_Normal;
   v_TexCoord = a_TexCoord;
 
   // tangent space related calculation

@@ -34,7 +34,6 @@ var lightPosition = vec3.create();
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
 var modelViewMatrix = mat4.create();
-var normalMatrix = mat3.create();
 var lightMatrix = mat4.create();
 
 // model rotation. When pointer is not lock use these for rotating model
@@ -90,6 +89,7 @@ var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix'
 var modelMatrixLocation = gl.getUniformLocation(program, 'u_ModelMatrix');
 var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
 var modelMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelMatrixInverseTranspose');
+var modelViewMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelViewMatrixInverseTranspoe');
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
 // camera
@@ -135,8 +135,8 @@ var textureManager = new TextureManager();
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 // textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-// textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
+// textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
 function onTexturesLoaded(){
@@ -190,9 +190,8 @@ function render(){
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
   // update inverse model view matrix
-  // mat3.normalFromMat4(normalMatrix, modelViewMatrix);
-  mat3.normalFromMat4(normalMatrix, modelMatrix);
-  gl.uniformMatrix3fv(modelMatrixInverseTransposeLocation, false, normalMatrix);
+  gl.uniformMatrix3fv(modelMatrixInverseTransposeLocation, false, mat3.normalFromMat4(mat3.create(), modelMatrix));
+  gl.uniformMatrix3fv(modelViewMatrixInverseTransposeLocation, false, mat3.normalFromMat4(mat3.create(), modelViewMatrix));
 
   // light position
   lightRotateX-=0.01;
