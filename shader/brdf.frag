@@ -5,6 +5,7 @@ const float gamma = 2.2;
 
 varying vec4 v_Vertex;
 varying vec2 v_TexCoord;
+varying vec3 v_Normal;
 
 // texture sampling.
 uniform sampler2D diffuseTexture;
@@ -26,6 +27,8 @@ uniform float u_Gloss;
 
 varying vec3 v_LightDirTangentSpace;
 varying vec3 v_viewDirTangentSpace;
+
+varying vec4 v_LightDirEyeSpace;
 
 
 vec3 fresnel(vec3 R0, float ndotl){
@@ -106,10 +109,12 @@ void main(){
 
   // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib));
   // gl_FragColor = toRGB(ambientContrib + diffuseContrib);
-  gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
+  gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
   // if(ndotl > 0.0)
   //   gl_FragColor = vec4(1, 0, 0, 1.0);
+
+  // gl_FragColor = toRGB(vec4(ndotl, 0.0, 0.0, 1.0));
 }
 
 

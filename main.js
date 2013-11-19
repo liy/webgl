@@ -113,7 +113,7 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 50);
+gl.uniform1f(glossLocation, 550);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
@@ -195,7 +195,7 @@ function render(){
 
   // light position
   lightRotateX-=0.01;
-  lightRotateY-=0.012;
+  lightRotateY-=0.002;
   lightRotateZ-=0.015;
   mat4.identity(lightMatrix);
   // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);

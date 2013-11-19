@@ -26,6 +26,8 @@ uniform vec3 u_CameraPosition;
 varying vec3 v_LightDirTangentSpace;
 varying vec3 v_viewDirTangentSpace;
 
+varying vec4 v_LightDirEyeSpace;
+
 void main(){
   vec4 vertexWorldPosition = u_ModelMatrix * vec4(a_Vertex, 1.0);
   v_Vertex = u_ViewMatrix * vertexWorldPosition;
@@ -61,4 +63,7 @@ void main(){
   v_viewDirTangentSpace  = vec3( dot(T, cameraDirWorldSpace),
           dot(B, cameraDirWorldSpace),
           dot(N, cameraDirWorldSpace));
+
+
+  v_LightDirEyeSpace = normalize(u_ViewMatrix * vec4(lightDirWorldSpace, 1.0));
 }
