@@ -23,10 +23,13 @@ uniform vec4 u_MaterialColor;
 // shininess only apply to the specular term.
 uniform float u_Gloss;
 
+uniform vec3 u_CameraPosition;
+uniform vec3 u_LightPosition;
 
 
 varying vec3 v_LightDirTangentSpace;
 varying vec3 v_viewDirTangentSpace;
+varying vec3 v_halfDirTangentSpace;
 
 varying vec4 v_LightDirEyeSpace;
 
@@ -62,7 +65,9 @@ void main(){
   vec3 l = normalize(v_LightDirTangentSpace);
   vec3 v = normalize(v_viewDirTangentSpace);
   vec3 h = normalize(l + v);
-  vec3 n = normalize(calculateNormal());
+  // vec3 h = normalize(v_halfDirTangentSpace);
+  // vec3 n = normalize(calculateNormal());
+  vec3 n = vec3(0.0, 0.0, 1.0);
 
   float ndotl = dot(n, l);
   float ndoth = dot(n, h);
@@ -107,14 +112,14 @@ void main(){
   vec4 diffuseTerm = u_LightColor * diffuseConservation() * vec4(1.0 - F0, 1.0);
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
-  // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib));
+  gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib + specularContrib));
   // gl_FragColor = toRGB(ambientContrib + diffuseContrib);
-  gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
+  // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
   // if(ndotl > 0.0)
   //   gl_FragColor = vec4(1, 0, 0, 1.0);
 
-  // gl_FragColor = toRGB(vec4(ndotl, 0.0, 0.0, 1.0));
+  // gl_FragColor = toRGB(vec4(v_Vertex.xyz, 1.0));
 }
 
 
@@ -122,11 +127,8 @@ void main(){
 
 
 // void main(){
-//   // light position
-//   vec4 lightPosition = u_LightMatrix * vec4(u_LightPosition, 1.0);
-
 //   // light direction, normalized
-//   vec3 l = normalize(lightPosition.xyz - v_Vertex.xyz);
+//   vec3 l = normalize(u_LightPosition - v_Vertex.xyz);
 //   // view direction
 //   vec3 v = -normalize(v_Vertex.xyz);
 //   // half angle
@@ -178,11 +180,8 @@ void main(){
 //   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
 //   // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib));
-//   if(u_TextureAvailable)
-//     gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + specularContrib + ambientContrib));
-//   else
-//     gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
+//   gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + specularContrib + ambientContrib));
 //   // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
 //   // gl_FragColor = ambientContrib + diffuseContrib + specularContrib;
-//   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
+//   // gl_FragColor += toRGB(vec4(v, 1.0));
 // }

@@ -78,35 +78,35 @@ function CubeGeometry(width, height, depth){
   ];
 
   this.texCoords = [
-    0.0, 1.0,
-    1.0, 1.0,
-    1.0, 0.0,
     0.0, 0.0,
-
-    0.0, 1.0,
-    1.0, 1.0,
     1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+
     0.0, 0.0,
-
-    0.0, 1.0,
-    1.0, 1.0,
     1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+
     0.0, 0.0,
-
-    0.0, 1.0,
-    1.0, 1.0,
     1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+
     0.0, 0.0,
-
-    0.0, 1.0,
-    1.0, 1.0,
     1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+
     0.0, 0.0,
-
-    0.0, 1.0,
-    1.0, 1.0,
     1.0, 0.0,
-    0.0, 0.0
+    1.0, 1.0,
+    0.0, 1.0,
+
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0
   ];
 
   // index information
@@ -188,14 +188,25 @@ function CubeGeometry(width, height, depth){
     var b = vec3.fromValues(this.bitangents[i*3], this.bitangents[i*3+1], this.bitangents[i*3+2]);
 
     t = vec3.sub(t, t, vec3.scale(vec3.create(), n, vec3.dot(n, t)));
+
+
+    // Testing =======
+    // t = vec3.fromValues(1, 0, 0);
+    // b = vec3.fromValues(0, 1, 0);
+    // =============
+
+
     vec3.normalize(t, t);
     this.tangents[i*4] = t[0];
     this.tangents[i*4+1] = t[1];
     this.tangents[i*4+2] = t[2];
     this.tangents[i*4+3] = (vec3.dot(vec3.cross(vec3.create(), n, t), b) < 0) ? -1 : 1;
-  }
 
-  // console.log(this.tangents);
+    vec3.normalize(b, b);
+    this.bitangents[i*3] = b[0];
+    this.bitangents[i*3+1] = b[1];
+    this.bitangents[i*3+2] = b[2];
+  }
 }
 var p = CubeGeometry.prototype = Object.create(Geometry.prototype);
 

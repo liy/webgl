@@ -38,7 +38,7 @@ var lightMatrix = mat4.create();
 
 // model rotation. When pointer is not lock use these for rotating model
 var modelRotationX = 0;
-var modelRotationY = 0;
+var modelRotationY = -0.8;
 // for calculating rotation, current mouse down point needs to be tracked.
 var dragStartX = dragStartY = 0;
 var dragDeltaX = dragDeltaY = 0;
@@ -83,13 +83,14 @@ var vertexLocation = gl.getAttribLocation(program, 'a_Vertex');
 var normalLocation = gl.getAttribLocation(program, 'a_Normal');
 var texCoordLocation = gl.getAttribLocation(program, 'a_TexCoord');
 var tangentLocation = gl.getAttribLocation(program, 'a_Tangent');
+var bitangentLocation = gl.getAttribLocation(program, 'a_Bitangent');
 // matrix
 var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatrix');
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var modelMatrixLocation = gl.getUniformLocation(program, 'u_ModelMatrix');
 var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
 var modelMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelMatrixInverseTranspose');
-var modelViewMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelViewMatrixInverseTranspoe');
+var modelViewMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelViewMatrixInverseTranspose');
 // light
 var lightPositionLocation = gl.getUniformLocation(program, 'u_LightPosition');
 // camera
@@ -113,7 +114,7 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 550);
+gl.uniform1f(glossLocation, 200);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
@@ -132,10 +133,11 @@ var cube = new CubeGeometry();
 
 // texture manager
 var textureManager = new TextureManager();
-gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+// gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 // textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/brick.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/spnza_bricks_a_bump_NRM.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/spnza_bricks_a_diff.tga', 'texture');
 // textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
@@ -173,6 +175,14 @@ function onTexturesLoaded(){
     gl.enableVertexAttribArray(tangentLocation);
   }
 
+  if(cube.bitangents){
+    tangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.bitangents), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(bitangentLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(bitangentLocation);
+  }
+
   ib = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cube.indices), gl.STATIC_DRAW);
@@ -195,7 +205,7 @@ function render(){
 
   // light position
   lightRotateX-=0.01;
-  lightRotateY-=0.002;
+  lightRotateY-=0.03;
   lightRotateZ-=0.015;
   mat4.identity(lightMatrix);
   // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
@@ -210,6 +220,8 @@ function render(){
   // camera position
   gl.uniform3fv(cameraPositionLocation, cameraPosition);
 
+
+  textureManager.bindTexture('texture', gl.TEXTURE0);
   textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
 
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
