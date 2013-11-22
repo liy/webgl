@@ -38,7 +38,7 @@ var lightMatrix = mat4.create();
 
 // model rotation. When pointer is not lock use these for rotating model
 var modelRotationX = 0;
-var modelRotationY = -0.8;
+var modelRotationY = 0;
 // for calculating rotation, current mouse down point needs to be tracked.
 var dragStartX = dragStartY = 0;
 var dragDeltaX = dragDeltaY = 0;
@@ -65,7 +65,7 @@ var forwardVelocity = vec3.create();
 var shiftDirection = vec3.create();
 var shiftVelocity = vec3.create();
 // camera position
-var cameraPosition = vec3.create();
+var cameraPosition = vec3.fromValues(0, 0, 1);
 // keep track of mouse x and y, for avoiding gimbal lock
 var mouseX = window.innerWidth/2;
 var mouseY = window.innerHeight/2;
@@ -89,6 +89,7 @@ var projectionMatrixLocation = gl.getUniformLocation(program, 'u_ProjectionMatri
 var modelViewMatrixLocation = gl.getUniformLocation(program, 'u_ModelViewMatrix');
 var modelMatrixLocation = gl.getUniformLocation(program, 'u_ModelMatrix');
 var viewMatrixLocation = gl.getUniformLocation(program, 'u_ViewMatrix');
+var modelMatrixInverseLocation = gl.getUniformLocation(program, 'u_ModelMatrixInverse');
 var modelMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelMatrixInverseTranspose');
 var modelViewMatrixInverseTransposeLocation = gl.getUniformLocation(program, 'u_ModelViewMatrixInverseTranspose');
 // light
@@ -114,7 +115,7 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 200);
+gl.uniform1f(glossLocation, 20);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
@@ -195,24 +196,26 @@ function render(){
 
   update();
 
-  mat4.rotateY(modelMatrix, modelMatrix, -0.2);
   gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
-  // update inverse model view matrix
+  // inverse of the model matrix
+  gl.uniformMatrix4fv(modelMatrixInverseLocation, false, mat4.invert(mat4.create(), modelMatrix));
+  // update inverse transpose model view matrix
   gl.uniformMatrix3fv(modelMatrixInverseTransposeLocation, false, mat3.normalFromMat4(mat3.create(), modelMatrix));
   gl.uniformMatrix3fv(modelViewMatrixInverseTransposeLocation, false, mat3.normalFromMat4(mat3.create(), modelViewMatrix));
 
   // light position
   lightRotateX-=0.01;
-  lightRotateY-=0.03;
+  lightRotateY-=0.01;
   lightRotateZ-=0.015;
   mat4.identity(lightMatrix);
   // mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, -100]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
   mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-  mat4.translate(lightMatrix, lightMatrix, [30.0, 0.0, 200]);
+  mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, 1.2]);
+  mat4.multiply(lightMatrix, viewMatrix, lightMatrix);
   vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
   // vec3.set(lightPosition, 0, 0, 0);
   gl.uniform3fv(lightPositionLocation, lightPosition);
@@ -250,7 +253,6 @@ requestAnimFrame(render);
 
 
 
-vec3.set(cameraPosition, 0, 0, 2);
 function update(){
   mat4.identity(modelViewMatrix);
   mat4.identity(viewMatrix);

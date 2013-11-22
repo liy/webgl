@@ -6,6 +6,10 @@ const float gamma = 2.2;
 varying vec4 v_Vertex;
 varying vec2 v_TexCoord;
 varying vec3 v_Normal;
+varying vec4 v_Tangent;
+varying vec3 v_Bitangent;
+
+uniform mat3 u_ModelViewMatrixInverseTranspose;
 
 // texture sampling.
 uniform sampler2D diffuseTexture;
@@ -23,16 +27,10 @@ uniform vec4 u_MaterialColor;
 // shininess only apply to the specular term.
 uniform float u_Gloss;
 
+// if we calculate lighting in camera space(eye space), camera position will be at (0, 0)
 uniform vec3 u_CameraPosition;
+// in eye space(camera space)
 uniform vec3 u_LightPosition;
-
-
-varying vec3 v_LightDirTangentSpace;
-varying vec3 v_viewDirTangentSpace;
-varying vec3 v_halfDirTangentSpace;
-
-varying vec4 v_LightDirEyeSpace;
-
 
 vec3 fresnel(vec3 R0, float ndotl){
   return R0 + (1.0 - R0) * pow(1.0-max(ndotl, 0.0), 5.0);
@@ -55,19 +53,27 @@ vec4 toRGB(vec4 color){
 }
 
 vec3 calculateNormal(){
-  vec3 newNormal;
-  newNormal = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
+  vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
 
-  return newNormal;
+  vec3 N = normalize(v_Normal);
+  // TODO: Is it necessary to transform tangent vector into eye space?
+  vec3 T = normalize(u_ModelViewMatrixInverseTranspose * v_Tangent.xyz);
+  T = normalize(T - dot(T, N) * N);
+  vec3 B = normalize(cross(T, N) * v_Tangent.w);
+  // vec3 B = v_Bitangent * v_Tangent.w;
+  // transform from tangent space into world space
+  // T,B,N corresponds to first, second and third column?
+  mat3 TBN = mat3(T, B, N);
+
+  return TBN * permuted;
 }
 
 void main(){
-  vec3 l = normalize(v_LightDirTangentSpace);
-  vec3 v = normalize(v_viewDirTangentSpace);
+  vec3 l = normalize(u_LightPosition - v_Vertex.xyz);
+  vec3 v = -normalize(v_Vertex.xyz);
   vec3 h = normalize(l + v);
-  // vec3 h = normalize(v_halfDirTangentSpace);
-  // vec3 n = normalize(calculateNormal());
-  vec3 n = vec3(0.0, 0.0, 1.0);
+  vec3 n = normalize(calculateNormal());
+  // vec3 n = normalize(v_Normal);
 
   float ndotl = dot(n, l);
   float ndoth = dot(n, h);
@@ -119,8 +125,69 @@ void main(){
   // if(ndotl > 0.0)
   //   gl_FragColor = vec4(1, 0, 0, 1.0);
 
-  // gl_FragColor = toRGB(vec4(v_Vertex.xyz, 1.0));
+  // gl_FragColor = toRGB(vec4(v_Normal.xyz, 1.0));
 }
+
+// void main(){
+//   vec3 l = normalize(v_LightDirTangentSpace);
+//   vec3 v = normalize(v_viewDirTangentSpace);
+//   vec3 h = normalize(l + v);
+//   // vec3 h = normalize(v_halfDirTangentSpace);
+//   // vec3 n = normalize(calculateNormal());
+//   vec3 n = vec3(0.0, 0.0, 1.0);
+
+//   float ndotl = dot(n, l);
+//   float ndoth = dot(n, h);
+//   float ndotv = dot(n, v);
+
+//   // roughness
+//   float m = sqrt(2.0/(2.0+u_Gloss));
+
+//   // gold
+//   // vec3 F0 = vec3(1.0,0.71,0.29);
+//   // silver
+//   // vec3 F0 = vec3(0.95,0.93,0.88);
+//   // // copper
+//   // vec3 F0 = vec3(0.95,0.64,0.54);
+//   // // iron
+//   // vec3 F0 = vec3(0.56,0.57,0.58);
+//   // // Aluminum
+//   // vec3 F0 = vec3(0.91,0.92,0.92);
+//   // // water
+//   // vec3 F0 = vec3(0.02,0.02,0.02);
+//   // // plastic
+//   vec3 F0 = vec3(0.05,0.05,0.05);
+
+//   vec3 F = fresnel(F0, ndoth);
+//   float D = ((u_Gloss + 2.0)/2.0*pi) * pow(ndoth, u_Gloss);
+
+//   // geometry
+//   // http://simonstechblog.blogspot.co.uk/search?updated-max=2011-12-31T22:48:00%2B08:00&max-results=3&start=12&by-date=false
+//   // implicit
+//   // float G = ndotl * ndotv;
+//   // Schlick's approximation
+//   float k = m * sqrt(2.0/pi);
+//   float G = ndotv/(ndotv * (1.0-k) + k);
+
+//   // note that ambient term does not have distance attenuation term.
+//   vec4 ambientContrib = u_LightAmbient;
+//   // specular
+//   vec4 specularMicrofacetTerm = vec4(F*G*D, 1.0)/(4.0*ndotl*ndotv);
+//   vec4 specularTerm = u_LightColor * pow(max(ndoth, 0.0), u_Gloss) * specularMicrofacetTerm * specularConservation();
+//   vec4 specularContrib =  specularTerm *  max(ndotl, 0.0);
+//   // diffuse
+//   vec4 diffuseTerm = u_LightColor * diffuseConservation() * vec4(1.0 - F0, 1.0);
+//   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
+
+//   gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib + specularContrib));
+//   // gl_FragColor = toRGB(ambientContrib + diffuseContrib);
+//   // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
+//   // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
+//   // if(ndotl > 0.0)
+//   //   gl_FragColor = vec4(1, 0, 0, 1.0);
+
+//   // gl_FragColor = toRGB(vec4(v_Vertex.xyz, 1.0));
+// }
 
 
 

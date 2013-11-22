@@ -152,11 +152,6 @@ function CubeGeometry(width, height, depth){
     var By = det * (s1*y2 - s2*y1);
     var Bz = det * (s1*z2 - s2*z1);
 
-    // var T = vec3.fromValues(Tx, Ty, Tz);
-    // var B = vec3.fromValues(Bx, By, Bz);
-    // var N = vec3.fromValues(this.normals[i0*3], this.normals[i0*3+1], this.normals[i0*3+2]);
-    // var H = vec3.dot(vec3.cross(vec3.create(), N, T), B) < 0 ? -1 : 1;
-
     this.tangents[i0*4] += Tx;
     this.tangents[i0*4+1] += Ty;
     this.tangents[i0*4+2] += Tz;
