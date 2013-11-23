@@ -1,59 +1,79 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title></title>
-<script src="lib/stats.min.js"></script>
-<script src='lib/gl-matrix.js'></script>
-<script src='lib/utils.js'></script>
-<script src='lib/ShaderLoader.js'></script>
-<script src='lib/Shader.js'></script>
-<script src="lib/texture-util.js"></script>
-<script src='lib/dat.gui.min.js'></script>
 
-<script src="util/TextureLoader.js"></script>
-<script src="util/TextureManager.js"></script>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Webgl : " />
 
-<script src='object/Object3D.js'></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-<script src='geometry/Geometry.js'></script>
-<script src='geometry/PlaneGeometry.js'></script>
-<script src='geometry/CubeGeometry.js'></script>
-<script src='geometry/SphereGeometry.js'></script>
+    <title>Webgl</title>
+  </head>
 
-<script src='material/Material.js'></script>
-<script src='material/PhongMaterial.js'></script>
+  <body>
 
-<script src="object/camera/Camera.js"></script>
-<script src="object/camera/PerspectiveCamera.js"></script>
-<script src="object/camera/OrthoCamera.js"></script>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/liy/webgl">View on GitHub</a>
 
-<script src='object/light/Light.js'></script>
-<script src='object/light/DirectionalLight.js'></script>
-<script src='object/light/PositionalLight.js'></script>
-<script src='object/light/AmbientLight.js'></script>
-<script src='object/light/SpotLight.js'></script>
-<script src='object/light/PointLight.js'></script>
+          <h1 id="project_title">Webgl</h1>
+          <h2 id="project_tagline"></h2>
 
-<script src="object/Scene.js"></script>
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/liy/webgl/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/liy/webgl/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
 
-<script src="object/Mesh.js"></script>
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
+<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
 
-<script src="core/pass/RenderPass.js"></script>
-<script src="core/pass/AlbedoPass.js"></script>
-<script src="core/pass/DepthPass.js"></script>
-<script src="core/pass/NormalPass.js"></script>
-<script src="core/pass/PositionPass.js"></script>
-<script src="core/pass/PositionalLightPass.js"></script>
-<script src="core/pass/DirectionalLightPass.js"></script>
-<script src="core/Composition.js"></script>
-<script src="util/MRTDebugger.js"></script>
-<script src="../obj-loader/MtlLoader.js"></script>
-<script src="../obj-loader/ObjLoader.js"></script>
-<script src="core/Renderer.js"></script>
-<script src="core/BRDFRenderer.js"></script>
-</head>
-<body style="margin:0">
-<div id='pointer-locker'></div>
-<script src='main.js'></script>
-</body>
+<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+
+<pre><code>$ cd your_repo_root/repo_name
+$ git fetch origin
+$ git checkout gh-pages
+</code></pre>
+
+<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+
+<h3>
+<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+
+<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+
+<h3>
+<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+
+<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+
+<h3>
+<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+
+<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+
+<h3>
+<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+
+<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Webgl maintained by <a href="https://github.com/liy">liy</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
 </html>
