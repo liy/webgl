@@ -20,6 +20,8 @@ gl.enable(gl.CULL_FACE);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+var minGlossFactor = 200;
+var maxGlossFactor = 5000;
 
 // vertex buffer, texture buffer, normal buffer and index buffer
 var vb, tb, nb, ib;
@@ -102,11 +104,16 @@ var lightColorLocation = gl.getUniformLocation(program, 'u_LightColor');
 // material
 var materialColorLocation = gl.getUniformLocation(program, 'u_MaterialColor');
 var glossLocation = gl.getUniformLocation(program, 'u_Gloss');
+// gloss factor
+var glossFactorLocation = gl.getUniformLocation(program, 'u_GlossFactor');
 // whether texture available
 var textureAvailableLocation = gl.getUniformLocation(program, 'u_TextureAvailable');
 // textures
 var diffuseTextureLocation = gl.getUniformLocation(program, 'diffuseTexture');
 var bumpTextureLocation = gl.getUniformLocation(program, 'bumpTexture');
+var specularTextureLocation = gl.getUniformLocation(program, 'specularTexture');
+var glossTextureLocation = gl.getUniformLocation(program, 'glossTexture');
+
 
 // light source
 gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
@@ -115,11 +122,14 @@ gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
 // shininess
-gl.uniform1f(glossLocation, 40);
+gl.uniform1f(glossLocation, 30);
+gl.uniform1f(glossFactorLocation, minGlossFactor);
 // diffuse textures
 gl.uniform1i(diffuseTextureLocation, 0);
 // bump texture
 gl.uniform1i(bumpTextureLocation, 1);
+gl.uniform1i(specularTextureLocation, 2);
+gl.uniform1i(glossTextureLocation, 3);
 
 // setup buffer
 // matrix
@@ -137,8 +147,10 @@ var textureManager = new TextureManager();
 // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 // textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/spnza_bricks_a_bump_NRM.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/spnza_bricks_a_diff.tga', 'texture');
+textureManager.add('../webgl-meshes/normal_map/stonerock-diffuse.png', 'texture');
+textureManager.add('../webgl-meshes/normal_map/stonerock-normal.png', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/stonerock-specular.png', 'specularMap');
+textureManager.add('../webgl-meshes/normal_map/stonerock-gloss.png', 'glossMap');
 // textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
@@ -214,7 +226,7 @@ function render(){
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
   mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-  mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, 1.2]);
+  mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, 2.2]);
   mat4.multiply(lightMatrix, viewMatrix, lightMatrix);
   vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
   // vec3.set(lightPosition, 0, 0, 0);
@@ -226,6 +238,8 @@ function render(){
 
   textureManager.bindTexture('texture', gl.TEXTURE0);
   textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
+  textureManager.bindTexture('specularMap', gl.TEXTURE0+2);
+  textureManager.bindTexture('glossMap', gl.TEXTURE0+3);
 
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
 
@@ -236,8 +250,15 @@ function render(){
 requestAnimFrame(render);
 
 
-
-
+window.onload = function() {
+  var params = new Object();
+  params.glossFactor = 0.1;
+  var gui = new dat.GUI();
+  var glossFactorController = gui.add(params, 'glossFactor', 0.0, 1.0).step(0.01);
+  glossFactorController.onChange(function(value){
+    gl.uniform1f(glossFactorLocation, minGlossFactor + value*(maxGlossFactor - minGlossFactor));
+  });
+};
 
 
 
@@ -322,6 +343,9 @@ document.onmousemove = function(e){
 }
 
 document.onmousedown = function(e){
+  if(e.target !== canvas)
+    return;
+
   InputStates.MOUSE_DOWN = 1;
   // does not matter it is the real position of the mouse, eventually we only interested the differences while dragging.
   dragStartX = e.clientX;

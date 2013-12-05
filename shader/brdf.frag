@@ -14,6 +14,7 @@ uniform mat3 u_ModelViewMatrixInverseTranspose;
 // texture sampling.
 uniform sampler2D diffuseTexture;
 uniform sampler2D bumpTexture;
+uniform sampler2D specularTexture;
 
 // light source
 // 3 terms of the light source
@@ -57,10 +58,10 @@ vec3 calculateNormal(){
 
   vec3 N = normalize(v_Normal);
   // TODO: Is it necessary to transform tangent vector into eye space?
-  vec3 T = normalize(u_ModelViewMatrixInverseTranspose * v_Tangent.xyz);
+  vec3 T = normalize(v_Tangent.xyz);
   T = normalize(T - dot(T, N) * N);
-  vec3 B = normalize(cross(T, N) * v_Tangent.w);
-  // vec3 B = v_Bitangent * v_Tangent.w;
+  // vec3 B = normalize(cross(T, N) * v_Tangent.w);
+  vec3 B = normalize(v_Bitangent);
   // transform from tangent space into world space
   // T,B,N corresponds to first, second and third column?
   mat3 TBN = mat3(T, B, N);
@@ -95,7 +96,8 @@ void main(){
   // // water
   // vec3 F0 = vec3(0.02,0.02,0.02);
   // // plastic
-  vec3 F0 = vec3(0.05,0.05,0.05);
+  // vec3 F0 = vec3(0.05,0.05,0.05);
+  vec3 F0 = texture2D(specularTexture, v_TexCoord).xyz;
 
   vec3 F = fresnel(F0, ndoth);
   float D = ((u_Gloss + 2.0)/2.0*pi) * pow(ndoth, u_Gloss);
