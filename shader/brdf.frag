@@ -15,6 +15,7 @@ uniform mat3 u_ModelViewMatrixInverseTranspose;
 uniform sampler2D diffuseTexture;
 uniform sampler2D bumpTexture;
 uniform sampler2D specularTexture;
+uniform sampler2D glossTexture;
 
 // light source
 // 3 terms of the light source
@@ -27,6 +28,7 @@ uniform vec4 u_LightColor;
 uniform vec4 u_MaterialColor;
 // shininess only apply to the specular term.
 uniform float u_Gloss;
+uniform float u_GlossFactor;
 
 // if we calculate lighting in camera space(eye space), camera position will be at (0, 0)
 uniform vec3 u_CameraPosition;
@@ -41,8 +43,8 @@ float diffuseConservation(){
   return 1.0/pi;
 }
 
-float specularConservation(){
-  return (u_Gloss+8.0)/(8.0*pi);
+float specularConservation(float gloss){
+  return (gloss+8.0)/(8.0*pi);
 }
 
 vec4 toLinear(vec4 color){
@@ -54,12 +56,12 @@ vec4 toRGB(vec4 color){
 }
 
 vec3 calculateNormal(){
-  vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
+  vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz;
 
   vec3 N = normalize(v_Normal);
   // TODO: Is it necessary to transform tangent vector into eye space?
-  vec3 T = normalize(v_Tangent.xyz);
-  T = normalize(T - dot(T, N) * N);
+  vec3 T = normalize(u_ModelViewMatrixInverseTranspose * v_Tangent.xyz);
+  // T = normalize(T - dot(T, N) * N);
   // vec3 B = normalize(cross(T, N) * v_Tangent.w);
   vec3 B = normalize(v_Bitangent);
   // transform from tangent space into world space
@@ -81,7 +83,11 @@ void main(){
   float ndotv = dot(n, v);
 
   // roughness
-  float m = sqrt(2.0/(2.0+u_Gloss));
+  // float m = sqrt(2.0/(2.0+u_Gloss));
+  // float gloss = u_Gloss;
+  float gloss = toLinear(texture2D(glossTexture, v_TexCoord)).r * u_GlossFactor;
+  float m = sqrt(2.0/(2.0 + gloss));
+
 
   // gold
   // vec3 F0 = vec3(1.0,0.71,0.29);
@@ -96,11 +102,10 @@ void main(){
   // // water
   // vec3 F0 = vec3(0.02,0.02,0.02);
   // // plastic
-  // vec3 F0 = vec3(0.05,0.05,0.05);
-  vec3 F0 = texture2D(specularTexture, v_TexCoord).xyz;
+  vec3 F0 = toLinear(texture2D(specularTexture, v_TexCoord)).xyz;
 
   vec3 F = fresnel(F0, ndoth);
-  float D = ((u_Gloss + 2.0)/2.0*pi) * pow(ndoth, u_Gloss);
+  float D = ((gloss + 2.0)/2.0*pi) * pow(ndoth, gloss);
 
   // geometry
   // http://simonstechblog.blogspot.co.uk/search?updated-max=2011-12-31T22:48:00%2B08:00&max-results=3&start=12&by-date=false
@@ -114,21 +119,23 @@ void main(){
   vec4 ambientContrib = u_LightAmbient;
   // specular
   vec4 specularMicrofacetTerm = vec4(F*G*D, 1.0)/(4.0*ndotl*ndotv);
-  vec4 specularTerm = u_LightColor * pow(max(ndoth, 0.0), u_Gloss) * specularMicrofacetTerm * specularConservation();
+  vec4 specularTerm = u_LightColor * pow(max(ndoth, 0.0), gloss) * specularMicrofacetTerm * specularConservation(gloss);
   vec4 specularContrib =  specularTerm *  max(ndotl, 0.0);
   // diffuse
   vec4 diffuseTerm = u_LightColor * diffuseConservation() * vec4(1.0 - F0, 1.0);
   vec4 diffuseContrib = u_MaterialColor * diffuseTerm * max(ndotl, 0.0);
 
   gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib + specularContrib));
-  // gl_FragColor = toRGB(ambientContrib + diffuseContrib);
-  // gl_FragColor = toRGB(ambientContrib + diffuseContrib + specularContrib);
-  // gl_FragColor = toRGB(vec4(1.0, 0.0, 0.0, 1.0));
-  // if(ndotl > 0.0)
-  //   gl_FragColor = vec4(1, 0, 0, 1.0);
-
-  // gl_FragColor = toRGB(vec4(v_Normal.xyz, 1.0));
 }
+
+
+
+
+
+
+
+
+
 
 // void main(){
 //   vec3 l = normalize(v_LightDirTangentSpace);

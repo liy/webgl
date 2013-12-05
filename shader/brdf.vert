@@ -28,6 +28,6 @@ void main(){
   gl_Position = u_ProjectionMatrix * v_Vertex;
   v_Normal = u_ModelViewMatrixInverseTranspose * a_Normal;
   v_TexCoord = a_TexCoord;
-  v_Tangent = vec4(u_ModelViewMatrixInverseTranspose * a_Tangent.xyz, a_Tangent.w);
-  v_Bitangent = u_ModelViewMatrixInverseTranspose * a_Bitangent;
+  v_Tangent = vec4(normalize(u_ModelViewMatrixInverseTranspose * a_Tangent.xyz), 1.0);
+  v_Bitangent = normalize(u_ModelViewMatrixInverseTranspose * a_Bitangent);
 }
