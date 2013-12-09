@@ -117,8 +117,8 @@ var glossTextureLocation = gl.getUniformLocation(program, 'glossTexture');
 
 
 // light source
-gl.uniform4fv(lightAmbientLocation, [0.0, 0.0, 0.0, 1.0]);
-gl.uniform4fv(lightColorLocation, [1.0, 1.0, 1.0, 1.0]);
+gl.uniform3fv(lightAmbientLocation, [0.0, 0.0, 0.0]);
+gl.uniform3fv(lightColorLocation, [1.0, 1.0, 1.0]);
 // material diffuse
 gl.uniform4fv(materialColorLocation, [1.0, 1.0, 1.0, 1.0]);
 // gl.uniform4fv(materialColorLocation, [0.0, 0.0, 0.0, 1.0]);
@@ -148,10 +148,10 @@ var textureManager = new TextureManager();
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 // textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/tilesbricks-albedo.png', 'texture');
-textureManager.add('../webgl-meshes/normal_map/tilesbricks-normal.png', 'normalMap');
-textureManager.add('../webgl-meshes/normal_map/tilesbricks-specular.png', 'specularMap');
-textureManager.add('../webgl-meshes/normal_map/tilesbricks-gloss.png', 'glossMap');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_d.tga', 'texture');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_n.tga', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_s.tga', 'specularMap');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_g.tga', 'glossMap');
 // textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
 
@@ -227,7 +227,7 @@ function render(){
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateX, [1, 0, 0]);
   mat4.rotate(lightMatrix, lightMatrix, lightRotateY, [0, 1, 0]);
   // mat4.rotate(lightMatrix, lightMatrix, lightRotateZ, [0, 0, 1]);
-  mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, 4.3]);
+  mat4.translate(lightMatrix, lightMatrix, [0.0, 0.0, 1.8]);
   mat4.multiply(lightMatrix, viewMatrix, lightMatrix);
   vec3.transformMat4(lightPosition, vec3.create(), lightMatrix);
   // vec3.set(lightPosition, 0, 0, 0);
@@ -254,11 +254,15 @@ requestAnimFrame(render);
 window.onload = function() {
   var params = new Object();
   params.glossFactor = defaultGlossFactorPercentage;
+  params.lockPointer = function(){
+    lockPointer();
+  }
   var gui = new dat.GUI();
   var glossFactorController = gui.add(params, 'glossFactor', 0.0, 1.0).step(0.01);
   glossFactorController.onChange(function(value){
     gl.uniform1f(glossFactorLocation, minGlossFactor + value*(maxGlossFactor - minGlossFactor));
   });
+  gui.add(params, 'lockPointer');
 };
 
 

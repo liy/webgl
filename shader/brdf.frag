@@ -19,8 +19,8 @@ uniform sampler2D glossTexture;
 
 // light source
 // 3 terms of the light source
-uniform vec4 u_LightAmbient;
-uniform vec4 u_LightColor;
+uniform vec3 u_LightAmbient;
+uniform vec3 u_LightColor;
 
 // material
 // coefficient of the fraction of incoming light which is reflected. This is material dependent, therefore
@@ -35,16 +35,8 @@ uniform vec3 u_CameraPosition;
 // in eye space(camera space)
 uniform vec3 u_LightPosition;
 
-vec3 fresnel(vec3 R0, float ndotl){
-  return R0 + (1.0 - R0) * pow(1.0-max(ndotl, 0.0), 5.0);
-}
-
-float diffuseConservation(){
-  return 1.0/pi;
-}
-
-float specularConservation(float gloss){
-  return (gloss+8.0)/(8.0*pi);
+vec3 fresnel(vec3 F0, float vdoth){
+  return F0 + (1.0 - F0) * pow(1.0-max(vdoth, 0.0), 5.0);
 }
 
 vec4 toLinear(vec4 color){
@@ -56,13 +48,10 @@ vec4 toRGB(vec4 color){
 }
 
 vec3 calculateNormal(){
-  vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz;
+  vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
 
   vec3 N = normalize(v_Normal);
-  // TODO: Is it necessary to transform tangent vector into eye space?
   vec3 T = normalize(u_ModelViewMatrixInverseTranspose * v_Tangent.xyz);
-  // T = normalize(T - dot(T, N) * N);
-  // vec3 B = normalize(cross(T, N) * v_Tangent.w);
   vec3 B = normalize(v_Bitangent);
   // transform from tangent space into world space
   // T,B,N corresponds to first, second and third column?
@@ -71,6 +60,57 @@ vec3 calculateNormal(){
   return TBN * permuted;
 }
 
+void main(){
+  vec3 l = normalize(u_LightPosition - v_Vertex.xyz);
+  vec3 v = -normalize(v_Vertex.xyz);
+  vec3 h = normalize(l + v);
+  vec3 n = normalize(calculateNormal());
+  // vec3 n = normalize(v_Normal);
+
+  float ndotl = dot(n, l);
+  float ndoth = dot(n, h);
+  float ndotv = dot(n, v);
+  float vdoth = dot(v, h);
+
+  float gloss = toLinear(texture2D(glossTexture, v_TexCoord)).r * u_GlossFactor;
+
+  // Fresnel, Schlick's approximation
+  vec3 F0 = toLinear(texture2D(specularTexture, v_TexCoord)).xyz;
+  vec3 F = fresnel(F0, vdoth);
+
+  // blinn phong distribution function
+  // http://simonstechblog.blogspot.co.uk/2011/12/microfacet-brdf.html
+  float D = ((gloss + 2.0)/2.0*pi) * pow(ndoth, gloss);
+
+  // Geometry term, Cook-Torrance
+  // http://simonstechblog.blogspot.co.uk/2011/12/microfacet-brdf.html
+  // http://graphicrants.blogspot.co.uk/2013/08/specular-brdf-reference.html
+  float G = min(1.0, min(2.0*ndoth*ndotv/vdoth, 2.0*ndoth*ndotl/vdoth));
+
+  // microfacet specular
+  // pi or 4.0 ?
+  vec3 microfacetSpecular = F*G*D/(4.0*ndotl*ndotv);
+  // vec3 microfacetSpecular = F*G*D/(pi*ndotl*ndotv);
+  vec3 specularTerm = u_LightColor * microfacetSpecular;
+
+  // diffuse, (1-fresnel) term ensures then only light energy left after surface reflection(specular) will be contributed to the body reflection(diffuse).
+  // 1.0/pi is the normalization factor of BRDF for diffuse term. pi is the integral over the hemisphere, which means the
+  // max energy of sum of all diffuse should be pi, so we have to divide it by pi to normalize into [0, 1] range.
+  vec3 diffuseTerm = u_LightColor * (1.0/pi) * (1.0-F);
+
+  gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
+}
+
+
+
+
+
+
+
+
+
+
+/*
 void main(){
   vec3 l = normalize(u_LightPosition - v_Vertex.xyz);
   vec3 v = -normalize(v_Vertex.xyz);
@@ -127,6 +167,26 @@ void main(){
 
   gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * (diffuseContrib + ambientContrib + specularContrib));
 }
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
