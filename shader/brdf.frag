@@ -9,6 +9,9 @@ varying vec3 v_Normal;
 varying vec4 v_Tangent;
 varying vec3 v_Bitangent;
 
+varying vec3 v_WorldNormal;
+varying vec4 v_WorldPosition;
+
 uniform mat3 u_ModelViewMatrixInverseTranspose;
 
 // texture sampling.
@@ -16,6 +19,8 @@ uniform sampler2D diffuseTexture;
 uniform sampler2D bumpTexture;
 uniform sampler2D specularTexture;
 uniform sampler2D glossTexture;
+
+uniform samplerCube cubeMapTexture;
 
 // light source
 // 3 terms of the light source
@@ -98,7 +103,12 @@ void main(){
   // max energy of sum of all diffuse should be pi, so we have to divide it by pi to normalize into [0, 1] range.
   vec3 diffuseTerm = u_LightColor * (1.0/pi) * (1.0-F);
 
-  gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
+  // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
+
+  vec3 r = reflect(-v, normalize(v_Normal));
+  // gl_FragColor = textureCube(cubeMapTexture, r);
+  gl_FragColor = toRGB(toLinear(textureCube(cubeMapTexture, r)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
+
 }
 
 

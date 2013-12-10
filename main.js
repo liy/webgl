@@ -114,6 +114,8 @@ var diffuseTextureLocation = gl.getUniformLocation(program, 'diffuseTexture');
 var bumpTextureLocation = gl.getUniformLocation(program, 'bumpTexture');
 var specularTextureLocation = gl.getUniformLocation(program, 'specularTexture');
 var glossTextureLocation = gl.getUniformLocation(program, 'glossTexture');
+// cube texture map
+var cubeMapTextureLocation = gl.getUniformLocation(program, 'cubeMapTexture');
 
 
 // light source
@@ -131,6 +133,7 @@ gl.uniform1i(diffuseTextureLocation, 0);
 gl.uniform1i(bumpTextureLocation, 1);
 gl.uniform1i(specularTextureLocation, 2);
 gl.uniform1i(glossTextureLocation, 3);
+gl.uniform1i(cubeMapTextureLocation, 4);
 
 // setup buffer
 // matrix
@@ -140,6 +143,7 @@ gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
 
 // cube mesh
+// var cube = new SphereGeometry(0.5, 30, 30);
 var cube = new CubeGeometry();
 
 
@@ -154,6 +158,42 @@ textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_s.tga',
 textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_g.tga', 'glossMap');
 // textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
 textureManager.load(bind(this, onTexturesLoaded));
+
+
+// create cube texture
+function loadCubeMap(){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  var faces = [
+    ["../webgl-meshes/sphere_map/pos-x.png", gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+    ["../webgl-meshes/sphere_map/neg-x.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+    ["../webgl-meshes/sphere_map/pos-y.png", gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+    ["../webgl-meshes/sphere_map/neg-y.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+    ["../webgl-meshes/sphere_map/pos-z.png", gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+    ["../webgl-meshes/sphere_map/neg-z.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]
+  ]
+  for(var i=0; i<faces.length; ++i){
+    var glFaceDef = faces[i][1];
+    var image = new Image();
+    image.onload = function(texture, glFaceDef, image){
+      return function(){
+        console.log('cube loaded: ' + glFaceDef)
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(glFaceDef, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      }
+    }(texture, glFaceDef, image);
+    image.src = faces[i][0];
+  }
+
+  return texture;
+}
+var cubeMapTexture = loadCubeMap();
 
 function onTexturesLoaded(){
   console.log('texture loaded');
@@ -241,6 +281,9 @@ function render(){
   textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
   textureManager.bindTexture('specularMap', gl.TEXTURE0+2);
   textureManager.bindTexture('glossMap', gl.TEXTURE0+3);
+
+  gl.activeTexture(gl.TEXTURE0+4);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMapTexture);
 
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
 
