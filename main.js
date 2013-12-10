@@ -143,8 +143,8 @@ gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
 
 // cube mesh
-// var cube = new SphereGeometry(0.5, 30, 30);
-var cube = new CubeGeometry();
+var cube = new SphereGeometry(0.5, 30, 30);
+// var cube = new CubeGeometry();
 
 
 // texture manager

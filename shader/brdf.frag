@@ -106,8 +106,8 @@ void main(){
   // gl_FragColor = toRGB(toLinear(texture2D(diffuseTexture, v_TexCoord)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
 
   vec3 r = reflect(-v, normalize(v_Normal));
-  // gl_FragColor = textureCube(cubeMapTexture, r);
-  gl_FragColor = toRGB(toLinear(textureCube(cubeMapTexture, r)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
+  gl_FragColor = textureCube(cubeMapTexture, r);
+  // gl_FragColor = toRGB(toLinear(textureCube(cubeMapTexture, r)) * vec4((diffuseTerm + specularTerm) * max(ndotl, 0.0), 1.0));
 
 }
 
