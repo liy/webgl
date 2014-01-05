@@ -1,19 +1,12 @@
 precision mediump float;
 
 attribute vec3 a_Vertex;
-attribute vec2 a_TexCoord;
 
 uniform mat4 u_ProjectionMatrix;
-uniform mat4 u_ModelViewMatrix;
-
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
-
-
-varying vec4 v_Position;
-varying vec2 v_TexCoord;
+uniform mat4 u_ModelViewMatrix;
 
 void main(){
-  v_Position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(a_Vertex, 1.0);
-  v_TexCoord = a_TexCoord;
+  gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(a_Vertex, 1.0);
 }
