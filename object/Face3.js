@@ -1,3 +1,3 @@
-function Face3(v1){
+function Face3(){
 
 }

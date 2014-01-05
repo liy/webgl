@@ -81,7 +81,7 @@ var mouseY = window.innerHeight/2;
 
 // setup shader program
 var program = gl.createProgram();
-var shader = new Shader(program, 'shader/skybox.vert', 'shader/skybox.frag');
+var shader = new Shader(program, 'shader/point.vert', 'shader/point.frag');
 gl.useProgram(program);
 shader.bindAttributes(program);
 shader.bindUniforms(program);
@@ -151,20 +151,18 @@ gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 // var cube = new SphereGeometry(0.5, 30, 30);
 // var cube = new CubeGeometry();
 
-var cube = new SkyboxGeometry();
+var cube = new SphereGeometry();
 
 
 // texture manager
 var textureManager = new TextureManager();
 // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-// textureManager.add('../webgl-meshes/normal_map/normal.png', 'normalMap');
-// textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_d.tga', 'texture');
-// textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_n.tga', 'normalMap');
-// textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_s.tga', 'specularMap');
-// textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_g.tga', 'glossMap');
-// textureManager.add('../webgl-meshes/normal_map/fabric.png', 'normalMap');
-// textureManager.load(bind(this, onTexturesLoaded));
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_d.tga', 'texture');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_n.tga', 'normalMap');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_s.tga', 'specularMap');
+textureManager.add('../webgl-meshes/normal_map/brick_guiConcreteBrick_1k_g.tga', 'glossMap');
+textureManager.load(bind(this, onTexturesLoaded));
 
 
 // create cube texture
@@ -196,8 +194,8 @@ function loadCubeMap(){
         // gl.pixelStorei(gl.UNPACK_FLIP_X_WEBGL, true);
         gl.texImage2D(glFaceDef, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        if(loaded++ == 4)
-          onTexturesLoaded();
+        // if(loaded++ == 4)
+        //   onTexturesLoaded();
       }
     }(texture, glFaceDef, image);
     image.src = faces[i][0];
@@ -289,15 +287,15 @@ function render(){
   gl.uniform3fv(cameraPositionLocation, cameraPosition);
 
 
-  // textureManager.bindTexture('texture', gl.TEXTURE0);
-  // textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
-  // textureManager.bindTexture('specularMap', gl.TEXTURE0+2);
-  // textureManager.bindTexture('glossMap', gl.TEXTURE0+3);
+  textureManager.bindTexture('texture', gl.TEXTURE0);
+  textureManager.bindTexture('normalMap', gl.TEXTURE0+1);
+  textureManager.bindTexture('specularMap', gl.TEXTURE0+2);
+  textureManager.bindTexture('glossMap', gl.TEXTURE0+3);
 
   gl.activeTexture(gl.TEXTURE0+4);
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMapTexture);
 
-  gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.POINTS, cube.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
   stats.end();
