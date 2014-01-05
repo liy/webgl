@@ -1,4 +1,4 @@
-function SkyBoxGeometry(width, height, depth){
+function SkyboxGeometry(width, height, depth){
   Geometry.call(this);
 
   this.width = width ? width : 1;
@@ -46,36 +46,37 @@ function SkyBoxGeometry(width, height, depth){
   ];
 
   this.texCoords = [
+    // x y z   nx ny nz
     // front
-    0.0, 0.0,  1.0,
-    1.0, 0.0,  1.0,
-    1.0, 1.0,  1.0,
-    0.0, 1.0,  1.0,
+     hw, -hh,  hd,
+    -hw, -hh,  hd,
+    -hw,  hh,  hd,
+     hw,  hh,  hd,
     // back
-    0.0, 0.0,  0.0,
-    1.0, 0.0,  0.0,
-    1.0, 1.0,  0.0,
-    0.0, 1.0,  0.0,
+    -hw, -hh, -hd,
+     hw, -hh, -hd,
+     hw,  hh, -hd,
+    -hw,  hh, -hd,
     // top
-    0.0, 0.0,  1.0,
-    1.0, 0.0,  1.0,
-    1.0, 1.0,  1.0,
-    0.0, 1.0,  1.0,
+     hw,  hh,  hd,
+    -hw,  hh,  hd,
+    -hw,  hh, -hd,
+     hw,  hh, -hd,
     // bottom
-    0.0, 0.0,  0.0,
-    1.0, 0.0,  0.0,
-    1.0, 1.0,  0.0,
-    0.0, 1.0,  0.0,
+     hw, -hh, -hd,
+    -hw, -hh, -hd,
+    -hw, -hh,  hd,
+     hw, -hh,  hd,
     // left
-    0.0, 0.0,
-    1.0, 0.0,
-    1.0, 1.0,
-    0.0, 1.0,
+     hw, -hh, -hd,
+     hw, -hh,  hd,
+     hw,  hh,  hd,
+     hw,  hh, -hd,
     // right
-    0.0, 0.0,
-    1.0, 0.0,
-    1.0, 1.0,
-    0.0, 1.0
+    -hw, -hh,  hd,
+    -hw, -hh, -hd,
+    -hw,  hh, -hd,
+    -hw,  hh,  hd,
   ];
 
   // index information
@@ -88,3 +89,4 @@ function SkyBoxGeometry(width, height, depth){
     20, 21, 22,  20, 22, 23  // right
   ];
 }
+var p = SkyboxGeometry.prototype = Object.create(Geometry.prototype);
