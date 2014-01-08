@@ -13,18 +13,86 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.clearColor(0.2, 0.2, 0.2, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-gl.enable(gl.CULL_FACE);
+// gl.enable(gl.CULL_FACE);
 
 var mrtExt = gl.getExtension("WEBGL_draw_buffers");
 var depthTextureExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
 
-var genericProgram = gl.createProgram();
-var genericShader = new Shader(genericProgram, 'shader/generic.vert', 'shader/generic.frag');
-gl.useProgram(genericProgram);
-genericShader.bindAttributes(genericProgram);
-genericShader.bindUniforms(genericProgram);
+
+
+
+
+
+
+// Setup MRT
+// 3 textures as 3 render targets
+var colorTexture0 = createColorTexture();
+var colorTexture1 = createColorTexture();
+var colorTexture2 = createColorTexture();
+
+// The depth data needs to be stored in a buffer, render buffer is good one, since we do not need to sample it. Just used by OpenGL when render to
+// 3 texture render targets
+var depthRenderbuffer = gl.createRenderbuffer();
+gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 1024, 1024);
+
+// framebuffer to attach both textures and depth renderbuffer
+var framebuffer = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+// specify 3 textures as render targets
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture0, 0);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, colorTexture1, 0);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, colorTexture2, 0);
+// specify the depth renderbuffer for the framebuffer in order to store depth data during rendering
+gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
+
+var screenProgram = gl.createProgram();
+var screenShader = new Shader(screenProgram, 'shader/screen.vert', 'shader/screen.frag');
+gl.useProgram(screenProgram);
+screenShader.bindAttributes(screenProgram);
+screenShader.bindUniforms(screenProgram);
+// SCREEN locations
+var screenVertexLocation = gl.getAttribLocation(screenProgram, 'a_Vertex');
+var screenTexCoordLocation = gl.getAttribLocation(screenProgram, 'a_TexCoord');
+var texture0Location = gl.getUniformLocation(screenProgram, 'texture0');
+var texture1Location = gl.getUniformLocation(screenProgram, 'texture1');
+var texture2Location = gl.getUniformLocation(screenProgram, 'texture2');
+// texture id
+gl.uniform1i(texture0Location, 0);
+gl.uniform1i(texture1Location, 1);
+gl.uniform1i(texture2Location, 2);
+
+// Screen attributes buffer
+var screenVB = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, screenVB);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([ -1.0, -1.0,
+                                                   1.0, -1.0,
+                                                  -1.0,  1.0,
+                                                  -1.0,  1.0,
+                                                   1.0, -1.0,
+                                                   1.0,  1.0]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(screenVertexLocation);
+gl.vertexAttribPointer(screenVertexLocation, 2, gl.FLOAT, false, 0, 0);
+
+// texture coordinate buffer
+var screenTB = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, screenTB);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0,
+                                                 1, 0,
+                                                 1, 1,
+                                                 1, 1,
+                                                 0, 1,
+                                                 0, 0]), gl.STATIC_DRAW);
+gl.vertexAttribPointer(screenTexCoordLocation, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(screenTexCoordLocation);
+
+
+
+
+
+
 
 var cube = new CubeGeometry();
 var projectionMatrix = mat4.create();
@@ -33,13 +101,19 @@ var viewMatrix = mat4.create();
 var modelViewMatrix = mat4.create();
 var cameraPosition = vec3.fromValues(0, 0, 2);
 
+var mrtProgram = gl.createProgram();
+var mrtShader = new Shader(mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
+gl.useProgram(mrtProgram);
+mrtShader.bindAttributes(mrtProgram);
+mrtShader.bindUniforms(mrtProgram);
+
 // attributes
-var vertexLocation = gl.getAttribLocation(genericProgram, 'a_Vertex');
+var vertexLocation = gl.getAttribLocation(mrtProgram, 'a_Vertex');
 // uniforms
-var projectionMatrixLocation = gl.getUniformLocation(genericProgram, 'u_ProjectionMatrix');
-var modelMatrixLocation = gl.getUniformLocation(genericProgram, 'u_ModelMatrix');
-var viewMatrixLocation = gl.getUniformLocation(genericProgram, 'u_ViewMatrix');
-var modelViewMatrixLocation = gl.getUniformLocation(genericProgram, 'u_ModelViewMatrix');
+var projectionMatrixLocation = gl.getUniformLocation(mrtProgram, 'u_ProjectionMatrix');
+var modelMatrixLocation = gl.getUniformLocation(mrtProgram, 'u_ModelMatrix');
+var viewMatrixLocation = gl.getUniformLocation(mrtProgram, 'u_ViewMatrix');
+var modelViewMatrixLocation = gl.getUniformLocation(mrtProgram, 'u_ModelViewMatrix');
 
 // perspective
 mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 100);
@@ -49,26 +123,78 @@ gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 var vb = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vb);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertices), gl.STATIC_DRAW);
-gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
-gl.enableVertexAttribArray(vertexLocation);
+
 
 var ib = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cube.indices), gl.STATIC_DRAW);
 
 
+
 function render(){
   stats.begin();
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   update();
 
+  // bind framebuffer
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // MRT
+  gl.useProgram(mrtProgram);
+  mrtShader.bindAttributes(mrtProgram);
+  mrtShader.bindUniforms(mrtProgram);
+
+
+
+  // bind buffers
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+  // enable attributes
+  gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(vertexLocation);
   // pass model view matrix to the shader
   gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
+  // // draw to MRT
+
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
+
+
+  // use default frame buffer
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
+  // draw rectangle, sample 3 textures
+  gl.useProgram(screenProgram);
+  screenShader.bindAttributes(screenProgram);
+  screenShader.bindUniforms(screenProgram);
+
+  // active texture
+  gl.uniform1i(texture0Location, 0);
+  gl.uniform1i(texture1Location, 1);
+  gl.uniform1i(texture2Location, 2);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, colorTexture0);
+  gl.activeTexture(gl.TEXTURE0+1);
+  gl.bindTexture(gl.TEXTURE_2D, colorTexture1);
+  gl.activeTexture(gl.TEXTURE0+2);
+  gl.bindTexture(gl.TEXTURE_2D, colorTexture2);
+
+  // bind buffer
+  gl.bindBuffer(gl.ARRAY_BUFFER, screenVB);
+  gl.bindBuffer(gl.ARRAY_BUFFER, screenTB);
+
+  // enable attributes
+  gl.enableVertexAttribArray(screenVertexLocation);
+  gl.enableVertexAttribArray(screenTexCoordLocation);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 
   stats.end();
@@ -100,25 +226,17 @@ function update(){
 
 
 
-// function createColorTexture(){
-//   var texture = gl.createTexture();
-//   gl.bindTexture(gl.TEXTURE_2D, texture);
-//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-//   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-//   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+function createColorTexture(){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-//   return texture;
-// }
-
-// var colorTexture0 = createColorTexture();
-// var colorTexture1 = createColorTexture();
-
-// var framebuffer = gl.createFramebuffer();
-// gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-// gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture0, 0);
-// gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, colorTexture1, 0);
+  return texture;
+}
 
 
 // // generic shader
