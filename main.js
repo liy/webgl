@@ -19,9 +19,11 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 var mrtExt = gl.getExtension("WEBGL_draw_buffers");
 var depthTextureExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
+var vaoExt = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may apply!
 
+vaoExt.createVertexArrayOES();
 
-
+console.log(mrtExt);
 
 
 
@@ -48,6 +50,9 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, c
 // specify the depth renderbuffer for the framebuffer in order to store depth data during rendering
 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
+
+mrtExt.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
+
 var screenProgram = gl.createProgram();
 var screenShader = new Shader(screenProgram, 'shader/screen.vert', 'shader/screen.frag');
 gl.useProgram(screenProgram);
@@ -64,15 +69,17 @@ gl.uniform1i(texture0Location, 0);
 gl.uniform1i(texture1Location, 1);
 gl.uniform1i(texture2Location, 2);
 
+console.log(texture1Location);
+
 // Screen attributes buffer
 var screenVB = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, screenVB);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([ -1.0, -1.0,
                                                    1.0, -1.0,
+                                                   1.0,  1.0,
+                                                   1.0,  1.0,
                                                   -1.0,  1.0,
-                                                  -1.0,  1.0,
-                                                   1.0, -1.0,
-                                                   1.0,  1.0]), gl.STATIC_DRAW);
+                                                  -1.0, -1.0]), gl.STATIC_DRAW);
 gl.enableVertexAttribArray(screenVertexLocation);
 gl.vertexAttribPointer(screenVertexLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -85,8 +92,8 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0,
                                                  1, 1,
                                                  0, 1,
                                                  0, 0]), gl.STATIC_DRAW);
-gl.vertexAttribPointer(screenTexCoordLocation, 2, gl.FLOAT, false, 0, 0);
 gl.enableVertexAttribArray(screenTexCoordLocation);
+gl.vertexAttribPointer(screenTexCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 
 
@@ -139,6 +146,7 @@ function render(){
   // bind framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // MRT
@@ -148,27 +156,29 @@ function render(){
 
 
 
-  // bind buffers
+  // bind buffers and enable attributes
   gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-  // enable attributes
+  // gl.enableVertexAttribArray(vertexLocation);
   gl.vertexAttribPointer(vertexLocation, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(vertexLocation);
+
   // pass model view matrix to the shader
   gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
   gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
   gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
   // // draw to MRT
-
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
+
+
+
 
 
   // use default frame buffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
 
   // draw rectangle, sample 3 textures
   gl.useProgram(screenProgram);
@@ -187,13 +197,15 @@ function render(){
   gl.activeTexture(gl.TEXTURE0+2);
   gl.bindTexture(gl.TEXTURE_2D, colorTexture2);
 
-  // bind buffer
+  // bind buffer and enable attributes
   gl.bindBuffer(gl.ARRAY_BUFFER, screenVB);
-  gl.bindBuffer(gl.ARRAY_BUFFER, screenTB);
+  // gl.enableVertexAttribArray(screenVertexLocation);
+  gl.vertexAttribPointer(screenVertexLocation, 2, gl.FLOAT, false, 0, 0);
 
-  // enable attributes
-  gl.enableVertexAttribArray(screenVertexLocation);
-  gl.enableVertexAttribArray(screenTexCoordLocation);
+  gl.bindBuffer(gl.ARRAY_BUFFER, screenTB);
+  // gl.enableVertexAttribArray(screenTexCoordLocation);
+  gl.vertexAttribPointer(screenTexCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 
