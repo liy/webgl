@@ -17,8 +17,8 @@ var p = MRTDebugger.prototype;
 p.render = function(){
   if(this.enabled){
     gl.useProgram(this.program);
-    this.shader.bindAttributes(this.program);
-    this.shader.bindUniforms(this.program);
+    this.shader.locateAttributes(this.program);
+    this.shader.locateUniforms(this.program);
 
     gl.disable(gl.DEPTH_TEST);
 

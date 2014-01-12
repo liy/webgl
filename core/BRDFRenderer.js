@@ -6,8 +6,8 @@ function BRDFRenderer(){
   this._program = gl.createProgram();
   this.shader = new Shader(this._program, 'shader/brdf.vert', 'shader/brdf.frag');
   gl.useProgram(this._program);
-  this.shader.bindAttributes(this._program);
-  this.shader.bindUniforms(this._program);
+  this.shader.locateAttributes(this._program);
+  this.shader.locateUniforms(this._program);
 
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);

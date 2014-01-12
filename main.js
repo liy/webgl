@@ -54,8 +54,10 @@ dbExt.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_A
 var screenProgram = gl.createProgram();
 var screenShader = new Shader(screenProgram, 'shader/screen.vert', 'shader/screen.frag');
 gl.useProgram(screenProgram);
-screenShader.bindAttributes(screenProgram);
-screenShader.bindUniforms(screenProgram);
+screenShader.locateAttributes(screenProgram);
+screenShader.locateUniforms(screenProgram);
+
+console.log(screenShader);
 
 var screenVAO = vaoExt.createVertexArrayOES();
 vaoExt.bindVertexArrayOES(screenVAO);
@@ -101,8 +103,8 @@ var cameraPosition = vec3.fromValues(0, 0, 2);
 var mrtProgram = gl.createProgram();
 var mrtShader = new Shader(mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
 gl.useProgram(mrtProgram);
-mrtShader.bindAttributes(mrtProgram);
-mrtShader.bindUniforms(mrtProgram);
+mrtShader.locateAttributes(mrtProgram);
+mrtShader.locateUniforms(mrtProgram);
 
 var mrtVAO = vaoExt.createVertexArrayOES();
 vaoExt.bindVertexArrayOES(mrtVAO);
@@ -143,12 +145,6 @@ function render(){
   gl.uniformMatrix4fv(mrtShader.uniforms.u_ViewMatrix, false, viewMatrix);
   gl.uniformMatrix4fv(mrtShader.uniforms.u_ModelViewMatrix, false, modelViewMatrix);
 
-  // using vertex array object to store reference to a vertex buffer, so no need to do these manual binding and pointer thing anymore.
-  // bind buffers and enable attributes
-  // gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-  // gl.vertexAttribPointer(mrtShader.attributes.a_Vertex, 3, gl.FLOAT, false, 0, 0);
-  // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-
   // draw to multiple render target
   vaoExt.bindVertexArrayOES(mrtVAO);
   gl.drawElements(gl.TRIANGLES, cube.indices.length, gl.UNSIGNED_SHORT, 0);
@@ -167,20 +163,13 @@ function render(){
   // Set each texture unit to use a particular texture.
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, colorTexture0);
-  gl.uniform1i(screenShader.uniforms.texture0, 0); // set which texture units to render with.
+  gl.uniform1i(screenShader.uniforms.textures[0], 0); // set which texture units to render with.
   gl.activeTexture(gl.TEXTURE0+1);
   gl.bindTexture(gl.TEXTURE_2D, colorTexture1);
-  gl.uniform1i(screenShader.uniforms.texture1, 1); // set which texture units to render with.
+  gl.uniform1i(screenShader.uniforms.textures[1], 1); // set which texture units to render with.
   gl.activeTexture(gl.TEXTURE0+2);
   gl.bindTexture(gl.TEXTURE_2D, colorTexture2);
-  gl.uniform1i(screenShader.uniforms.texture2, 2); // set which texture units to render with.
-
-  // using vertex array object to store reference to a vertex buffer, so no need to do these manual binding and pointer thing anymore.
-  // bind buffer and enable attributes
-  // gl.bindBuffer(gl.ARRAY_BUFFER, screenVB);
-  // gl.vertexAttribPointer(screenShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
-  // gl.bindBuffer(gl.ARRAY_BUFFER, screenTB);
-  // gl.vertexAttribPointer(screenShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform1i(screenShader.uniforms.textures[2], 2); // set which texture units to render with.
 
   // draw to screen
   vaoExt.bindVertexArrayOES(screenVAO);
@@ -227,29 +216,3 @@ function createColorTexture(){
 
   return texture;
 }
-
-
-// // generic shader
-// var genericProgram = gl.createProgram();
-// var genericShader = new Shader(genericProgram, 'shader/generic.vert', 'shader/generic.frag');
-// gl.useProgram(genericProgram);
-// genericShader.bindAttributes(genericProgram);
-// genericShader.bindUniforms(genericProgram);
-
-// // mrt shader
-// var mrtProgram = gl.createProgram();
-// var mrtShader = new Shader(mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
-// gl.useProgram(mrtProgram);
-// mrtShader.bindAttributes(mrtProgram);
-// mrtShader.bindUniforms(mrtProgram);
-
-// gl.drawArrays(gl.TRIANGLES, 0, 0);
-
-
-
-
-// gl.useProgram(genericProgram);
-// genericShader.bindAttributes(genericProgram);
-// genericShader.bindUniforms(genericProgram);
-// gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-// gl.drawArrays(gl.TRIANGLES, 0, 0);

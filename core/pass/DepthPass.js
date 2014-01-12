@@ -34,8 +34,8 @@ var p = DepthPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   gl.useProgram(this.program);
-  this.shader.bindAttributes(this.program);
-  this.shader.bindUniforms(this.program);
+  this.shader.locateAttributes(this.program);
+  this.shader.locateUniforms(this.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
