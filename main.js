@@ -1,5 +1,30 @@
-var loader = new NewObjLoader();
-loader.load("../webgl-meshes/cube/", "cube.obj");
+
+
+
+
+// var i;
+
+// console.time("float start");
+// for(i=0; i<100000; ++i){
+//   var arr = [];
+// }
+// console.timeEnd("float start");
+
+
+// console.time("obj start");
+// for(i=0; i<100000; ++i){
+//   var arr = new Array();
+// }
+// console.timeEnd("obj start");
+
+console.log(new Vec3(1, 2, 3));
+
+
+
+
+
+// var loader = new NewObjLoader();
+// loader.load("../webgl-meshes/cube/", "cube.obj");
 
 
 // var stats = new Stats();
