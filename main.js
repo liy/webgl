@@ -1,32 +1,3 @@
-
-
-
-
-// var i;
-
-// console.time("float start");
-// for(i=0; i<100000; ++i){
-//   var arr = [];
-// }
-// console.timeEnd("float start");
-
-
-// console.time("obj start");
-// for(i=0; i<100000; ++i){
-//   var arr = new Array();
-// }
-// console.timeEnd("obj start");
-
-console.log(new Vec3(1, 2, 3));
-
-
-
-
-
-// var loader = new NewObjLoader();
-// loader.load("../webgl-meshes/cube/", "cube.obj");
-
-
 // var stats = new Stats();
 // stats.setMode(0); // 0: fps, 1: ms
 // // Align top-left
@@ -36,15 +7,18 @@ console.log(new Vec3(1, 2, 3));
 // document.body.appendChild( stats.domElement );
 
 
-// var canvas = document.createElement('canvas');
-// document.body.appendChild(canvas);
-// canvas.width = window.innerWidth;
-// canvas.height = window.innerHeight;
-// var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-// gl.enable(gl.DEPTH_TEST);
-// gl.clearColor(0.2, 0.2, 0.2, 1.0);
-// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// // gl.enable(gl.CULL_FACE);
+var canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+gl.enable(gl.DEPTH_TEST);
+gl.clearColor(0.2, 0.2, 0.2, 1.0);
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+// gl.enable(gl.CULL_FACE);
+
+var loader = new NewObjLoader();
+loader.load("../webgl-meshes/", "bunny_low.obj");
 
 // var dbExt = gl.getExtension("WEBGL_draw_buffers");
 // var dtExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
