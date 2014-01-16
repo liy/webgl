@@ -56,26 +56,8 @@ p.onload = function(e){
   function addFace(vi1, vi2, vi3){
     var face;
 
-    vi1 = parseInt(vi1);
-    vi2 = parseInt(vi2);
-    vi3 = parseInt(vi3);
-    if(vi1 < 0){
-      vi1 += vLookup.length;
-      vi2 += vLookup.length;
-      vi3 += vLookup.length;
-      // face only use vertex's index for creation
-      face = new Face3(vi1, vi2, vi3);
-    }
-    else{
-      --vi1;
-      --vi2;
-      --vi3;
-      // face only use vertex's index for creation
-      face = new Face3(vi1-vertexIndexOffset, vi2-vertexIndexOffset, vi3-vertexIndexOffset);
-    }
+    face = new Face3(vi1, vi2, vi3);
     geometry.faces.push(face);
-
-    geometry.vertices.push(vLookup[vi1], vLookup[vi2], vLookup[vi3]);
   }
 
   function addTexCoord(ti1, ti2){
@@ -121,42 +103,58 @@ p.onload = function(e){
   }
 
   function addIndex(key, vi, ti, ni){
-    var index = map[key];
-    if(index){
-      geometry.indices.push(index);
+    if(map[key] !== undefined){
+      // console.log("exist index " + map[key]);
+      geometry.indices.push(map[key]);
     }
     else{
-      index = map[key] = geometry.vertices.length;
+      map[key] = geometry.vertices.length;
 
-      console.log('store: ' + index);
+      // console.log("new index " + map[key]);
       
-      geometry.indices.push(geometry.vertices.length);
-      geometry.vertices.push(vLookup[vi-1]);
-      geometry.texCoords.push(tLookup[ti-1]);
-      geometry.normals.push(nLookup[ni-1]);
+      geometry.indices.push(map[key]);
+
+      if(vi<0){
+        geometry.vertices.push(vLookup[vi + vLookup.length]);
+
+        if(ti)
+          geometry.texCoords.push(tLookup[ti + tLookup.length]);
+        if(ni)
+          geometry.normals.push(nLookup[ni + nLookup.length]);
+      }
+      else{
+        geometry.vertices.push(vLookup[vi-1]);
+
+        if(ti)
+          geometry.texCoords.push(tLookup[--ti]);
+        if(ni)
+          geometry.normals.push(nLookup[--ni]);
+      }
     }
-    
-    return index;
+
+    // console.log(map);
+ 
+    return map[key];
   }
 
   function processFaceLine(
-    k1, k2, k3, k4
+    k1, k2, k3, k4,
     vi1, vi2, vi3, vi4, 
     ti1, ti2, ti3, ti4, 
     ni1, ni2, ni3, ni4){
     // triangle face
     if(vi4 === undefined){
-      var i0 = addIndex(k1, vi1, ti1, ni1);
-      var i1 = addIndex(k2, vi2, ti2, ni2);
-      var i2 = addIndex(k3, vi3, ti3, ni3);
+      var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
+      var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
+      var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       addFace(i0, i1, i2);
     }
     // quad face
     else{
-      var i0 = addIndex(k1, vi1, ti1, ni1);
-      var i1 = addIndex(k2, vi2, ti2, ni2);
-      var i2 = addIndex(k3, vi3, ti3, ni3);
-      var i3 = addIndex(k4, vi4, ti4, ni4);
+      var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
+      var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
+      var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
+      var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
       // create 2 triangle faces
       addFace(i0, i1, i3);
       addFace(i1, i2, i3);
@@ -245,5 +243,8 @@ p.onload = function(e){
 
   console.timeEnd('regexp start');
 
-  console.log(meshes[0].geometry.vertices.length/3);
+  console.log(meshes[0].geometry.vertices);
+  console.log(meshes[0].geometry.normals);
+  console.log(meshes[0].geometry.texCoords);
+  console.log(meshes[0].geometry.indices);
 }

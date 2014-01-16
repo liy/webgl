@@ -18,7 +18,7 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 // gl.enable(gl.CULL_FACE);
 
 var loader = new NewObjLoader();
-loader.load("../webgl-meshes/", "bunny_low.obj");
+loader.load("../webgl-meshes/cube/", "cube.obj");
 
 // var dbExt = gl.getExtension("WEBGL_draw_buffers");
 // var dtExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
