@@ -50,6 +50,9 @@ p.onload = function(e){
   // However, if createMesh function is called, the new geometry will be used.
   var geometry = new Geometry();
 
+
+  var map = Object.create(null);
+
   function addFace(vi1, vi2, vi3){
     var face;
 
@@ -117,34 +120,46 @@ p.onload = function(e){
     meshes.push(mesh);
   }
 
-  function processFaceLine(vi1, vi2, vi3, vi4, 
+  function addIndex(key, vi, ti, ni){
+    var index = map[key];
+    if(index){
+      geometry.indices.push(index);
+    }
+    else{
+      index = map[key] = geometry.vertices.length;
+
+      console.log('store: ' + index);
+      
+      geometry.indices.push(geometry.vertices.length);
+      geometry.vertices.push(vLookup[vi-1]);
+      geometry.texCoords.push(tLookup[ti-1]);
+      geometry.normals.push(nLookup[ni-1]);
+    }
+    
+    return index;
+  }
+
+  function processFaceLine(
+    k1, k2, k3, k4
+    vi1, vi2, vi3, vi4, 
     ti1, ti2, ti3, ti4, 
     ni1, ni2, ni3, ni4){
     // triangle face
     if(vi4 === undefined){
-      addFace(vi1, vi2, vi3);
-      
-      if(ti1 !== undefined)
-        addTexCoord(ti1, ti2, ti3);
-
-      if(ni1 !== undefined)
-        addNormal(ni1, ni2, ni3);
+      var i0 = addIndex(k1, vi1, ti1, ni1);
+      var i1 = addIndex(k2, vi2, ti2, ni2);
+      var i2 = addIndex(k3, vi3, ti3, ni3);
+      addFace(i0, i1, i2);
     }
     // quad face
     else{
+      var i0 = addIndex(k1, vi1, ti1, ni1);
+      var i1 = addIndex(k2, vi2, ti2, ni2);
+      var i2 = addIndex(k3, vi3, ti3, ni3);
+      var i3 = addIndex(k4, vi4, ti4, ni4);
       // create 2 triangle faces
-      addFace(vi1, vi2, vi4);
-      addFace(vi2, vi3, vi4);
-
-      if(ti1 !== undefined){
-        addTexCoord(ti1, ti2, ti3);
-        addTexCoord(ti2, ti3, ti4);
-      }
-
-      if(ni1 !== undefined){
-        addNormal(ni1, ni2, ni3);
-        addNormal(ni2, ni3, ni4);
-      }
+      addFace(i0, i1, i3);
+      addFace(i1, i2, i3);
     }
   }
 
@@ -172,12 +187,14 @@ p.onload = function(e){
     else if((result = face_pattern1.exec(line)) !== null){
       // ["f 1 2 3", "1", "2", "3", undefined]
       processFaceLine(
+        result[1], result[2], result[3], result[4],  // map key
         result[1], result[2], result[3], result[4] // vertex indices
       );
     }
     else if((result = face_pattern2.exec(line)) !== null){
       // ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
       processFaceLine(
+        result[1], result[4], result[7], result[10],  // map key
         result[2], result[5], result[8], result[11], // vertex indices
         result[3], result[6], result[9], result[12] // texture coordinate indices
       );
@@ -185,6 +202,7 @@ p.onload = function(e){
     else if((result = face_pattern3.exec(line)) !== null){
       // ["f 1/1/1 2/2/2 3/3/3", " 1/1/1", "1", "1", "1", " 2/2/2", "2", "2", "2", " 3/3/3", "3", "3", "3", undefined, undefined, undefined, undefined]
       processFaceLine(
+        result[1], result[5], result[9], result[13],  // map key
         result[2], result[6], result[10], result[14], // vertex indices
         result[3], result[7], result[11], result[15], // texture coordinate indices
         result[4], result[8], result[12], result[16]  // normal indices
@@ -193,6 +211,7 @@ p.onload = function(e){
     else if((result = face_pattern4.exec(line)) !== null){
       // ["f 1//1 2//2 3//3", " 1//1", "1", "1", " 2//2", "2", "2", " 3//3", "3", "3", undefined, undefined, undefined]
       processFaceLine(
+        result[1], result[4], result[7], result[10],  // map key
         result[2], result[5], result[6], result[11], // vertex indices
         undefined, undefined, undefined, undefined,   // texture coordinate indices
         result[3], result[6], result[7], result[12]  // normal indices

@@ -3,6 +3,7 @@ function Geometry(){
   this.normals = [];
   this.texCoords = [];
   this.faces = [];
+  this.indices = [];
 
   this.id = Geometry.id++;
 }
