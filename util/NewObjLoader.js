@@ -72,14 +72,14 @@ p.onload = function(e){
 
     if(index !== undefined){
       // console.log("exist index " + map[key]);
-      geometry.indices.push(map[key]);
+      geometry.indexData.push(map[key]);
     }
     else{
       index = map[key] = geometry.vertices.length;
 
       // console.log("new index " + map[key]);
 
-      geometry.indices.push(index);
+      geometry.indexData.push(index);
 
       if(vi<0){
         geometry.vertices.push(vLookup[vi + vLookup.length]);
@@ -90,7 +90,7 @@ p.onload = function(e){
           geometry.normals.push(nLookup[ni + nLookup.length]);
       }
       else{
-        geometry.vertices.push(vLookup[vi-1]);
+        geometry.vertices.push(vLookup[--vi]);
 
         if(ti)
           geometry.texCoords.push(tLookup[--ti]);
@@ -125,6 +125,7 @@ p.onload = function(e){
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
 
       // create 2 triangle faces
+      // console.log(i0, i1, i2, i3);
       geometry.faces.push(new Face3(i0, i1, i3));
       geometry.faces.push(new Face3(i1, i2, i3));
     }
@@ -209,13 +210,14 @@ p.onload = function(e){
   // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
   if(meshes.length === 0)
     meshes.push(new Mesh(geometry));
+    
 
   console.timeEnd('regexp start');
 
   // console.log(meshes[0].geometry.vertices);
   // console.log(meshes[0].geometry.normals);
   // console.log(meshes[0].geometry.texCoords);
-  // console.log(meshes[0].geometry.indices);
+  // console.log(meshes[0].geometry.indexData);
   // console.log(meshes[0].geometry.faces.length);
 
   for(var i=0; i<meshes.length; ++i){

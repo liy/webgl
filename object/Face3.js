@@ -8,5 +8,7 @@ function Face3(a, b, c){
   this.a = a;
   this.b = b;
   this.c = c;
+
+  this.normal = null;
 }
 var p = Face3.prototype;

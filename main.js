@@ -15,13 +15,17 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.2, 0.2, 0.2, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-gl.enable(gl.CULL_FACE);
+// gl.enable(gl.CULL_FACE);
 
 
 var loader = new NewObjLoader();
-loader.load("../webgl-meshes/buddha/", "buddha.obj");
+loader.load("../webgl-meshes/teapot/", "teapot.obj");
 var geometry = loader.group.children[0].geometry;
-geometry.flatData();
+geometry.computeFaceNormal();
+// compute vertex normal, if there is no vertex normal defined
+if(geometry.normals.length == 0)
+  geometry.computeVertexNormal();
+geometry.genData();
 
 
 var dbExt = gl.getExtension("WEBGL_draw_buffers");
@@ -103,7 +107,8 @@ var projectionMatrix = mat4.create();
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
 var modelViewMatrix = mat4.create();
-var cameraPosition = vec3.fromValues(0, 5, 9);
+var normalMatrix = mat3.create();
+var cameraPosition = vec3.fromValues(0, 30, 100);
 
 var mrtProgram = gl.createProgram();
 var mrtShader = new Shader(mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
@@ -116,18 +121,23 @@ vaoExt.bindVertexArrayOES(mrtVAO);
 
 var vb = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), gl.STATIC_DRAW);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertexData), gl.STATIC_DRAW);
 gl.enableVertexAttribArray(mrtShader.attributes.a_Vertex);
 gl.vertexAttribPointer(mrtShader.attributes.a_Vertex, 3, gl.FLOAT, false, 0, 0);
+var nb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.normalData), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(mrtShader.attributes.a_Normals);
+gl.vertexAttribPointer(mrtShader.attributes.a_Normals, 3, gl.FLOAT, false, 0, 0);
 var ib = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(geometry.indices), gl.STATIC_DRAW);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(geometry.indexData), gl.STATIC_DRAW);
 
 vaoExt.bindVertexArrayOES(null);
 
 
 // perspective
-mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 100);
+mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 300);
 // pass to shader
 gl.uniformMatrix4fv(mrtShader.uniforms.u_ProjectionMatrix, false, projectionMatrix);
 
@@ -149,10 +159,11 @@ function render(){
   gl.uniformMatrix4fv(mrtShader.uniforms.u_ModelMatrix, false, modelMatrix);
   gl.uniformMatrix4fv(mrtShader.uniforms.u_ViewMatrix, false, viewMatrix);
   gl.uniformMatrix4fv(mrtShader.uniforms.u_ModelViewMatrix, false, modelViewMatrix);
+  gl.uniformMatrix3fv(mrtShader.uniforms.u_NormalMatrix, false, normalMatrix);
 
   // draw to multiple render target
   vaoExt.bindVertexArrayOES(mrtVAO);
-  gl.drawElements(gl.TRIANGLES, geometry.indices.length, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.TRIANGLES, geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   vaoExt.bindVertexArrayOES(null);
 
 
@@ -195,7 +206,7 @@ function update(){
   mat4.identity(viewMatrix);
   mat4.identity(modelMatrix);
 
-  modelRotationY += 0.003;
+  // modelRotationY += 0.003;
   mat4.rotateY(modelMatrix, modelMatrix, modelRotationY);
   mat4.rotateX(modelMatrix, modelMatrix, modelRotationX);
 
@@ -203,6 +214,9 @@ function update(){
   mat4.translate(viewMatrix, viewMatrix, cameraPosition);
   mat4.invert(viewMatrix, viewMatrix);
   mat4.mul(modelViewMatrix, viewMatrix, modelMatrix);
+
+  // normal matrix
+  mat3.normalFromMat4(normalMatrix, modelViewMatrix);
 }
 
 
