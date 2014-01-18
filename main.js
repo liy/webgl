@@ -108,7 +108,7 @@ var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
 var modelViewMatrix = mat4.create();
 var normalMatrix = mat3.create();
-var cameraPosition = vec3.fromValues(0, 30, 100);
+var cameraPosition = vec3.fromValues(0, 60, 100);
 
 var mrtProgram = gl.createProgram();
 var mrtShader = new Shader(mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');

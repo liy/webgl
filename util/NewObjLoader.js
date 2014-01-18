@@ -77,8 +77,6 @@ p.onload = function(e){
     else{
       index = map[key] = geometry.vertices.length;
 
-      // console.log("new index " + map[key]);
-
       geometry.indexData.push(index);
 
       if(vi<0){
@@ -99,8 +97,6 @@ p.onload = function(e){
       }
     }
 
-    // console.log(map);
-
     return index;
   }
 
@@ -109,7 +105,7 @@ p.onload = function(e){
     vi1, vi2, vi3, vi4,
     ti1, ti2, ti3, ti4,
     ni1, ni2, ni3, ni4){
-    // triangle face
+    // 1 triangle face
     if(vi4 === undefined){
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
@@ -117,16 +113,16 @@ p.onload = function(e){
 
       geometry.faces.push(new Face3(i0, i1, i2));
     }
-    // quad face
+    // quad face, 2 triangle faces
     else{
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
+      var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
+      geometry.faces.push(new Face3(i0, i1, i3));
+
+      var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
-
-      // create 2 triangle faces
-      // console.log(i0, i1, i2, i3);
-      geometry.faces.push(new Face3(i0, i1, i3));
       geometry.faces.push(new Face3(i1, i2, i3));
     }
   }
@@ -219,6 +215,8 @@ p.onload = function(e){
   // console.log(meshes[0].geometry.texCoords);
   // console.log(meshes[0].geometry.indexData);
   // console.log(meshes[0].geometry.faces.length);
+
+  console.log(meshes);
 
   for(var i=0; i<meshes.length; ++i){
     this.group.add(meshes[0]);
