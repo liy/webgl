@@ -46,7 +46,7 @@ p.load = function(path, callback){
   console.log('loading mtl file: ' + path);
 
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', path, true);
+  xhr.open('GET', path, false);
   xhr.onload = bind(this, this.onload);
   xhr.send();
 }
@@ -87,7 +87,7 @@ p.onload = function(e){
 
     switch(chunks[0]){
       case 'newmtl':
-        currentMtl = new ObjMaterial(this._);
+        currentMtl = new ObjMaterial();
         currentMtl.newmtl = chunks[chunks.length-1];
         this.materialMap[currentMtl.newmtl] = currentMtl;
         break;
@@ -136,5 +136,7 @@ p.onload = function(e){
     }
   }
 
-  this.callback();
+  console.log('mtl loaded');
+  if(this.callback)
+    this.callback();
 }

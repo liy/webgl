@@ -12,34 +12,34 @@ function Geometry(){
 }
 var p = Geometry.prototype;
 
-p.genData = function(){
-  // holding the WebGL friendly, flattened attribute arrays. Pure float in the array.
-  this.vertexData = [];
-  this.normalData = [];
-  this.texCoordData = [];
+// p.genData = function(){
+//   // holding the WebGL friendly, flattened attribute arrays. Pure float in the array.
+//   this.vertexData = [];
+//   this.normalData = [];
+//   this.texCoordData = [];
 
-  var i, len;
-  len = this.vertices.length;
-  for(i=0; i<len; ++i){
-    this.vertexData.push(this.vertices[i].x);
-    this.vertexData.push(this.vertices[i].y);
-    this.vertexData.push(this.vertices[i].z);
-  }
+//   var i, len;
+//   len = this.vertices.length;
+//   for(i=0; i<len; ++i){
+//     this.vertexData.push(this.vertices[i].x);
+//     this.vertexData.push(this.vertices[i].y);
+//     this.vertexData.push(this.vertices[i].z);
+//   }
 
-  len = this.normals.length;
-  for(i=0; i<len; ++i){
-    this.normalData.push(this.normals[i].x);
-    this.normalData.push(this.normals[i].y);
-    this.normalData.push(this.normals[i].z);
-  }
+//   len = this.normals.length;
+//   for(i=0; i<len; ++i){
+//     this.normalData.push(this.normals[i].x);
+//     this.normalData.push(this.normals[i].y);
+//     this.normalData.push(this.normals[i].z);
+//   }
 
-  len = this.texCoords.length;
-  for(i=0; i<len; ++i){
-    this.texCoordData.push(this.texCoords[i].x);
-    this.texCoordData.push(this.texCoords[i].y);
-    this.texCoordData.push(this.texCoords[i].z);
-  }
-}
+//   len = this.texCoords.length;
+//   for(i=0; i<len; ++i){
+//     this.texCoordData.push(this.texCoords[i].x);
+//     this.texCoordData.push(this.texCoords[i].y);
+//     this.texCoordData.push(this.texCoords[i].z);
+//   }
+// }
 
 p.computeFaceNormal = function(){
   var len = this.faces.length;

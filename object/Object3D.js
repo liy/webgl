@@ -195,9 +195,27 @@ Object.defineProperty(p, "matrix", {
   }
 });
 
+/**
+ * Prepare drawing, create buffer, initialize attributes and uniforms etc.
+ */
+p.prepare = function(shader){
+  var len = this.children.length;
+  for(var i=0; i<len; ++i){
+    this.children[i].prepare(shader);
+  }
+}
 
+/**
+ * draw
+ * @param  {[type]} shader [description]
+ * @param  {[type]} camera [description]
+ * @return {[type]}        [description]
+ */
 p.draw = function(shader, camera){
-
+  var len = this.children.length;
+  for(var i=0; i<len; ++i){
+    this.children[i].draw(shader, camera);
+  }
 }
 
 Object3D.origin = vec3.create();

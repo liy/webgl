@@ -1,7 +1,7 @@
 function Material(){
   this.id = Material.id++;
 
-  this.color = vec4.fromValues(0.7, 0.7, 0.7, 1);
+  this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
 }
 var p = Material.prototype;
 

@@ -19,13 +19,8 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
 var loader = new NewObjLoader();
-loader.load("../webgl-meshes/teapot/", "teapot.obj");
-var geometry = loader.group.children[0].geometry;
-geometry.computeFaceNormal();
-// compute vertex normal, if there is no vertex normal defined
-if(geometry.normals.length == 0)
-  geometry.computeVertexNormal();
-geometry.genData();
+loader.load("../webgl-meshes/buddha/", "buddha.obj");
+var mesh = loader.group;
 
 
 var dbExt = gl.getExtension("WEBGL_draw_buffers");
@@ -39,6 +34,8 @@ var vaoExt = gl.getExtension("OES_vertex_array_object"); // Vendor prefixes may 
 var albedoTexture = createColorTexture();
 var normalTexture = createColorTexture();
 var testTexture = createColorTexture();
+
+var depthTexture = createColorTexture();
 
 // The depth data needs to be stored in a buffer, render buffer is good one, since we do not need to sample it. Just used by OpenGL when render to
 // 3 texture render targets
@@ -66,8 +63,6 @@ var screenShader = new Shader(screenProgram, 'shader/screen.vert', 'shader/scree
 gl.useProgram(screenProgram);
 screenShader.locateAttributes(screenProgram);
 screenShader.locateUniforms(screenProgram);
-
-console.log(screenShader);
 
 var screenVAO = vaoExt.createVertexArrayOES();
 vaoExt.bindVertexArrayOES(screenVAO);
@@ -100,9 +95,6 @@ vaoExt.bindVertexArrayOES(null);
 
 
 
-
-
-
 var projectionMatrix = mat4.create();
 var modelMatrix = mat4.create();
 var viewMatrix = mat4.create();
@@ -116,25 +108,8 @@ gl.useProgram(mrtProgram);
 mrtShader.locateAttributes(mrtProgram);
 mrtShader.locateUniforms(mrtProgram);
 
-var mrtVAO = vaoExt.createVertexArrayOES();
-vaoExt.bindVertexArrayOES(mrtVAO);
-
-var vb = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertexData), gl.STATIC_DRAW);
-gl.enableVertexAttribArray(mrtShader.attributes.a_Vertex);
-gl.vertexAttribPointer(mrtShader.attributes.a_Vertex, 3, gl.FLOAT, false, 0, 0);
-var nb = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.normalData), gl.STATIC_DRAW);
-gl.enableVertexAttribArray(mrtShader.attributes.a_Normals);
-gl.vertexAttribPointer(mrtShader.attributes.a_Normals, 3, gl.FLOAT, false, 0, 0);
-var ib = gl.createBuffer();
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(geometry.indexData), gl.STATIC_DRAW);
-
-vaoExt.bindVertexArrayOES(null);
-
+// prepare draw using mrt shader
+mesh.prepare(mrtShader);
 
 // perspective
 mat4.perspective(projectionMatrix, Math.PI/3, canvas.width/canvas.height, 0.1, 300);
@@ -162,9 +137,7 @@ function render(){
   gl.uniformMatrix3fv(mrtShader.uniforms.u_NormalMatrix, false, normalMatrix);
 
   // draw to multiple render target
-  vaoExt.bindVertexArrayOES(mrtVAO);
-  gl.drawElements(gl.TRIANGLES, geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
-  vaoExt.bindVertexArrayOES(null);
+  mesh.draw(mrtShader);
 
 
   // use default frame buffer
@@ -193,7 +166,7 @@ function render(){
   vaoExt.bindVertexArrayOES(null);
 
   stats.end();
-  requestAnimFrame(render);
+  // requestAnimFrame(render);
 }
 requestAnimFrame(render);
 
@@ -234,4 +207,14 @@ function createColorTexture(){
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1280, 1280, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
   return texture;
+}
+
+function createDepthTexture(){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, 1280, 1280, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
 }

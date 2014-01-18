@@ -7,6 +7,9 @@ p.load = function(baseURI, file, callback){
   this.callback = callback;
   this._baseURI = baseURI;
 
+  this.mtllib = null;
+  this.mtlLoader = new MtlLoader();
+
   this.group = new Object3D();
 
   console.log('loading: ' + this._baseURI + file);
@@ -194,6 +197,7 @@ p.onload = function(e){
     }
     else if(/^mtllib /.test(line)){
       // mtl file
+      this.mtllib = line.split('mtllib')[1].trim();
     }
     else if(/^s /.test(line)){
       // Smooth shading, ignore for now
@@ -219,9 +223,17 @@ p.onload = function(e){
   console.log(meshes);
 
   for(var i=0; i<meshes.length; ++i){
-    this.group.add(meshes[0]);
+    this.group.add(meshes[i]);
   }
 
-  if(this.callback)
+  // load the materials
+  if(this.mtllib){
+    if(this.callback)
+      this.mtlLoader.load(this._baseURI + this.mtllib, bind(this, this.callback));
+    else
+      this.mtlLoader.load(this._baseURI + this.mtllib);
+  }
+  else if(this.callback){
     this.callback();
+  }
 }
