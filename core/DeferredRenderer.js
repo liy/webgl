@@ -1,0 +1,181 @@
+function DeferredRenderer(){
+  this.canvas = document.createElement('canvas');
+  document.body.appendChild(this.canvas);
+  this.canvas.width = window.innerWidth;
+  this.canvas.height = window.innerHeight;
+  window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+
+  this.GBufferWidth = 1280;
+  this.GBufferHeight = 1280;
+
+  window.addEventListener('resize', this.onResize);
+
+  this.dbExt = gl.getExtension("WEBGL_draw_buffers");
+  this.dtExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
+  this.vaoExt = gl.getExtension("OES_vertex_array_object");
+
+  // include extensions' properties
+  var exts = [this.dbExt, this.dtExt, this.vaoExt];
+  for(var i=0; i<exts.length; ++i){
+    var ext = exts[i];
+    for(var name in ext){
+      if(gl[name] === undefined){
+        if(ext[name] instanceof Function){
+          (function(e, n){
+            gl[n] = function(){
+              return e[n].apply(e, arguments);
+            }
+          })(ext, name);
+        }
+        else
+          gl[name] = ext[name];
+      }
+      else
+        console.error('gl conflict name in extension: ' + ext +' name: ' + name);
+    }  
+  }
+
+  this.mrtProgram = gl.createProgram();
+  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
+  gl.useProgram(this.mrtProgram);
+  this.mrtShader.locateAttributes(this.mrtProgram);
+  this.mrtShader.locateUniforms(this.mrtProgram);
+
+  this.screenProgram = gl.createProgram();
+  this.screenShader = new Shader(this.screenProgram, 'shader/screen.vert', 'shader/screen.frag');
+  gl.useProgram(this.screenProgram);
+  this.screenShader.locateAttributes(this.screenProgram);
+  this.screenShader.locateUniforms(this.screenProgram);
+
+  this.createGBuffers();
+  this.createScreenBuffer();
+
+  gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.CULL_FACE);
+}
+var p = DeferredRenderer.prototype;
+
+p.createGBuffers = function(){
+  // Setup MRT
+  // 3 textures as 3 render targets
+  this.albedoTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.normalTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.depthTexture = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
+
+  // framebuffer to attach both textures and depth renderbuffer
+  this.GFrameBuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
+  // specify 3 textures as render targets
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
+
+  // Specifies a list of color buffers to be drawn into
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1]); 
+}
+
+p.update = function(scene, camera){
+  var len = scene.children.length;
+  for(var i=0; i<len; ++i){
+    // update all objects, to world space.
+    scene.children[i].update(camera);
+  }
+}
+
+p.render = function(scene, camera){
+  // g-buffers render
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
+  gl.viewport(0, 0, this.GBufferWidth, this.GBufferHeight);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(this.mrtProgram);
+
+  camera.update();
+  camera.setUniforms(this.mrtShader);
+
+  this.update(scene, camera);
+
+  // TODO: draw scene
+  scene.draw(this.mrtShader, camera);
+
+  // screen space rendering
+  gl.useProgram(this.screenProgram);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, this.albedoTexture);
+  gl.uniform1i(this.screenShader.uniforms.textures[0], 0); // set which texture units to render with.
+  gl.activeTexture(gl.TEXTURE0+1);
+  gl.bindTexture(gl.TEXTURE_2D, this.normalTexture);
+  gl.uniform1i(this.screenShader.uniforms.textures[1], 1); // set which texture units to render with.
+  gl.activeTexture(gl.TEXTURE0+2);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+  gl.uniform1i(this.screenShader.uniforms.textures[2], 2); // set which texture units to render with.
+
+  gl.bindVertexArrayOES(this.screenVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.bindVertexArrayOES(null);
+}
+
+p.createScreenBuffer = function(){
+  this.screenVAO = gl.createVertexArrayOES();
+  gl.bindVertexArrayOES(this.screenVAO);
+
+  // Screen attributes buffer
+  var vb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([ -1.0, -1.0,
+                                                     1.0, -1.0,
+                                                     1.0,  1.0,
+                                                     1.0,  1.0,
+                                                    -1.0,  1.0,
+                                                    -1.0, -1.0]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(this.screenShader.attributes.a_Vertex);
+  gl.vertexAttribPointer(this.screenShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
+  // texture coordinate buffer
+  var tb = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, tb);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0,
+                                                   1, 0,
+                                                   1, 1,
+                                                   1, 1,
+                                                   0, 1,
+                                                   0, 0]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(this.screenShader.attributes.a_TexCoord);
+  gl.vertexAttribPointer(this.screenShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
+
+  gl.bindVertexArrayOES(null);
+}
+
+p._createColorTexture = function(w, h){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  return texture;
+}
+
+p._createDepthTexture = function(w, h){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, w, h, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+
+  return texture;
+}
+
+p.onResize = function(e){
+
+}

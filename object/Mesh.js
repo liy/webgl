@@ -1,8 +1,10 @@
 function Mesh(geometry, material){
   Object3D.call(this);
 
-  this.normalMatrix = mat3.create();
+  // model view matrix
   this.modelViewMatrix = mat4.create();
+  // normal matrix
+  this.normalMatrix = mat3.create();
 
   this.geometry = geometry;
   this.material = material || new Material();
@@ -16,8 +18,8 @@ p.prepare = function(shader){
     this.geometry.computeVertexNormal();
 
   // vertex array buffer object, needs extension support! For simplify the attribute binding
-  this.vao = vaoExt.createVertexArrayOES();
-  vaoExt.bindVertexArrayOES(this.vao);
+  this.vao = gl.createVertexArrayOES();
+  gl.bindVertexArrayOES(this.vao);
 
   // vertices information
   var data = [];
@@ -96,10 +98,36 @@ p.prepare = function(shader){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.geometry.indexData), gl.STATIC_DRAW);
 
-  vaoExt.bindVertexArrayOES(null);
+  gl.bindVertexArrayOES(null);
 
   // prepare children.
   Object3D.prototype.prepare.call(this, shader);
+}
+
+p.update = function(camera){
+  // if user set the simple xyz, rotation or scale values, autoMatrix will be set to true.
+  // The object's matrix will be computed by those values instead.
+  if(this.autoMatrix){
+    mat4.identity(this._matrix);
+    mat4.translate(this._matrix, this._matrix, this._position);
+    mat4.rotateX(this._matrix, this._matrix, this._rotationX);
+    mat4.rotateY(this._matrix, this._matrix, this._rotationY);
+    mat4.rotateZ(this._matrix, this._matrix, this._rotationZ);
+    mat4.scale(this._matrix, this._matrix, this._scale);
+  }
+
+  // update the world matrix apply to this object
+  this._updateWorldMatrix();
+
+  // update model view matrix, normal matrix
+  mat4.mul(this.modelViewMatrix, camera.viewMatrix, this.worldMatrix);
+  mat3.normalFromMat4(this.normalMatrix, this.modelViewMatrix);
+
+
+  // update the matrix of its children
+  this._updateChildrenMatrix(camera);
+
+  console.log(this.modelViewMatrix);
 }
 
 p.setUniforms = function(shader){
@@ -123,9 +151,9 @@ p.draw = function(shader, camera){
   // else
   //   TextureLoader.bind(null);
 
-  vaoExt.bindVertexArrayOES(this.vao);
+  gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
-  vaoExt.bindVertexArrayOES(null);
+  gl.bindVertexArrayOES(null);
 
   // draw children.
   Object3D.prototype.draw.call(this, shader, camera);

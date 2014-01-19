@@ -28,7 +28,7 @@ var p = Object3D.prototype;
 
 
 // If use convenient setter methods, the matrix must be updated, sync with the position.
-p.updateMatrix = function(){
+p.update = function(camera){
   // if user set the simple xyz, rotation or scale values, autoMatrix will be set to true.
   // The object's matrix will be computed by those values instead.
   if(this.autoMatrix){
@@ -40,13 +40,11 @@ p.updateMatrix = function(){
     mat4.scale(this._matrix, this._matrix, this._scale);
   }
 
-  // console.log(this._matrix);
-
   // update the world matrix apply to this object
   this._updateWorldMatrix();
 
   // update the matrix of its children
-  this._updateChildrenMatrix();
+  this._updateChildrenMatrix(camera);
 }
 
 p._updateWorldMatrix = function(){
@@ -59,10 +57,10 @@ p._updateWorldMatrix = function(){
   }
 }
 
-p._updateChildrenMatrix = function(){
+p._updateChildrenMatrix = function(camera){
   var len = this.children.length
   for(var i=0; i<len; ++i){
-    this.children[i].updateMatrix();
+    this.children[i].update(camera);
   }
 }
 
