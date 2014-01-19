@@ -146,7 +146,7 @@ p.draw = function(scene, camera){
     // TODO: material uniforms
     // this.material.updateUniforms(shader.uniforms);
 
-    mesh.draw();
+    mesh.draw(this.mrtShader);
   }
 }
 

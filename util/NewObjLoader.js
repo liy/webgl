@@ -45,20 +45,20 @@ p.onload = function(e){
   var tLookup = [];
   var nLookup = [];
 
-  var meshes = [];
+  var geometries = [];
 
   // since geometry's face use index to allocate vertex, the index must be related to current mesh geometry.
   // If new mesh geometry is created, the vertex index must minus the number of previous mesh geometry vertex.
   var vertexIndexOffset = 0;
 
   // If there is no geometry created, this geometry will be used for storing data.
-  // However, if createMesh function is called, the new geometry will be used.
+  // However, if createGeometry function is called, the new geometry will be used.
   var geometry = new Geometry();
 
 
   var map = Object.create(null);
 
-  function createMesh(){
+  function createGeometry(){
     // vertex index must be based on current geometry's vertices array.
     vertexIndexOffset += geometry.vertices.length;
 
@@ -66,8 +66,7 @@ p.onload = function(e){
     map = Object.create(null);
 
     geometry = new Geometry();
-    var mesh = new Mesh(geometry);
-    meshes.push(mesh);
+    geometries.push(geometry);
   }
 
   function addIndex(key, vi, ti, ni){
@@ -186,14 +185,14 @@ p.onload = function(e){
     }
     else if(/^o /.test(line)){
       // object
-      createMesh();
+      createGeometry();
     }
     else if(/^g /.test( line)){
       // group, ignore for now
     }
     else if(/^usemtl /.test(line)){
       // material
-      createMesh();
+      createGeometry();
     }
     else if(/^mtllib /.test(line)){
       // mtl file
@@ -206,24 +205,21 @@ p.onload = function(e){
       console.warn("ObjLoader: Unhandled line " + line);
     }
   }
-
-  // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
-  if(meshes.length === 0)
-    meshes.push(new Mesh(geometry));
-    
-
   console.timeEnd('regexp start');
 
-  // console.log(meshes[0].geometry.vertices);
-  // console.log(meshes[0].geometry.normals);
-  // console.log(meshes[0].geometry.texCoords);
-  // console.log(meshes[0].geometry.indexData);
-  // console.log(meshes[0].geometry.faces.length);
+  // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
+  if(geometries.length === 0)
+    geometries.push(geometry);
+    
+  // console.log(geometry.vertices);
+  // console.log(geometry.normals);
+  // console.log(geometry.texCoords);
+  // console.log(geometry.indexData);
+  // console.log(geometry.faces.length);
 
-  console.log(meshes);
-
-  for(var i=0; i<meshes.length; ++i){
-    this.group.add(meshes[i]);
+  for(var i=0; i<geometries.length; ++i){
+    var mesh = new Mesh(geometries[i])
+    this.group.add(mesh);
   }
 
   // load the materials

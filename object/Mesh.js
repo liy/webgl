@@ -8,18 +8,16 @@ function Mesh(geometry, material){
 
   this.geometry = geometry;
   this.material = material || new Material();
+
+  this.createBuffer();
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
 
-p.prepare = function(shader){
-  this.geometry.computeFaceNormal();
+p.createBuffer = function(){
+    this.geometry.computeFaceNormal();
   // compute vertex normal, if there is no vertex normal defined
   if(this.geometry.normals.length == 0)
     this.geometry.computeVertexNormal();
-
-  // vertex array buffer object, needs extension support! For simplify the attribute binding
-  this.vao = gl.createVertexArrayOES();
-  gl.bindVertexArrayOES(this.vao);
 
   // vertices information
   var data = [];
@@ -59,6 +57,21 @@ p.prepare = function(shader){
   this.buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+  // index information
+  this.indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.geometry.indexData), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+}
+
+p.createVertexArray = function(shader){
+  // vertex array buffer object, needs extension support! For simplify the attribute binding
+  this.vao = gl.createVertexArrayOES();
+  gl.bindVertexArrayOES(this.vao);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
 
   // calculate stride bytes
   var strideBytes = 12;
@@ -94,17 +107,15 @@ p.prepare = function(shader){
   }
   
   // index information
-  this.indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.geometry.indexData), gl.STATIC_DRAW);
 
   gl.bindVertexArrayOES(null);
-
-  // prepare children.
-  Object3D.prototype.prepare.call(this, shader);
 }
 
-p.draw = function(){
+p.draw = function(shader){
+  // Any better way to setup vertex array object? It needs shader attributes access...
+  if(this.vao === undefined)
+    this.createVertexArray(shader);
 
   // // always use texture 0 for mesh texture
   // gl.activeTexture(gl.TEXTURE0);
