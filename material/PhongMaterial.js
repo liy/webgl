@@ -22,10 +22,10 @@ function PhongMaterial(params){
 }
 var p = PhongMaterial.prototype = Object.create(Material.prototype);
 
-p.setUniforms = function(uniforms){
-  gl.uniform4fv(uniforms['u_Material.ambient'], this.ambient);
-  gl.uniform4fv(uniforms['u_Material.diffuse'], this.diffuse);
-  gl.uniform4fv(uniforms['u_Material.specular'], this.specular);
-  gl.uniform4fv(uniforms['u_Material.emission'], this.emission);
-  gl.uniform1f(uniforms['u_Material.shininess'], this.shininess);
+p.updateUniforms = function(shader){
+  gl.uniform4fv(shader.uniforms['u_Material.ambient'], this.ambient);
+  gl.uniform4fv(shader.uniforms['u_Material.diffuse'], this.diffuse);
+  gl.uniform4fv(shader.uniforms['u_Material.specular'], this.specular);
+  gl.uniform4fv(shader.uniforms['u_Material.emission'], this.emission);
+  gl.uniform1f(shader.uniforms['u_Material.shininess'], this.shininess);
 }

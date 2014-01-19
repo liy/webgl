@@ -10,6 +10,8 @@ function ObjMaterial(){
   this.Kd = [];
   // Specular color Ka (red) (green) (blue)
   this.Ks = [];
+  // emission color Ke
+  this.Ke = [];
   // transparency
   this.d = 1;
   this.Tr = 1;
@@ -21,8 +23,17 @@ function ObjMaterial(){
   // transmission filter
   this.Tf = [];
 
+  // ambient texture map
   this.map_Ka = '';
+  // diffuse texture map
   this.map_Kd = '';
+  // specular texture map
+  this.map_Ks = '';
+  // shininess texture
+  this.map_Ns = '';
+  // alpha texture
+  this.map_d = '';
+  // bump texture map
   this.map_bump = '';
 }
 
@@ -98,34 +109,50 @@ p.onload = function(e){
         currentMtl.Ni = chunks.slice(1);
         break;
       case 'd':
-        currentMtl.d = chunks[chunks.length-1];
+        currentMtl.d = parseFloat(chunks[chunks.length-1]);
         break;
       case 'Tr':
-        currentMtl.Tr = chunks[chunks.length-1];
+        currentMtl.Tr = parseFloat(chunks[chunks.length-1]);
         break;
       case 'Tf':
-        currentMtl.Tf = chunks.slice(1);
+        currentMtl.Tf = parseFloat(chunks[chunks.length-1]);
         break;
       case 'illum':
-        currentMtl.illum = chunks[chunks.length-1];
+        currentMtl.illum = parseInt(chunks[chunks.length-1]);
         break;
       case 'Ka':
-        currentMtl.Ka = chunks.slice(1);
+        var strs = chunks.slice(1);
+        currentMtl.Ka = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Kd':
-        currentMtl.Kd = chunks.slice(1);
+        var strs = chunks.slice(1);
+        currentMtl.Kd = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Ks':
-        currentMtl.Ks = chunks.slice(1);
+        var strs = chunks.slice(1);
+        currentMtl.Ks = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Ke':
-        currentMtl.Ke = chunks.slice(1);
+        var strs = chunks.slice(1);
+        currentMtl.Ke = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'map_Ka':
         currentMtl.map_Ka = chunks[chunks.length-1];
         break;
       case 'map_Kd':
         currentMtl.map_Kd = chunks[chunks.length-1];
+        break;
+      case 'map_Ks':
+        // specular texture
+        currentMtl.map_Ks = chunks[chunks.length-1];
+        break;
+      case 'map_Ns':
+        // shininess texture
+        currentMtl.map_Ns = chunks[chunks.length-1];
+        break;
+      case 'map_d':
+        // alpha texture
+        currentMtl.map_d = chunks[chunks.length-1];
         break;
       case 'map_bump':
         currentMtl.map_bump = chunks[chunks.length-1];

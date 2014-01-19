@@ -47,6 +47,8 @@ p.onload = function(e){
 
   var geometries = [];
 
+  var materialNames = [];
+
   // since geometry's face use index to allocate vertex, the index must be related to current mesh geometry.
   // If new mesh geometry is created, the vertex index must minus the number of previous mesh geometry vertex.
   var vertexIndexOffset = 0;
@@ -193,6 +195,9 @@ p.onload = function(e){
     else if(/^usemtl /.test(line)){
       // material
       createGeometry();
+      
+      // material name for create material once mtl file is loaded.
+      materialNames.push(line.substring(7).trim().toLowerCase());
     }
     else if(/^mtllib /.test(line)){
       // mtl file
@@ -217,19 +222,82 @@ p.onload = function(e){
   // console.log(geometry.indexData);
   // console.log(geometry.faces.length);
 
-  for(var i=0; i<geometries.length; ++i){
-    var mesh = new Mesh(geometries[i])
-    this.group.add(mesh);
-  }
 
   // load the materials
   if(this.mtllib){
-    if(this.callback)
-      this.mtlLoader.load(this._baseURI + this.mtllib, bind(this, this.callback));
-    else
-      this.mtlLoader.load(this._baseURI + this.mtllib);
+    this.mtlLoader.load(this._baseURI + this.mtllib);
+
+    // TODO: find a better place for texture manager
+    var materialMap = this.mtlLoader.materialMap;
+    for(var key in materialMap){
+      var objMaterial = materialMap[key.toLowerCase()];
+
+      console.log('lib: ' + this.mtllib);
+
+      if(objMaterial.map_Ka !== '')
+        TextureManager.instance.add(this._baseURI + objMaterial.map_Ka, objMaterial.map_Ka);
+      if(objMaterial.map_Kd !== '')
+        TextureManager.instance.add(this._baseURI + objMaterial.map_Kd, objMaterial.map_Kd);
+      if(objMaterial.map_bump !== '')
+        TextureManager.instance.add(this._baseURI + objMaterial.map_bump, objMaterial.map_bump);
+    }
+    TextureManager.instance.load(bind(this, textureLoaded));
   }
-  else if(this.callback){
+
+  function textureLoaded(){
+    var materialMap = this.mtlLoader.materialMap;
+    var textureLoaderMap = TextureManager.instance.map;
+
+    console.log(materialNames);
+    console.log(materialMap);
+    console.log(textureLoaderMap);
+
+    for(var i=0; i<geometries.length; ++i){
+
+      this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+      this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+      this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+      this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
+      this.roughness = 65;
+
+      this.ambientTexture = null;
+      this.albedoTexture = null;
+      this.specularTexture = null;
+      this.roughnessTexture = null;
+
+      var alpha = 1.0;
+
+      var params = {
+        ambientColor: new Float32Array(materialMap[materialNames[i]].Ka.concat(alpha)),
+        albedoColor: new Float32Array(materialMap[materialNames[i]].Kd.concat(alpha)),
+        emissionColor: new Float32Array(materialMap[materialNames[i]].Ke.concat(alpha)),
+        specularColor: new Float32Array(materialMap[materialNames[i]].Ks.concat(alpha)),
+      };
+
+      // ambient texture? WTF is ambient texture!? environment map?
+      if(textureLoaderMap[materialMap[materialNames[i]].map_Ka])
+        params.ambientTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ka].texture;
+      // diffuse texture 
+      if(textureLoaderMap[materialMap[materialNames[i]].map_Kd])
+        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Kd].texture;
+      // specular texture map
+      if(textureLoaderMap[materialMap[materialNames[i]].map_Ks])
+        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ks].texture;
+      // shininess texture
+      if(textureLoaderMap[materialMap[materialNames[i]].map_Ns])
+        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ns].texture;
+      // alpha texture
+      if(textureLoaderMap[materialMap[materialNames[i]].map_d])
+        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_d].texture;
+      // bump texture
+      if(textureLoaderMap[materialMap[materialNames[i]].map_bump])
+        params.bumpTexture = textureLoaderMap[materialMap.map_bump].texture;
+
+      var material = new BRDFMaterial(params);
+      var mesh = new Mesh(geometries[i], material);
+      this.group.add(mesh);
+    }
+    
     this.callback();
   }
 }

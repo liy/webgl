@@ -6,6 +6,7 @@ function TextureManager(){
 }
 var p = TextureManager.prototype;
 
+// TODO: needs return opengl texture
 p.add = function(url, key){
   if(!this.map[key]){
     var loader = new TextureLoader(url)
@@ -57,3 +58,5 @@ p.clear = function(){
   this.map = Object.create(null);
   this.boundTexture = null;
 }
+
+TextureManager.instance = new TextureManager();

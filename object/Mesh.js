@@ -7,7 +7,7 @@ function Mesh(geometry, material){
   this.normalMatrix = mat3.create();
 
   this.geometry = geometry;
-  this.material = material || new Material();
+  this.material = material || new BRDFMaterial();
 
   this.createBuffer();
 }

@@ -19,11 +19,11 @@ p.load = function(callback){
 
   console.log('loading texture: ' + this.url);
 
-  this.loader.load(this.url, bind(this, function(texture) {
+  return this.loader.load(this.url, bind(this, function(texture) {
     this.loaded = true;
     this.texture = texture;
     console.log('%ctexture loaded: ' + this.url, 'color: green');
-    callback();
+    callback(texture);
   }));
 }
 

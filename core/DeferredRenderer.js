@@ -144,7 +144,15 @@ p.draw = function(scene, camera){
     gl.uniformMatrix3fv(this.mrtShader.uniforms['u_NormalMatrix'], false, mesh.normalMatrix);
 
     // TODO: material uniforms
-    // this.material.updateUniforms(shader.uniforms);
+    if(mesh.material){
+      mesh.material.updateUniforms(this.mrtShader);
+
+      if(mesh.material.albedoTexture){
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, mesh.material.albedoTexture);
+      }
+        
+    }
 
     mesh.draw(this.mrtShader);
   }
