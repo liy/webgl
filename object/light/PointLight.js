@@ -49,7 +49,7 @@ p.setUniforms = function(uniforms){
   gl.uniformMatrix4fv(uniforms['u_ModelMatrix'], false, this.worldMatrix);
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
-  gl.uniform3fv(uniforms['u_Light.position'], this._eyeSpacePosition);
+  gl.uniform3fv(uniforms['u_Light.position'], this._viewSpacePosition);
   gl.uniform1f(uniforms['u_Light.intensity'], this.intensity);
   gl.uniform3fv(uniforms['u_Light.color'], this.color);
   gl.uniform3fv(uniforms['u_Light.attenuation'], this.attenuation);

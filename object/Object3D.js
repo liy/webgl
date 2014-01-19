@@ -1,7 +1,7 @@
 function Object3D(){
   this._position = vec3.create();
-  // eye space position
-  this._eyeSpacePosition = vec3.create();
+  // eye space position, used by sorting function in renderer only.
+  this._viewSpacePosition = vec3.create();
   this._rotationX = 0;
   this._rotationY = 0;
   this._rotationZ = 0;
@@ -26,9 +26,8 @@ function Object3D(){
 }
 var p = Object3D.prototype;
 
-
 // If use convenient setter methods, the matrix must be updated, sync with the position.
-p.update = function(camera){
+p.update = function(){
   // if user set the simple xyz, rotation or scale values, autoMatrix will be set to true.
   // The object's matrix will be computed by those values instead.
   if(this.autoMatrix){
@@ -44,12 +43,12 @@ p.update = function(camera){
   this._updateWorldMatrix();
 
   // update the matrix of its children
-  this._updateChildrenMatrix(camera);
+  this._updateChildrenMatrix();
 }
 
 p._updateWorldMatrix = function(){
   if(this.parent === null){
-    // directly override the world matrix with the local matrix. No need to make copy.
+    // directly override the world matrix with the local matrix. No need to clone.
     mat4.copy(this.worldMatrix, this._matrix);
   }
   else{
@@ -57,13 +56,12 @@ p._updateWorldMatrix = function(){
   }
 }
 
-p._updateChildrenMatrix = function(camera){
+p._updateChildrenMatrix = function(){
   var len = this.children.length
   for(var i=0; i<len; ++i){
-    this.children[i].update(camera);
+    this.children[i].update();
   }
 }
-
 
 p.add = function(obj3D){
   if(this.children.indexOf(obj3D) === -1){
@@ -200,19 +198,6 @@ p.prepare = function(shader){
   var len = this.children.length;
   for(var i=0; i<len; ++i){
     this.children[i].prepare(shader);
-  }
-}
-
-/**
- * draw
- * @param  {[type]} shader [description]
- * @param  {[type]} camera [description]
- * @return {[type]}        [description]
- */
-p.draw = function(shader, camera){
-  var len = this.children.length;
-  for(var i=0; i<len; ++i){
-    this.children[i].draw(shader, camera);
   }
 }
 

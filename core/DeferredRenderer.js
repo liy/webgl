@@ -14,7 +14,7 @@ function DeferredRenderer(){
   this.dtExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
   this.vaoExt = gl.getExtension("OES_vertex_array_object");
 
-  // include extensions' properties
+  // include extensions' properties into gl, for convenience reason.
   var exts = [this.dbExt, this.dtExt, this.vaoExt];
   for(var i=0; i<exts.length; ++i){
     var ext = exts[i];
@@ -76,14 +76,6 @@ p.createGBuffers = function(){
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1]); 
 }
 
-p.update = function(scene, camera){
-  var len = scene.children.length;
-  for(var i=0; i<len; ++i){
-    // update all objects, to world space.
-    scene.children[i].update(camera);
-  }
-}
-
 p.render = function(scene, camera){
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
@@ -92,15 +84,28 @@ p.render = function(scene, camera){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.useProgram(this.mrtProgram);
 
-  camera.update();
-  camera.setUniforms(this.mrtShader);
+  // update all object's matrix.
+  var len = scene.children.length;
+  for(var i=0; i<len; ++i){
+    scene.children[i].update(this.mrtShader);
+  }
 
-  this.update(scene, camera);
+  // calculated view dependent matrix(model view matrix and normal matrix, etc.)
+  len = scene.meshes.length;
+  for(var i=0; i<len; ++i){
+    var mesh = scene.meshes[i];
+    // update model view matrix, normal matrix
+    mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
+    mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
+  }
 
-  // TODO: draw scene
-  scene.draw(this.mrtShader, camera);
+  // TODO: do the meshes state sorting, speed up rendering
+  // scene.meshes.sort(sort(camera));
 
-  // screen space rendering
+  // draw to g-buffers
+  this.draw(scene, camera);
+
+  // deferred lighting stage, combine different GBuffers.
   gl.useProgram(this.screenProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -109,18 +114,89 @@ p.render = function(scene, camera){
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.albedoTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[0], 0); // set which texture units to render with.
+  gl.uniform1i(this.screenShader.uniforms.textures[0], 0);
   gl.activeTexture(gl.TEXTURE0+1);
   gl.bindTexture(gl.TEXTURE_2D, this.normalTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[1], 1); // set which texture units to render with.
+  gl.uniform1i(this.screenShader.uniforms.textures[1], 1);
   gl.activeTexture(gl.TEXTURE0+2);
   gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[2], 2); // set which texture units to render with.
+  gl.uniform1i(this.screenShader.uniforms.textures[2], 2);
 
   gl.bindVertexArrayOES(this.screenVAO);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   gl.bindVertexArrayOES(null);
 }
+
+
+p.draw = function(scene, camera){
+  // camera
+  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
+
+  // meshes
+  len = scene.meshes.length;
+  for(var i=0; i<len; ++i){
+    var mesh = scene.meshes[i];
+
+    // normal, model view matrix
+    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
+    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
+    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_NormalMatrix'], false, mesh.normalMatrix);
+
+    // TODO: material uniforms
+    // this.material.updateUniforms(shader.uniforms);
+
+    mesh.draw();
+  }
+}
+
+function sort(camera){
+  return function(a, b){
+    // if(a.translucent != b.translucent){
+    //   if(b.translucent)
+    //     return 1;
+    //   else
+    //     return -1;
+    // }
+
+    // if(a.texture != b.texture){
+    //   if(a.texture < b.texture)
+    //     return 1;
+    //   else
+    //     return -1;
+    // }
+
+    // if(a.depth != b.depth){
+    //   if(a.depth < b.depth)
+    //     return (a.translucent) ? -1 : 1;
+    //   else if(a.depth == b.depth)
+    //     return 0;
+    //   else
+    //     return (!a.translucent) ? -1 : 1;
+    // }
+
+    // return 0;
+
+    vec3.transformMat4(a._viewSpacePosition, a._position, camera.viewMatrix);
+    vec3.transformMat4(b._viewSpacePosition, b._position, camera.viewMatrix);
+
+
+    if(a._viewSpacePosition[2] < b._viewSpacePosition[2])
+      return 1;
+    else if(a._viewSpacePosition[2] > b._viewSpacePosition[2])
+      return -1
+    else
+      return 0;
+  }
+}
+
+
+
+
+
+
+
+
 
 p.createScreenBuffer = function(){
   this.screenVAO = gl.createVertexArrayOES();

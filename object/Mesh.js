@@ -104,44 +104,7 @@ p.prepare = function(shader){
   Object3D.prototype.prepare.call(this, shader);
 }
 
-p.update = function(camera){
-  // if user set the simple xyz, rotation or scale values, autoMatrix will be set to true.
-  // The object's matrix will be computed by those values instead.
-  if(this.autoMatrix){
-    mat4.identity(this._matrix);
-    mat4.translate(this._matrix, this._matrix, this._position);
-    mat4.rotateX(this._matrix, this._matrix, this._rotationX);
-    mat4.rotateY(this._matrix, this._matrix, this._rotationY);
-    mat4.rotateZ(this._matrix, this._matrix, this._rotationZ);
-    mat4.scale(this._matrix, this._matrix, this._scale);
-  }
-
-  // update the world matrix apply to this object
-  this._updateWorldMatrix();
-
-  // update model view matrix, normal matrix
-  mat4.mul(this.modelViewMatrix, camera.viewMatrix, this.worldMatrix);
-  mat3.normalFromMat4(this.normalMatrix, this.modelViewMatrix);
-
-
-  // update the matrix of its children
-  this._updateChildrenMatrix(camera);
-
-  console.log(this.modelViewMatrix);
-}
-
-p.setUniforms = function(shader){
-  // set model matrix, for shadow mapping use
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelMatrix'], false, this.worldMatrix);
-  // normal, model view matrix
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
-  gl.uniformMatrix3fv(shader.uniforms['u_NormalMatrix'], false, this.normalMatrix);
-}
-
-p.draw = function(shader, camera){
-  // setup uniform and attributes
-  // this.material.setUniforms(shader.uniforms);
-  this.setUniforms(shader);
+p.draw = function(){
 
   // // always use texture 0 for mesh texture
   // gl.activeTexture(gl.TEXTURE0);
@@ -154,7 +117,4 @@ p.draw = function(shader, camera){
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   gl.bindVertexArrayOES(null);
-
-  // draw children.
-  Object3D.prototype.draw.call(this, shader, camera);
 }

@@ -49,14 +49,14 @@ p.render = function(scene, camera){
     // normal matrix, it is inverse transpose of the model view matrix
     mat3.normalFromMat4(scene.meshes[i].normalMatrix, scene.meshes[i].modelViewMatrix);
     // calculate the view space position of the meshes, for states sorting
-    vec3.transformMat4(scene.meshes[i]._eyeSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
+    vec3.transformMat4(scene.meshes[i]._viewSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
   }
 
   // update lights' extra matrix
   len = scene.lights.length;
   for(i=0; i<len; ++i){
     mat4.mul(scene.lights[i].modelViewMatrix, camera.worldMatrix, scene.lights[i].worldMatrix);
-    vec3.transformMat4(scene.lights[i]._eyeSpacePosition, Object3D.origin, scene.lights[i].modelViewMatrix);
+    vec3.transformMat4(scene.lights[i]._viewSpacePosition, Object3D.origin, scene.lights[i].modelViewMatrix);
   }
 
   // do the state sorting
@@ -110,9 +110,9 @@ function sortFunc(a, b){
 
   // return 0;
 
-  if(a._eyeSpacePosition[2] < b._eyeSpacePosition[2])
+  if(a._viewSpacePosition[2] < b._viewSpacePosition[2])
     return 1;
-  else if(a._eyeSpacePosition[2] > b._eyeSpacePosition[2])
+  else if(a._viewSpacePosition[2] > b._viewSpacePosition[2])
     return -1
   else
     return 0;
