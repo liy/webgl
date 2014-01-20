@@ -26,11 +26,19 @@ function BRDFMaterial(params){
 var p = BRDFMaterial.prototype = Object.create(Material.prototype);
 
 p.updateUniforms = function(shader){
-  gl.uniform4fv(shader.uniforms['u_Material.ambientColor'], this.ambientColor);
-  gl.uniform4fv(shader.uniforms['u_Material.albedoColor'], this.albedoColor);
-  gl.uniform4fv(shader.uniforms['u_Material.specularColor'], this.specularColor);
-  gl.uniform4fv(shader.uniforms['u_Material.emissionColor'], this.emissionColor);
-  gl.uniform1f(shader.uniforms['u_Material.roughness'], this.roughness);
+  // gl.uniform4fv(shader.uniforms['u_Material.ambientColor'], this.ambientColor);
+  // gl.uniform4fv(shader.uniforms['u_Material.albedoColor'], this.albedoColor);
+  // gl.uniform4fv(shader.uniforms['u_Material.specularColor'], this.specularColor);
+  // gl.uniform4fv(shader.uniforms['u_Material.emissionColor'], this.emissionColor);
+  // gl.uniform1f(shader.uniforms['u_Material.roughness'], this.roughness);
 
-  gl.uniform1i(shader.uniforms['u_Material.albedoTexture'], 0);
+  // gl.uniform1i(shader.uniforms['u_Material.albedoTexture'], 0);
+
+  gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);
+  gl.uniform4fv(shader.uniforms['albedoColor'], this.albedoColor);
+  gl.uniform4fv(shader.uniforms['specularColor'], this.specularColor);
+  gl.uniform4fv(shader.uniforms['emissionColor'], this.emissionColor);
+  gl.uniform1f(shader.uniforms['roughness'], this.roughness);
+
+  gl.uniform1i(shader.uniforms['albedoTexture'], 0);
 }

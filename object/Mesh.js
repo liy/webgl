@@ -34,9 +34,9 @@ p.createBuffer = function(){
       var n = this.geometry.normals[i];
       data.push(n.x);
       data.push(n.y);
-      data.push(n.z);  
+      data.push(n.z);
     }
-    
+
     // texCoords
     if(this.geometry.texCoords.length !== 0){
       var t = this.geometry.texCoords[i];
@@ -91,7 +91,7 @@ p.createVertexArray = function(shader){
   // normal
   if(this.geometry.normals.length !== 0){
     gl.enableVertexAttribArray(shader.attributes.a_Normal);
-    gl.vertexAttribPointer(shader.attributes.a_Nomral, 3, gl.FLOAT, false, strideBytes, pointerOffset+=12);
+    gl.vertexAttribPointer(shader.attributes.a_Normal, 3, gl.FLOAT, false, strideBytes, pointerOffset+=12);
   }
 
   // texture coordinate
@@ -105,7 +105,7 @@ p.createVertexArray = function(shader){
     gl.enableVertexAttribArray(shader.attributes.a_Color);
     gl.vertexAttribPointer(shader.attributes.a_Color, 4, gl.FLOAT, false, strideBytes, pointerOffset+=8);
   }
-  
+
   // index information
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
