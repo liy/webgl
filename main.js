@@ -9,25 +9,28 @@ document.body.appendChild( stats.domElement );
 
 var renderer = new DeferredRenderer();
 
-var scene = new Scene();
+// var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 300)
-scene.add(camera);
-camera.z = 100;
+// var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 300)
+// scene.add(camera);
+// camera.z = 100;
 
-var loader = new NewObjLoader();
-loader.load("../webgl-meshes/teapot/", "teapot.obj", render);
-var mesh1 = loader.group;
-mesh1.y = -30;
-scene.add(mesh1);
+// var loader = new NewObjLoader();
+// loader.load("../webgl-meshes/teapot/", "teapot.obj", render);
+// var mesh1 = loader.group;
+// mesh1.y = -30;
+// scene.add(mesh1);
 
-function render(){
-  stats.begin();
+// function render(){
+//   stats.begin();
 
-  mesh1.rotationY += 0.02;
+//   mesh1.rotationY += 0.02;
 
-  renderer.render(scene, camera);
+//   renderer.render(scene, camera);
 
-  stats.end();
-  requestAnimFrame(render);
-}
+//   stats.end();
+//   requestAnimFrame(render);
+// }
+
+var loader = new TGALoader();
+loader.load('../webgl-meshes/crytek-sponza/textures/background.tga', onload);
