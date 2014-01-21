@@ -223,78 +223,118 @@ p.onload = function(e){
   // console.log(geometry.faces.length);
 
 
-  // load the materials
   if(this.mtllib){
     this.mtlLoader.load(this._baseURI + this.mtllib);
 
-    // TODO: find a better place for texture manager
-    var materialMap = this.mtlLoader.materialMap;
-    for(var key in materialMap){
-      var objMaterial = materialMap[key.toLowerCase()];
-
-      console.log('lib: ' + this.mtllib);
-
-      for(var textureType in objMaterial.map){
-        var textureID = TextureManager.instance.add(this._baseURI + objMaterial.map[textureType]);
+    var materialTextureMap = {};
+    for(var key in this.mtlLoader.materialMap){
+      var objMaterial = this.mtlLoader.materialMap[key.toLowerCase()];
+      console.log(objMaterial.map);
+      materialTextureMap[key] = {};
+      for(var type in objMaterial.map){
+        if(objMaterial.map[type])
+          materialTextureMap[key][type] = TextureManager.instance.add(this._baseURI + objMaterial.map[type]);
       }
     }
     TextureManager.instance.load(bind(this, textureLoaded));
-  }
 
-  function textureLoaded(){
-    var materialMap = this.mtlLoader.materialMap;
-    var textureLoaderMap = TextureManager.instance.map;
+    console.log(materialTextureMap)
 
-    console.log(materialNames);
-    console.log(materialMap);
-    console.log(textureLoaderMap);
+    function textureLoaded(){
+      for(var i=0; i<materialNames.length; ++i){
 
-    for(var i=0; i<geometries.length; ++i){
+      }
 
-      this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-      this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-      this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-      this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
-      this.roughness = 65;
-
-      this.ambientTexture = null;
-      this.albedoTexture = null;
-      this.specularTexture = null;
-      this.roughnessTexture = null;
-
-      var alpha = 1.0;
-
-      var params = {
-        ambientColor: new Float32Array(materialMap[materialNames[i]].Ka.concat(alpha)),
-        albedoColor: new Float32Array(materialMap[materialNames[i]].Kd.concat(alpha)),
-        emissionColor: new Float32Array(materialMap[materialNames[i]].Ke.concat(alpha)),
-        specularColor: new Float32Array(materialMap[materialNames[i]].Ks.concat(alpha)),
-      };
-
-      // ambient texture? WTF is ambient texture!? environment map?
-      if(textureLoaderMap[materialMap[materialNames[i]].map_Ka])
-        params.ambientTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ka].texture;
-      // diffuse texture
-      if(textureLoaderMap[materialMap[materialNames[i]].map_Kd])
-        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Kd].texture;
-      // specular texture map
-      if(textureLoaderMap[materialMap[materialNames[i]].map_Ks])
-        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ks].texture;
-      // shininess texture
-      if(textureLoaderMap[materialMap[materialNames[i]].map_Ns])
-        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ns].texture;
-      // alpha texture
-      if(textureLoaderMap[materialMap[materialNames[i]].map_d])
-        params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_d].texture;
-      // bump texture
-      if(textureLoaderMap[materialMap[materialNames[i]].map_bump])
-        params.bumpTexture = textureLoaderMap[materialMap.map_bump].texture;
-
-      var material = new BRDFMaterial(params);
-      var mesh = new Mesh(geometries[i], material);
-      this.group.add(mesh);
+      for(var i=0; i<geometries.length; ++i){
+        var materialName = materialNames[i];
+        var textures = materialTextureMap[materialName];
+      }
     }
-
-    this.callback();
   }
+
+
+
+
+
+
+
+
+
+  // load the materials
+  // if(this.mtllib){
+  //   this.mtlLoader.load(this._baseURI + this.mtllib);
+
+  //   // TODO: find a better place for texture manager
+  //   var materialMap = this.mtlLoader.materialMap;
+  //   for(var key in materialMap){
+  //     var objMaterial = materialMap[key.toLowerCase()];
+
+  //     console.log('lib: ' + this.mtllib);
+
+  //     if(objMaterial.map_Ka !== '')
+  //       TextureManager.instance.add(this._baseURI + objMaterial.map_Ka, objMaterial.map_Ka);
+  //     if(objMaterial.map_Kd !== '')
+  //       TextureManager.instance.add(this._baseURI + objMaterial.map_Kd, objMaterial.map_Kd);
+  //     if(objMaterial.map_bump !== '')
+  //       TextureManager.instance.add(this._baseURI + objMaterial.map_bump, objMaterial.map_bump);
+  //   }
+  //   TextureManager.instance.load(bind(this, textureLoaded));
+  // }
+
+  // function textureLoaded(){
+  //   var materialMap = this.mtlLoader.materialMap;
+  //   var textureLoaderMap = TextureManager.instance.map;
+
+  //   console.log(materialNames);
+  //   console.log(materialMap);
+  //   console.log(textureLoaderMap);
+
+  //   for(var i=0; i<geometries.length; ++i){
+
+  //     this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  //     this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  //     this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  //     this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
+  //     this.roughness = 65;
+
+  //     this.ambientTexture = null;
+  //     this.albedoTexture = null;
+  //     this.specularTexture = null;
+  //     this.roughnessTexture = null;
+
+  //     var alpha = 1.0;
+
+  //     var params = {
+  //       ambientColor: new Float32Array(materialMap[materialNames[i]].Ka.concat(alpha)),
+  //       albedoColor: new Float32Array(materialMap[materialNames[i]].Kd.concat(alpha)),
+  //       emissionColor: new Float32Array(materialMap[materialNames[i]].Ke.concat(alpha)),
+  //       specularColor: new Float32Array(materialMap[materialNames[i]].Ks.concat(alpha)),
+  //     };
+
+  //     // ambient texture? WTF is ambient texture!? environment map?
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ka])
+  //       params.ambientTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ka].texture;
+  //     // diffuse texture
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Kd])
+  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Kd].texture;
+  //     // specular texture map
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ks])
+  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ks].texture;
+  //     // shininess texture
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ns])
+  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ns].texture;
+  //     // alpha texture
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_d])
+  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_d].texture;
+  //     // bump texture
+  //     if(textureLoaderMap[materialMap[materialNames[i]].map_bump])
+  //       params.bumpTexture = textureLoaderMap[materialMap.map_bump].texture;
+
+  //     var material = new BRDFMaterial(params);
+  //     var mesh = new Mesh(geometries[i], material);
+  //     this.group.add(mesh);
+  //   }
+
+  //   this.callback();
+  // }
 }

@@ -59,14 +59,14 @@ function ObjMaterial(){
 
 
   this.map = {};
-  this.map.albedo = '';
-  this.map.specular = '';
-  this.map.shininess = '';
-  this.map.roughness = '';
-  this.map.alpha = '';
-  this.map.normal = '';
-  this.map.bump = '';
-  this.map.displacement = '';
+  this.map.albedo = null;
+  this.map.specular = null;
+  this.map.shininess = null;
+  this.map.roughness = null;
+  this.map.alpha = null;
+  this.map.normal = null;
+  this.map.bump = null;
+  this.map.displacement = null;
 }
 
 ObjMaterial.prototype.hasTexture = function(){
