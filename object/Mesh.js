@@ -117,13 +117,8 @@ p.draw = function(shader){
   if(this.vao === undefined)
     this.createVertexArray(shader);
 
-  // // always use texture 0 for mesh texture
-  // gl.activeTexture(gl.TEXTURE0);
-  // // bind texture
-  // if(this.material.texture)
-  //   TextureLoader.bind(this.material.texture);
-  // else
-  //   TextureLoader.bind(null);
+  if(this.material)
+    this.material.bind(shader);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);

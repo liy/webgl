@@ -21,10 +21,11 @@ uniform vec4 albedoColor;
 uniform vec4 specularColor;
 uniform vec4 emissionColor;
 uniform float roughness;
-uniform sampler2D ambientTexture;
-uniform sampler2D albedoTexture;
-uniform sampler2D specularTexture;
-uniform sampler2D roughnessTexture;
+
+/**
+ * 
+ */
+uniform sampler2D textures[6];
 
 // uniform Material u_Material;
 
@@ -33,8 +34,7 @@ varying vec2 v_TexCoord;
 varying vec4 v_Color;
 
 void main() {
-  // gl_FragData[0] = texture2D(u_Material.albedoTexture, v_TexCoord);
-  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord);
+  gl_FragData[0] = texture2D(textures[0], v_TexCoord);
   // gl_FragData[1] = vec4((v_Normal+1.0)/2.0, 1.0);
   gl_FragData[1] = vec4((v_Normal+1.0)/2.0, 1.0);
 }

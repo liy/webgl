@@ -1,0 +1,3 @@
+function Texture(){
+  this.webglTexture;
+}

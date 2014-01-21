@@ -58,15 +58,15 @@ function ObjMaterial(){
   this.illum = 2;
 
 
-  this.map = {};
-  this.map.albedo = null;
-  this.map.specular = null;
-  this.map.shininess = null;
-  this.map.roughness = null;
-  this.map.alpha = null;
-  this.map.normal = null;
-  this.map.bump = null;
-  this.map.displacement = null;
+  this.imageMap = {};
+  this.imageMap.albedo = null;
+  this.imageMap.specular = null;
+  this.imageMap.shininess = null;
+  this.imageMap.roughness = null;
+  this.imageMap.alpha = null;
+  this.imageMap.normal = null;
+  this.imageMap.bump = null;
+  this.imageMap.displacement = null;
 }
 
 ObjMaterial.prototype.hasTexture = function(){
@@ -83,13 +83,14 @@ p.clear = function(){
   this.materialMap = Object.create(null);
 }
 
-p.load = function(path, callback){
+p.load = function(baseURI, path, callback){
   this.callback = callback;
+  this._baseURI = baseURI;
 
-  console.log('loading mtl file: ' + path);
+  console.log('loading mtl file: ' + this._baseURI+path);
 
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', path, false);
+  xhr.open('GET', this._baseURI+path, false);
   xhr.onload = bind(this, this.onload);
   xhr.send();
 }
@@ -164,26 +165,26 @@ p.onload = function(e){
         currentMtl.emissiveColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'map_Ka':
-        currentMtl.map.ambient = chunks[chunks.length-1];
+        currentMtl.imageMap.ambient = this._baseURI + chunks[chunks.length-1];
         break;
       case 'map_Kd':
-        currentMtl.map.albedo = chunks[chunks.length-1];
+        currentMtl.imageMap.albedo = this._baseURI + chunks[chunks.length-1];
         break;
       case 'map_Ks':
         // specular texture
-        currentMtl.map.specular = chunks[chunks.length-1];
+        currentMtl.imageMap.specular = this._baseURI + chunks[chunks.length-1];
         break;
       case 'map_Ns':
         // shininess texture
-        currentMtl.map.shininess = chunks[chunks.length-1];
+        currentMtl.imageMap.shininess = this._baseURI + chunks[chunks.length-1];
         break;
       case 'map_d':
         // alpha texture
-        currentMtl.map.alpha = chunks[chunks.length-1];
+        currentMtl.imageMap.alpha = this._baseURI + chunks[chunks.length-1];
         break;
       case 'map_bump':
       case 'bump':
-        currentMtl.map.bump = chunks[chunks.length-1];
+        currentMtl.imageMap.bump = this._baseURI + chunks[chunks.length-1];
         break;
     }
   }

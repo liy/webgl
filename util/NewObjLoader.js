@@ -47,6 +47,7 @@ p.onload = function(e){
 
   var geometries = [];
 
+  // FIXME: TODO: some mesh might not have material
   var materialNames = [];
 
   // since geometry's face use index to allocate vertex, the index must be related to current mesh geometry.
@@ -224,32 +225,23 @@ p.onload = function(e){
 
 
   if(this.mtllib){
-    this.mtlLoader.load(this._baseURI + this.mtllib);
+    this.mtlLoader.load(this._baseURI, this.mtllib);
 
-    var materialTextureMap = {};
-    for(var key in this.mtlLoader.materialMap){
-      var objMaterial = this.mtlLoader.materialMap[key.toLowerCase()];
-      console.log(objMaterial.map);
-      materialTextureMap[key] = {};
-      for(var type in objMaterial.map){
-        if(objMaterial.map[type])
-          materialTextureMap[key][type] = TextureManager.instance.add(this._baseURI + objMaterial.map[type]);
-      }
+    console.log(this.mtlLoader.materialMap);
+
+
+    
+    for(var i=0; i<geometries.length; ++i){
+      var materialName = materialNames[i];
+      var imageMap = this.mtlLoader.materialMap[materialName].imageMap;
+
+      var material = new Material();
+      material.setImageMap(imageMap);
+
+      var mesh = new Mesh(geometries[i], material);
+      this.group.add(mesh);
     }
-    TextureManager.instance.load(bind(this, textureLoaded));
-
-    console.log(materialTextureMap)
-
-    function textureLoaded(){
-      for(var i=0; i<materialNames.length; ++i){
-
-      }
-
-      for(var i=0; i<geometries.length; ++i){
-        var materialName = materialNames[i];
-        var textures = materialTextureMap[materialName];
-      }
-    }
+    
   }
 
 

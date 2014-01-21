@@ -87,8 +87,10 @@ p.load = function(callback){
         // load data to gpu
         loader.onComplete();
 
-        if(--len==0)
-          callback();
+        if(--len==0){
+          if(callback) callback();
+        }
+          
       }
     }(this.loaders[i]));
 
@@ -96,6 +98,8 @@ p.load = function(callback){
 }
 
 p.setTextureData = function(loader, texture, target, generateMipmap){
+  // texture is ready to use
+  texture.ready = true;
   if(loader instanceof ImageLoader)
     gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, loader.data);
   else if(loader instanceof TGALoader)
@@ -106,6 +110,12 @@ p.bindTexture = function(key, unit, target){
   target = target || gl.TEXTURE_2D;
   unit = unit || gl.TEXTURE0;
 
+  if(!key)
+    return false;
+
+  if(key instanceof Object)
+    key = key.id;
+
   var texture = this.textureMap[key];
   if(!texture)
     return false;
@@ -115,10 +125,10 @@ p.bindTexture = function(key, unit, target){
     gl.bindTexture(target, texture);
     this.boundTextures[unit] = texture;
 
-    console.log('bind: ', texture, unit);
+    // console.log('bind: ', texture, unit);
   }
   else{
-    console.log('bound: ', texture, unit);
+    // console.log('bound: ', texture, unit);
   }
 
   return true;
