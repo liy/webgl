@@ -12,11 +12,14 @@ function BRDFMaterial(params){
   // float
   this.roughness = 65;
 
-  // image texture map
-  this.ambientTexture = null;
-  this.albedoTexture = null;
-  this.specularTexture = null;
-  this.roughnessTexture = null;
+  this.texture.albedo = null;
+  this.texture.specular = null;
+  this.texture.shininess = null;
+  this.texture.roughness = null;
+  this.texture.alpha = null;
+  this.texture.normal = null;
+  this.texture.bump = null;
+  this.texture.displacement = null;
 
   // set parameters
   for(var key in params){

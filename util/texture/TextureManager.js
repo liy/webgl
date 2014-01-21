@@ -1,64 +1,63 @@
-/**
- * [CubeLoader description]
- * @param {[type]} loaders posx, negx, posy, negy, posz, negz.
- */
-function CubeLoader(loaders){
-// var faces = [["posx.png", gl.TEXTURE_CUBE_MAP_POSITIVE_X],
-//              ["negx.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
-//              ["posy.png", gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
-//              ["negy.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
-//              ["posz.png", gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
-//              ["negz.png", gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
-
-  this.loaders = loaders;
-}
-
-CubeLoader.prototype.load = function(callback){
-  var toLoad = this.loaders.length;
-  var onload = function(){
-    --toLoad;
-    if(toLoad === 0)
-      callback();
-  }
-
-  for(var i=0; i<this.loaders.length; ++i){
-    this.loaders[i].load(onload);
-  }
-}
-
 function TextureManager(){
   this.loaders = new Array();
   this.textureMap = Object.create(null);
-  this.loaderMap = Object.create(null);
+  this.boundTextures = Object.create(null);
 
-  this.boundTextureMap = new Array();
+  this.textureID = 0;
 }
 var p = TextureManager.prototype;
 
-// TODO: needs return opengl texture
-p.addTexture2D = function(texture, url, key){
-  if(!this.textureMap[key]){
-    var loader = this._createLoader(url);
-    this.loaders.push(loader);
-    loaderMap[key] = loader;
-    this.textureMap[key] = texture;
-  }
-  return this.textureMap[key];
+p.add = function(data, key){
+  var texture;
+  if(data instanceof Array)
+    texture = this.addTextureCube(data, key);
+  else
+    texture = this.addTexture2D(data, key);
+  return texture;
 }
 
-p.addTextureCube = function(texture, urls, key){
-  if(!this.textureMap[key]){
-    var loaders = [];
-    for(var i=0; i<urls.length; ++i){
-      var loader = this._createLoader(url);
-      loaders.push(loader);
-    }
-    var cubeLoader = new CubeLoader(loaders);
-    this.loaders.push(cubeLoader);
-    loaderMap[key] = cubeLoader;
-    this.textureMap[key] = texture;
+// TODO: needs return opengl texture
+p.addTexture2D = function(url, key){
+  var texture = this.textureMap[key];
+  if(!texture){
+    texture = gl.createTexture();
+    texture.id = this.textureID++;
+    this.textureMap[key||texture.id] = texture;
+
+    var loader = this._createLoader(url);
+    this.loaders.push(loader);
+
+    loader.onComplete = (function(loader, texture){
+      return function(){
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        TextureManager.instance.setTextureData(loader, texture, gl.TEXTURE_2D);
+      }
+    }(loader, texture));
+
   }
-  return this.textureMap[key];
+  return texture;
+}
+
+p.addTextureCube = function(data, key){
+  var texture = this.textureMap[key];
+  if(!texture){
+    texture = gl.createTexture();
+    texture.id = this.textureID++;
+    this.textureMap[key||texture.id] = texture;
+
+    for(var i=0; i<data.length; ++i){
+      var loader = this._createLoader(data[i][0]);
+      this.loaders.push(loader);
+
+      loader.onComplete = (function(loader, texture, target){
+        return function(){
+          gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+          TextureManager.instance.setTextureData(loader, texture, target);
+        }
+      }(loader, texture, data[i][1]));
+    }
+  }
+  return texture;
 }
 
 p._createLoader = function(url){
@@ -80,44 +79,66 @@ p._createLoader = function(url){
 }
 
 p.load = function(callback){
-  var toLoad = this.loaders.length;
-  var onload = function(){
-    --toLoad;
-    if(toLoad === 0)
-      callback();
-  }
+  var len = this.loaders.length;
+  for(var i=0; i<len; ++i){
 
-  for(var i=0; i<this.loaders.length; ++i){
-    this.loaders[i].load(onload);
+    this.loaders[i].load(function(loader){
+      return function(){
+        // load data to gpu
+        loader.onComplete();
+
+        if(--len==0)
+          callback();
+      }
+    }(this.loaders[i]));
+
   }
 }
 
-p.bindTexture = function(key, unit){
-  if(isNaN(unit)) unit = 0;
-  var texture = null;
+p.setTextureData = function(loader, texture, target, generateMipmap){
+  if(loader instanceof ImageLoader)
+    gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, loader.data);
+  else if(loader instanceof TGALoader)
+    gl.texImage2D(target, 0, gl.RGBA, loader.width, loader.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, loader.data);
+}
 
-  if(this.map[key])
-    texture = this.map[key].texture;
+p.bindTexture = function(key, unit, target){
+  target = target || gl.TEXTURE_2D;
+  unit = unit || gl.TEXTURE0;
 
-  if(this.boundTextureMap[unit] !== texture){
+  var texture = this.textureMap[key];
+  if(!texture)
+    return false;
+
+  if(this.boundTextures[unit] !== texture || this.boundTextures[unit] === undefined){
     gl.activeTexture(unit);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    this.boundTextureMap[unit] = texture;
+    gl.bindTexture(target, texture);
+    this.boundTextures[unit] = texture;
+
+    console.log('bind: ', texture, unit);
   }
+  else{
+    console.log('bound: ', texture, unit);
+  }
+
+  return true;
 }
 
-p.unbindTexture = function(key, unit){
-  if(isNaN(unit)) unit = 0;
+p.unbindTexture = function(key, unit, target){
+  target = target || gl.TEXTURE_2D;
+  unit = unit || gl.TEXTURE0;
+
+  console.log('unbind: ' + unit);
 
   gl.activeTexture(unit);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  this.boundTextureMap[unit] = null;
+  gl.bindTexture(target, null);
+  this.boundTextures[unit] = undefined;
 }
 
 p.clear = function(){
   this.loaders.length = 0;
-  this.map = Object.create(null);
-  this.boundTexture = null;
+  this.textureMap = Object.create(null);
+  this.boundTextures = Object.create(null);
 }
 
 TextureManager.instance = new TextureManager();

@@ -2,39 +2,71 @@
  * http://www.sc.ehu.es/ccwgamoa/docencia/Material/FileFormats/wavefrontObj.htm
  */
 function ObjMaterial(){
+  // // Material newmtl (material name). Begins a new material description.
+  // this.newmtl = '';
+  // // Ambient color Ka (red) (green) (blue)
+  // this.Ka = [];
+  // // Diffuse color Ka (red) (green) (blue)
+  // this.Kd = [];
+  // // Specular color Ka (red) (green) (blue)
+  // this.Ks = [];
+  // // emission color Ke
+  // this.Ke = [];
+  // // transparency
+  // this.d = 1;
+  // this.Tr = 1;
+  // // shininess
+  // this.Ns = 10;
+  // // Illumination model illum (1 / 2); 1 if specular disabled, 2 if specular enabled
+  // this.illum = 2;
+
+  // // transmission filter
+  // this.Tf = [];
+
+  // // ambient texture map
+  // this.map_Ka = '';
+  // // diffuse texture map
+  // this.map_Kd = '';
+  // // specular texture map
+  // this.map_Ks = '';
+  // // shininess texture
+  // this.map_Ns = '';
+  // // alpha texture
+  // this.map_d = '';
+  // // bump texture map
+  // this.map_bump = '';
+
+
   // Material newmtl (material name). Begins a new material description.
   this.newmtl = '';
   // Ambient color Ka (red) (green) (blue)
-  this.Ka = [];
+  this.ambientColor = [];
   // Diffuse color Ka (red) (green) (blue)
-  this.Kd = [];
+  this.diffuseColor = [];
   // Specular color Ka (red) (green) (blue)
-  this.Ks = [];
-  // emission color Ke
-  this.Ke = [];
+  this.specularColor = [];
+  // emissive color Ke
+  this.emissiveColor = [];
   // transparency
-  this.d = 1;
-  this.Tr = 1;
+  this.alpha = 1;
   // shininess
-  this.Ns = 10;
+  this.shininess = 10;
+  // index of refraction, optical density
+  this.ior = 1;
+
   // Illumination model illum (1 / 2); 1 if specular disabled, 2 if specular enabled
   this.illum = 2;
 
-  // transmission filter
-  this.Tf = [];
 
-  // ambient texture map
-  this.map_Ka = '';
-  // diffuse texture map
-  this.map_Kd = '';
-  // specular texture map
-  this.map_Ks = '';
-  // shininess texture
-  this.map_Ns = '';
-  // alpha texture
-  this.map_d = '';
-  // bump texture map
-  this.map_bump = '';
+  this.map = {};
+  this.map.albedo = '';
+  this.map.specular = '';
+  this.map.shininess = '';
+  this.map.roughness = '';
+  this.map.alpha = '';
+  this.map.normal = '';
+  this.map.bump = '';
+  this.map.displacement = '';
 }
 
 ObjMaterial.prototype.hasTexture = function(){
@@ -103,62 +135,55 @@ p.onload = function(e){
         this.materialMap[currentMtl.newmtl] = currentMtl;
         break;
       case 'Ns':
-        currentMtl.Ns = chunks.slice(1);
+        currentMtl.shininess = parseInt(chunks.slice(1));
         break;
       case 'Ni':
-        currentMtl.Ni = chunks.slice(1);
+        currentMtl.ior = parseInt(chunks.slice(1));
         break;
       case 'd':
-        currentMtl.d = parseFloat(chunks[chunks.length-1]);
-        break;
       case 'Tr':
-        currentMtl.Tr = parseFloat(chunks[chunks.length-1]);
-        break;
-      case 'Tf':
-        currentMtl.Tf = parseFloat(chunks[chunks.length-1]);
+        currentMtl.alpha = parseFloat(chunks[chunks.length-1]);
         break;
       case 'illum':
         currentMtl.illum = parseInt(chunks[chunks.length-1]);
         break;
       case 'Ka':
         var strs = chunks.slice(1);
-        currentMtl.Ka = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
+        currentMtl.ambientColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Kd':
         var strs = chunks.slice(1);
-        currentMtl.Kd = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
+        currentMtl.diffuseColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Ks':
         var strs = chunks.slice(1);
-        currentMtl.Ks = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
+        currentMtl.specularColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'Ke':
         var strs = chunks.slice(1);
-        currentMtl.Ke = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
+        currentMtl.emissiveColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'map_Ka':
-        currentMtl.map_Ka = chunks[chunks.length-1];
+        currentMtl.map.ambient = chunks[chunks.length-1];
         break;
       case 'map_Kd':
-        currentMtl.map_Kd = chunks[chunks.length-1];
+        currentMtl.map.albedo = chunks[chunks.length-1];
         break;
       case 'map_Ks':
         // specular texture
-        currentMtl.map_Ks = chunks[chunks.length-1];
+        currentMtl.map.specular = chunks[chunks.length-1];
         break;
       case 'map_Ns':
         // shininess texture
-        currentMtl.map_Ns = chunks[chunks.length-1];
+        currentMtl.map.shininess = chunks[chunks.length-1];
         break;
       case 'map_d':
         // alpha texture
-        currentMtl.map_d = chunks[chunks.length-1];
+        currentMtl.map.alpha = chunks[chunks.length-1];
         break;
       case 'map_bump':
-        currentMtl.map_bump = chunks[chunks.length-1];
-        break;
       case 'bump':
-        currentMtl.bump = chunks[chunks.length-1];
+        currentMtl.map.bump = chunks[chunks.length-1];
         break;
     }
   }

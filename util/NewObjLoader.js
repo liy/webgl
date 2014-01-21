@@ -195,7 +195,7 @@ p.onload = function(e){
     else if(/^usemtl /.test(line)){
       // material
       createGeometry();
-      
+
       // material name for create material once mtl file is loaded.
       materialNames.push(line.substring(7).trim().toLowerCase());
     }
@@ -215,7 +215,7 @@ p.onload = function(e){
   // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
   if(geometries.length === 0)
     geometries.push(geometry);
-    
+
   // console.log(geometry.vertices);
   // console.log(geometry.normals);
   // console.log(geometry.texCoords);
@@ -234,12 +234,9 @@ p.onload = function(e){
 
       console.log('lib: ' + this.mtllib);
 
-      if(objMaterial.map_Ka !== '')
-        TextureManager.instance.add(this._baseURI + objMaterial.map_Ka, objMaterial.map_Ka);
-      if(objMaterial.map_Kd !== '')
-        TextureManager.instance.add(this._baseURI + objMaterial.map_Kd, objMaterial.map_Kd);
-      if(objMaterial.map_bump !== '')
-        TextureManager.instance.add(this._baseURI + objMaterial.map_bump, objMaterial.map_bump);
+      for(var textureType in objMaterial.map){
+        var textureID = TextureManager.instance.add(this._baseURI + objMaterial.map[textureType]);
+      }
     }
     TextureManager.instance.load(bind(this, textureLoaded));
   }
@@ -277,7 +274,7 @@ p.onload = function(e){
       // ambient texture? WTF is ambient texture!? environment map?
       if(textureLoaderMap[materialMap[materialNames[i]].map_Ka])
         params.ambientTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ka].texture;
-      // diffuse texture 
+      // diffuse texture
       if(textureLoaderMap[materialMap[materialNames[i]].map_Kd])
         params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Kd].texture;
       // specular texture map
@@ -297,7 +294,7 @@ p.onload = function(e){
       var mesh = new Mesh(geometries[i], material);
       this.group.add(mesh);
     }
-    
+
     this.callback();
   }
 }

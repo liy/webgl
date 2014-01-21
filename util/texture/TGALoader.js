@@ -1,18 +1,22 @@
 function TGALoader(url){
+  EventDispatcher.call(this);
+
   this.url = url;
   this.data = null;
   this.width = NaN;
   this.height = NaN;
 }
-var p = TGALoader.prototype;
+var p = TGALoader.prototype = Object.create(EventDispatcher.prototype);
 
 p.load = function(callback){
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', src, true);
+  xhr.open('GET', this.url, true);
   xhr.responseType = "arraybuffer";
   xhr.onload = bind(this, function(e){
     if(e.target.status == 200)
       this._decodeTGA(e.target.response);
+
+    this.dispatchEvent(new Event(Event.COMPLETE));
 
     if(callback)
       callback();
@@ -27,7 +31,7 @@ p._decodeTGA = function(arrayBuffer) {
       width = content[12] + (content[13] << 8),
       height = content[14] + (content[15] << 8),
       bpp = content[16], // should be 8,16,24,32
-      
+
       bytesPerPixel = bpp / 8,
       bytesPerRow = width * 4,
       data, i, j, x, y;
@@ -59,11 +63,4 @@ p._decodeTGA = function(arrayBuffer) {
   this.width = width;
   this.height = height;
   this.data = data;
-}
-
-p.setTextureData = function(target, texture){
-  gl.bindTexture(target, texture);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-  gl.texImage2D(target, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.data);
-  gl.texIm
 }
