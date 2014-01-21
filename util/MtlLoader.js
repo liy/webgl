@@ -1,6 +1,7 @@
 /**
  * http://www.sc.ehu.es/ccwgamoa/docencia/Material/FileFormats/wavefrontObj.htm
  */
+ // TODO: to be removed, or change name into MaterialInfo. Or just use a simple Object.
 function ObjMaterial(){
   // // Material newmtl (material name). Begins a new material description.
   // this.newmtl = '';

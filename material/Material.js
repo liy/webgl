@@ -1,6 +1,8 @@
 function Material(){
   this.id = Material.id++;
 
+  this.name = null;
+
   this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
   // vec4
   this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
@@ -37,13 +39,12 @@ p.setImageMap = function(map){
     if(map[name]){
       var texture = this.textureMap[name] = TextureManager.instance.add(map[name]);
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
       gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
-      
   }
   TextureManager.instance.load();
 }

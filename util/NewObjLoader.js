@@ -48,7 +48,7 @@ p.onload = function(e){
   var geometries = [];
 
   // FIXME: TODO: some mesh might not have material
-  var materialNames = [];
+  var materials = [];
 
   // since geometry's face use index to allocate vertex, the index must be related to current mesh geometry.
   // If new mesh geometry is created, the vertex index must minus the number of previous mesh geometry vertex.
@@ -189,6 +189,10 @@ p.onload = function(e){
     else if(/^o /.test(line)){
       // object
       createGeometry();
+
+      // default material, since no name is specified
+      var material = new Material();
+      materials.push(material)
     }
     else if(/^g /.test( line)){
       // group, ignore for now
@@ -197,8 +201,10 @@ p.onload = function(e){
       // material
       createGeometry();
 
-      // material name for create material once mtl file is loaded.
-      materialNames.push(line.substring(7).trim().toLowerCase());
+      var material = new Material();
+      // material name will be used to look up material information once mtl file is loaded.
+      material.name = line.substring(7).trim().toLowerCase();
+      materials.push(material)
     }
     else if(/^mtllib /.test(line)){
       // mtl file
@@ -227,22 +233,18 @@ p.onload = function(e){
   if(this.mtllib){
     this.mtlLoader.load(this._baseURI, this.mtllib);
 
-    console.log(this.mtlLoader.materialMap);
-
-
-    
     for(var i=0; i<geometries.length; ++i){
-      var materialName = materialNames[i];
-      var imageMap = this.mtlLoader.materialMap[materialName].imageMap;
-
-      var material = new Material();
+      var material = materials[i];
+      var imageMap = this.mtlLoader.materialMap[material.name].imageMap;
       material.setImageMap(imageMap);
 
       var mesh = new Mesh(geometries[i], material);
       this.group.add(mesh);
     }
-    
   }
+
+  if(this.callback)
+    this.callback();
 
 
 

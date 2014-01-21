@@ -120,6 +120,9 @@ p.bindTexture = function(key, unit, target){
   if(!texture)
     return false;
 
+  if(!texture.ready)
+    return false;
+
   if(this.boundTextures[unit] !== texture || this.boundTextures[unit] === undefined){
     gl.activeTexture(unit);
     gl.bindTexture(target, texture);
