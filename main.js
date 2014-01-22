@@ -32,3 +32,5 @@ function render(){
   requestAnimFrame(render);
 }
 render();
+
+ResourceManager.instance.load();

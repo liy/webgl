@@ -23,7 +23,7 @@ uniform vec4 emissionColor;
 uniform float roughness;
 
 /**
- * 
+ *
  */
 uniform sampler2D textures[6];
 

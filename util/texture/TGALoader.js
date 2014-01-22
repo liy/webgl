@@ -24,7 +24,7 @@ p.load = function(callback){
   xhr.send(null);
 }
 
-p._decodeTGA = function(arrayBuffer) {
+p._decodeTGA = function(arrayBuffer){
   var content = new Uint8Array(arrayBuffer),
       contentOffset = 18 + content[0],
       imagetype = content[2], // 2 = rgb, only supported format for now
@@ -60,7 +60,7 @@ p._decodeTGA = function(arrayBuffer) {
     }
   }
 
-  this.width = width;
-  this.height = height;
   this.data = data;
+  this.width = this.data.width = width;
+  this.height = this.data.height = height;
 }

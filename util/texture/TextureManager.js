@@ -10,142 +10,63 @@ var p = TextureManager.prototype;
 p.add = function(data, key){
   var texture;
   if(data instanceof Array)
-    texture = this.addTextureCube(data, key);
+    // texture = this.addTextureCube(data, key);
+    console.warn('not implemented yet')
   else
-    texture = this.addTexture2D(data, key);
+    texture = this.addTexture2D(data);
   return texture;
 }
 
 // TODO: needs return opengl texture
-p.addTexture2D = function(url, key){
-  var texture = this.textureMap[key];
+p.addTexture2D = function(url){
+  console.log('add texture 2d', url);
+  var texture = this.textureMap[url];
   if(!texture){
-    texture = gl.createTexture();
-    texture.id = this.textureID++;
-    this.textureMap[key||texture.id] = texture;
-
-    var loader = this._createLoader(url);
-    this.loaders.push(loader);
-
-    loader.onComplete = (function(loader, texture){
-      return function(){
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        TextureManager.instance.setTextureData(loader, texture, gl.TEXTURE_2D);
-      }
-    }(loader, texture));
-
-  }
-  return texture;
-}
-
-p.addTextureCube = function(data, key){
-  var texture = this.textureMap[key];
-  if(!texture){
-    texture = gl.createTexture();
-    texture.id = this.textureID++;
-    this.textureMap[key||texture.id] = texture;
-
-    for(var i=0; i<data.length; ++i){
-      var loader = this._createLoader(data[i][0]);
-      this.loaders.push(loader);
-
-      loader.onComplete = (function(loader, texture, target){
-        return function(){
-          gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-          TextureManager.instance.setTextureData(loader, texture, target);
-        }
-      }(loader, texture, data[i][1]));
+    var loader = ResourceManager.instance.add(url);
+    texture = new Texture(gl.TEXTURE_2D);
+    this.textureMap[url] = texture;
+    if(loader.data){
+      console.log('set data straight away')
+      texture.setData(loader.data)
+    }
+    else{
+      loader.addEventListener(Event.COMPLETE, bind(this, function(e){
+        console.log('set data in listener: ' + loader.data)
+        texture.setData(loader.data)
+      }));
     }
   }
   return texture;
 }
 
-p._createLoader = function(url){
-  var index = url.lastIndexOf(".");
-  var type = url.substring(index+1);
-  switch(type.toLowerCase()){
-    case "jpg":
-    case "jpeg":
-    case "png":
-    case "gif":
-    case "bmp":
-      return new ImageLoader(url);
-    case "tga":
-      return new TGALoader(url);
-    default:
-      console.error("Unknown image type:", type);
-      break;
-  }
-}
-
-p.load = function(callback){
-  var len = this.loaders.length;
-  for(var i=0; i<len; ++i){
-
-    this.loaders[i].load(function(loader){
-      return function(){
-        // load data to gpu
-        loader.onComplete();
-
-        if(--len==0){
-          if(callback) callback();
-        }
-          
-      }
-    }(this.loaders[i]));
-
-  }
-}
-
-p.setTextureData = function(loader, texture, target, generateMipmap){
-  // texture is ready to use
-  texture.ready = true;
-  if(loader instanceof ImageLoader)
-    gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, loader.data);
-  else if(loader instanceof TGALoader)
-    gl.texImage2D(target, 0, gl.RGBA, loader.width, loader.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, loader.data);
-}
-
-p.bindTexture = function(key, unit, target){
+p.bindTexture = function(texture, unit, target){
   target = target || gl.TEXTURE_2D;
   unit = unit || gl.TEXTURE0;
 
-  if(!key)
-    return false;
-
-  if(key instanceof Object)
-    key = key.id;
-
-  var texture = this.textureMap[key];
-  if(!texture)
-    return false;
-
-  if(!texture.ready)
-    return false;
-
-  if(this.boundTextures[unit] !== texture || this.boundTextures[unit] === undefined){
+  // for now, always bind
+  // if(this.boundTextures[unit] !== texture){
     gl.activeTexture(unit);
-    gl.bindTexture(target, texture);
+    gl.bindTexture(target, texture.core);
     this.boundTextures[unit] = texture;
 
-    // console.log('bind: ', texture, unit);
-  }
-  else{
-    // console.log('bound: ', texture, unit);
-  }
+  //   // console.log('bind: ', texture.core, unit);
+  // }
+  // else{
+  //   // console.log('bound: ', texture, unit);
+  // }
 
   return true;
 }
 
-p.unbindTexture = function(key, unit, target){
+p.unbindTexture = function(unit, target){
   target = target || gl.TEXTURE_2D;
   unit = unit || gl.TEXTURE0;
 
-  console.log('unbind: ' + unit);
+  // console.log('unbind: ' + unit);
 
   gl.activeTexture(unit);
   gl.bindTexture(target, null);
-  this.boundTextures[unit] = undefined;
+  this.boundTextures[unit] = null;
 }
 
 p.clear = function(){

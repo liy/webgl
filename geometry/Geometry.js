@@ -67,7 +67,6 @@ p.computeVertexNormal = function(useFaceNormal){
       normal.x = normal.y = normal.z = 0;
   }
 
-
   len = this.faces.length;
   if(useFaceNormal){
     for(i=0; i<len; ++i){
@@ -79,8 +78,6 @@ p.computeVertexNormal = function(useFaceNormal){
     }
   }
   else{
-    
-
     for(i=0; i<len; ++i){
       var face = this.faces[i];
 
@@ -97,7 +94,7 @@ p.computeVertexNormal = function(useFaceNormal){
     }
 
   }
-  
+
 
   // normalize vertex normal
   len = this.vertices.length;

@@ -233,10 +233,16 @@ p.onload = function(e){
   if(this.mtllib){
     this.mtlLoader.load(this._baseURI, this.mtllib);
 
+    console.log(materials);
+    console.log(this.mtlLoader.materialMap);
+
     for(var i=0; i<geometries.length; ++i){
       var material = materials[i];
-      var imageMap = this.mtlLoader.materialMap[material.name].imageMap;
-      material.setImageMap(imageMap);
+      if(this.mtlLoader.materialMap[material.name.toLowerCase()]){
+        var imageMap = this.mtlLoader.materialMap[material.name.toLowerCase()].imageMap;
+        material.setImageMap(imageMap);
+      }
+
 
       var mesh = new Mesh(geometries[i], material);
       this.group.add(mesh);

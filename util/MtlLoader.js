@@ -133,7 +133,7 @@ p.onload = function(e){
     switch(chunks[0]){
       case 'newmtl':
         currentMtl = new ObjMaterial();
-        currentMtl.newmtl = chunks[chunks.length-1];
+        currentMtl.newmtl = chunks[chunks.length-1].trim().toLowerCase();
         this.materialMap[currentMtl.newmtl] = currentMtl;
         break;
       case 'Ns':

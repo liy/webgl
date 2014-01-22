@@ -32,7 +32,7 @@ function DeferredRenderer(){
       }
       else
         console.error('gl conflict name in extension: ' + ext +' name: ' + name);
-    }  
+    }
   }
 
   this.mrtProgram = gl.createProgram();
@@ -73,7 +73,7 @@ p.createGBuffers = function(){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
 
   // Specifies a list of color buffers to be drawn into
-  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1]); 
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1]);
 }
 
 p.render = function(scene, camera){
