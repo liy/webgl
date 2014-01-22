@@ -19,10 +19,9 @@ p.add = function(data, key){
 
 // TODO: needs return opengl texture
 p.addTexture2D = function(url){
-  console.log('add texture 2d', url);
   var texture = this.textureMap[url];
   if(!texture){
-    var loader = ResourceManager.instance.load(url);
+    var loader = ResourceManager.instance.add(url);
     texture = new Texture(gl.TEXTURE_2D);
     this.textureMap[url] = texture;
     if(loader.data){
@@ -32,8 +31,10 @@ p.addTexture2D = function(url){
     else{
       loader.addEventListener(Event.COMPLETE, bind(this, function(e){
         console.log('set data in listener: ' + loader.data)
-        texture.setData(loader.data)
+        if(loader.data)
+          texture.setData(loader.data)
       }));
+      loader.load();
     }
   }
   return texture;
