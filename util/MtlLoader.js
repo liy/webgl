@@ -2,7 +2,7 @@
  * http://www.sc.ehu.es/ccwgamoa/docencia/Material/FileFormats/wavefrontObj.htm
  */
  // TODO: to be removed, or change name into MaterialInfo. Or just use a simple Object.
-function ObjMaterial(){
+function MatInfo(){
   // // Material newmtl (material name). Begins a new material description.
   // this.newmtl = '';
   // // Ambient color Ka (red) (green) (blue)
@@ -70,7 +70,7 @@ function ObjMaterial(){
   this.imageMap.displacement = null;
 }
 
-ObjMaterial.prototype.hasTexture = function(){
+MatInfo.prototype.hasTexture = function(){
   return this.map_Ka !== '' || this.map_Kd !== '' || this.map_bump !== '';
 }
 
@@ -132,7 +132,7 @@ p.onload = function(e){
 
     switch(chunks[0]){
       case 'newmtl':
-        currentMtl = new ObjMaterial();
+        currentMtl = new MatInfo();
         currentMtl.newmtl = chunks[chunks.length-1].trim().toLowerCase();
         this.materialMap[currentMtl.newmtl] = currentMtl;
         break;

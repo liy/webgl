@@ -78,10 +78,10 @@ p.bind = function(shader){
   }
 
   // bump
-  if(this.textureMap.normal && this.textureMap.normal.data){
+  if(this.textureMap.bump && this.textureMap.bump.data){
     gl.uniform1f(shader.uniforms['textureReady'][2], 1);
     gl.uniform1i(shader.uniforms['textures'][2], 2);
-    TextureManager.instance.bindTexture(this.textureMap.normal, gl.TEXTURE0+2);
+    TextureManager.instance.bindTexture(this.textureMap.bump, gl.TEXTURE0+2);
   }
   else{
     gl.uniform1f(shader.uniforms['textureReady'][2], 0);

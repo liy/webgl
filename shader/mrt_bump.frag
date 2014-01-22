@@ -74,7 +74,10 @@ void main() {
     roughness*0.1 + texture2D(textures[4], v_TexCoord).r*textureReady[4]
   );
   // normal
-  gl_FragData[1] = vec4((v_Normal+1.0)/2.0, 1.0) + texture2D(textures[1], v_TexCoord)*textureReady[1];
+  // gl_FragData[1] = vec4((v_Normal+1.0)/2.0, 1.0) + texture2D(textures[1], v_TexCoord)*textureReady[1];
+  // bump
+  gl_FragData[1] = vec4((getNormal2()+1.0)*0.5 , 1.0);
+  // gl_FragData[1] = vec4(getNormal(), 1.0);
   // specular
   gl_FragData[2] = albedoColor + texture2D(textures[3], v_TexCoord)*textureReady[3];
   // roughness
