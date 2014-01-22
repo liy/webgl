@@ -11,6 +11,7 @@ var p = Texture.prototype;
 
 p.setData = function(data){
   TextureManager.instance.bindTexture(this);
+  // flip the texture content in y direction.
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   if(data instanceof Image){
     gl.texImage2D(this.target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);

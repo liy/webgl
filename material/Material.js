@@ -1,7 +1,7 @@
 function Material(){
   this.id = Material.id++;
 
-  this.name = null;
+  this.name = '';
 
   this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
   // vec4

@@ -16,7 +16,7 @@ p.add = function(url){
   return loader;
 }
 
-p.load = function(callback){
+p.start = function(callback){
   var len = this.loaders.length;
   for(var i=0; i<len; ++i){
     this.loaders[i].load(function(){
@@ -24,6 +24,19 @@ p.load = function(callback){
         callback();
     });
   }
+}
+
+p.load = function(url){
+  var loader = this.loaderMap[url];
+  // if this resource does not exist in the memory, load it.
+  if(!loader){
+    loader = this._createLoader(url);
+    this.loaders.push(loader);
+    this.loaderMap[url] = loader;
+    loader.load();
+  }
+
+  return loader;
 }
 
 p.getResource = function(url){

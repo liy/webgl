@@ -57,6 +57,9 @@ p.computeFaceNormal = function(){
 p.computeVertexNormal = function(useFaceNormal){
   var i;
 
+  // FIXME: face normal, and vertex normal calculation have problem!!! Try buddha.obj, use face normal... no facet feeling
+  // this is because the vertex are shared... to fix it will be duplicate the shared vertex.
+
   // set all vertex normal to 0
   var len = this.vertices.length;
   for(i=0; i<len; ++i){
