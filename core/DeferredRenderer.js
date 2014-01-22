@@ -100,7 +100,17 @@ p.render = function(scene, camera){
   }
 
   // TODO: do the meshes state sorting, speed up rendering
+
+  // for(var i=0; i<scene.meshes.length; ++i){
+  //   console.log(scene.meshes[i].material.name)
+  // }
+  // console.log('');
+  // console.log('');
+  // console.log('');
   // scene.meshes.sort(sort(camera));
+  // for(var i=0; i<scene.meshes.length; ++i){
+  //   console.log(scene.meshes[i].material.name)
+  // }
 
   // draw to g-buffers
   this.draw(scene, camera);
@@ -173,6 +183,13 @@ function sort(camera){
     // }
 
     // return 0;
+
+    if(a.material.name != b.material.name){
+      if(a.material.name < b.material.name)
+        return 1;
+      else
+        return -1;
+    }
 
     vec3.transformMat4(a._viewSpacePosition, a._position, camera.viewMatrix);
     vec3.transformMat4(b._viewSpacePosition, b._position, camera.viewMatrix);

@@ -13,12 +13,12 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 2000)
 scene.add(camera);
-camera.z = 0;
+camera.z = -100;
 
 var loader = new NewObjLoader();
-loader.load("../webgl-meshes/sibenik/", "sibenik.obj");
+loader.load("../webgl-meshes/teapot/", "teapot.obj");
 var mesh1 = loader.group;
-mesh1.y = -0;
+mesh1.y = -40;
 scene.add(mesh1);
 
 function render(){
