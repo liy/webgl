@@ -36,7 +36,7 @@ function DeferredRenderer(){
   }
 
   this.mrtProgram = gl.createProgram();
-  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
+  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt_bump.vert', 'shader/mrt_bump.frag');
   gl.useProgram(this.mrtProgram);
   this.mrtShader.locateAttributes(this.mrtProgram);
   this.mrtShader.locateUniforms(this.mrtProgram);
