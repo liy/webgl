@@ -36,6 +36,7 @@ uniform float textureReady[6];
 
 // uniform Material u_Material;
 
+varying vec4 v_EyeSpacePosition;
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
 varying vec3 v_Tangent;
@@ -48,8 +49,8 @@ vec3 getNormal(){
   float hr = texture2D(textures[2], vec2(v_TexCoord.x+ONE_OVER_TEX_WIDTH, v_TexCoord.y)).r;
   float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+ONE_OVER_TEX_WIDTH)).r;
 
-  float dx = (hg-ha)*5.0;
-  float dy = (hg-hr)*5.0;
+  float dx = (hg-ha)*10.0;
+  float dy = (hg-hr)*10.0;
 
   float scale = 1.0/sqrt(pow(dx, 2.0) + pow(dy, 2.0) + 1.0);
 
@@ -69,8 +70,8 @@ vec3 getNormal2(){
   float hr = texture2D(textures[2], vec2(v_TexCoord.x+ONE_OVER_TEX_WIDTH, v_TexCoord.y)).r;
   float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+ONE_OVER_TEX_WIDTH)).r;
 
-  vec3 vr = vec3(1.0, 0.0, (hr-hg)*5.0);
-  vec3 va = vec3(0.0, 1.0, (ha-hg)*5.0);
+  vec3 vr = vec3(1.0, 0.0, (hr-hg)*20.0);
+  vec3 va = vec3(0.0, 1.0, (ha-hg)*20.0);
   vec3 normal = cross(vr, va);
 
   vec3 N = normalize(v_Normal);
@@ -90,8 +91,8 @@ void main() {
   // normal
   gl_FragData[1] = vec4((getNormal()+1.0)*0.5 , 1.0);
   // gl_FragData[1] = vec4((v_Normal+1.0)*0.5 , 1.0);
-  // specular
-  gl_FragData[2] = albedoColor + texture2D(textures[3], v_TexCoord)*textureReady[3];
+  // position
+  gl_FragData[2] = vec4((v_EyeSpacePosition.xyz + 1.0)*0.5, 1.0);
 
   // gl_FragData[0] = vec4(1.0, 0.0, 0.0, 1.0);
   // gl_FragData[1] = vec4(0.0, 1.0, 0.0, 1.0);

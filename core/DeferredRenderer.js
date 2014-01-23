@@ -62,6 +62,7 @@ p.createGBuffers = function(){
   // 3 textures as 3 render targets
   this.albedoTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.normalTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.positionTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.depthTexture = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
 
   // framebuffer to attach both textures and depth renderbuffer
@@ -70,10 +71,11 @@ p.createGBuffers = function(){
   // specify 3 textures as render targets
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.positionTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
 
   // Specifies a list of color buffers to be drawn into
-  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1]);
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
 }
 
 p.render = function(scene, camera){
@@ -129,8 +131,11 @@ p.render = function(scene, camera){
   gl.bindTexture(gl.TEXTURE_2D, this.normalTexture);
   gl.uniform1i(this.screenShader.uniforms.textures[1], 1);
   gl.activeTexture(gl.TEXTURE0+2);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+  gl.bindTexture(gl.TEXTURE_2D, this.positionTexture);
   gl.uniform1i(this.screenShader.uniforms.textures[2], 2);
+  gl.activeTexture(gl.TEXTURE0+3);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+  gl.uniform1i(this.screenShader.uniforms.textures[3], 3);
 
   gl.bindVertexArrayOES(this.screenVAO);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
