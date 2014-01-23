@@ -38,12 +38,6 @@ p.setImageMap = function(map){
   for(var name in map){
     if(map[name]){
       var texture = this.textureMap[name] = TextureManager.instance.add(map[name]);
-      TextureManager.instance.bindTexture(texture, gl.TEXTURE0);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      TextureManager.instance.unbindTexture(gl.TEXTURE0);
     }
   }
 }

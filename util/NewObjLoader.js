@@ -15,7 +15,7 @@ p.load = function(baseURI, file, callback){
   console.log('loading: ' + this._baseURI + file);
 
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', this._baseURI+file, false);
+  xhr.open('GET', this._baseURI+file, true);
   xhr.onload = bind(this, this.onload);
   xhr.send();
 }
@@ -219,8 +219,6 @@ p.onload = function(e){
   }
   console.timeEnd('regexp start');
 
-  console.log(geometry.indexData);
-
   // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
   if(geometries.length === 0)
     geometries.push(geometry);
@@ -233,26 +231,25 @@ p.onload = function(e){
 
 
   if(this.mtllib){
-    this.mtlLoader.load(this._baseURI, this.mtllib);
+    this.mtlLoader.load(this._baseURI, this.mtllib, bind(this, function(){
+      // console.log(materials);
+      // console.log(this.mtlLoader.materialMap);
 
-    console.log(materials);
-    console.log(this.mtlLoader.materialMap);
+      for(var i=0; i<geometries.length; ++i){
+        var material = materials[i];
+        if(this.mtlLoader.materialMap[material.name.toLowerCase()]){
+          var imageMap = this.mtlLoader.materialMap[material.name.toLowerCase()].imageMap;
+          material.setImageMap(imageMap);
+        }
 
-    for(var i=0; i<geometries.length; ++i){
-      var material = materials[i];
-      if(this.mtlLoader.materialMap[material.name.toLowerCase()]){
-        var imageMap = this.mtlLoader.materialMap[material.name.toLowerCase()].imageMap;
-        material.setImageMap(imageMap);
+        var mesh = new Mesh(geometries[i], material);
+        this.group.add(mesh);
       }
 
-
-      var mesh = new Mesh(geometries[i], material);
-      this.group.add(mesh);
-    }
+      if(this.callback)
+        this.callback();
+    })); 
   }
-
-  if(this.callback)
-    this.callback();
 
 
 

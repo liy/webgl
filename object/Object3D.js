@@ -148,6 +148,17 @@ Object.defineProperty(p, "rotationZ", {
   }
 });
 
+Object.defineProperty(p, "scale", {
+  get: function(){
+    return this._scale[0];
+  },
+  set: function(v){
+    this._scale[0] = this._scale[1] = this._scale[2] = v;
+    this.autoMatrix = true;
+  }
+});
+
+
 Object.defineProperty(p, "scaleX", {
   get: function(){
     return this._scale[0];

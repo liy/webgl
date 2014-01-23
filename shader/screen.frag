@@ -9,7 +9,7 @@ uniform sampler2D textures[3];
 varying vec2 v_TexCoord;
 
 vec3 getLightDirection(){
-  return normalize(vec3(1, 1, 1));
+  return normalize(vec3(0, 1, 1));
 }
 
 

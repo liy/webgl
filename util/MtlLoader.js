@@ -91,7 +91,7 @@ p.load = function(baseURI, path, callback){
   console.log('loading mtl file: ' + this._baseURI+path);
 
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', this._baseURI+path, false);
+  xhr.open('GET', this._baseURI+path, true);
   xhr.onload = bind(this, this.onload);
   xhr.send();
 }

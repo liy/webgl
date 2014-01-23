@@ -25,12 +25,12 @@ p.addTexture2D = function(url){
     texture = new Texture(gl.TEXTURE_2D);
     this.textureMap[url] = texture;
     if(loader.data){
-      console.log('set data straight away')
+      // console.log('set data straight away')
       texture.setData(loader.data)
     }
     else{
       loader.addEventListener(Event.COMPLETE, bind(this, function(e){
-        console.log('set data in listener: ' + loader.data)
+        // console.log('set data in listener: ' + loader.data)
         if(loader.data)
           texture.setData(loader.data)
       }));
