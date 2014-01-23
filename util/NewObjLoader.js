@@ -122,10 +122,10 @@ p.onload = function(e){
     else{
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
-      var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
-      geometry.faces.push(new Face3(i0, i1, i3));
+      var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
+      geometry.faces.push(new Face3(i0, i1, i2));
 
-      var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
+      var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
       geometry.faces.push(new Face3(i1, i2, i3));
@@ -218,6 +218,8 @@ p.onload = function(e){
     }
   }
   console.timeEnd('regexp start');
+
+  console.log(geometry.indexData);
 
   // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
   if(geometries.length === 0)

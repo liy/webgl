@@ -9,7 +9,7 @@ uniform sampler2D textures[3];
 varying vec2 v_TexCoord;
 
 vec3 getLightDirection(){
-  return normalize(vec3(1, 0, 0));
+  return normalize(vec3(1, 1, 1));
 }
 
 
@@ -25,4 +25,5 @@ void main(){
   vec3 albedo = texture2D(textures[0], v_TexCoord).xyz;
 
   gl_FragColor = vec4(albedo * ndotl, 1.0);
+  // gl_FragColor = texture2D(textures[0], v_TexCoord);
 }

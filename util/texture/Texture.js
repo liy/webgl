@@ -16,7 +16,7 @@ p.setData = function(data){
   if(data instanceof Image){
     gl.texImage2D(this.target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
   }
-  else if(data instanceof ArrayBuffer){
+  else{
     gl.texImage2D(this.target, 0, gl.RGBA, data.width, data.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
   }
   this.data = data;
