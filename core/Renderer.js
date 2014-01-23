@@ -47,7 +47,7 @@ p.render = function(scene, camera){
     mat4.mul(scene.meshes[i].modelViewMatrix, camera.worldMatrix, scene.meshes[i].worldMatrix);
     // console.log(scene.meshes[i].modelViewMatrix);
     // normal matrix, it is inverse transpose of the model view matrix
-    mat3.normalFromMat4(scene.meshes[i].normalMatrix, scene.meshes[i].modelViewMatrix);
+    mat3.normalFromMat4(scene.meshes[i].modelViewMatrixInverseTranspose, scene.meshes[i].modelViewMatrix);
     // calculate the view space position of the meshes, for states sorting
     vec3.transformMat4(scene.meshes[i]._viewSpacePosition, Object3D.origin, scene.meshes[i].modelViewMatrix);
   }

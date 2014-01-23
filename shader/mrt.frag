@@ -38,6 +38,8 @@ uniform float textureReady[6];
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
+varying vec3 v_Tangent;
+varying vec3 v_Bitangent;
 varying vec4 v_Color;
 
 vec3 getNormal(){
@@ -51,7 +53,14 @@ vec3 getNormal(){
 
   float scale = 1.0/sqrt(pow(dx, 2.0) + pow(dy, 2.0) + 1.0);
 
-  return vec3(dx, dy, 1.0) * scale;
+  vec3 normal = vec3(dx, dy, 1.0) * scale;
+
+  vec3 N = normalize(v_Normal);
+  vec3 T = normalize(v_Tangent);
+  vec3 B = normalize(v_Bitangent);
+  mat3 TBN = mat3(T, B, N);
+
+  return normalize(TBN*normal);
 }
 
 vec3 getNormal2(){
@@ -62,9 +71,14 @@ vec3 getNormal2(){
 
   vec3 vr = vec3(1.0, 0.0, (hr-hg)*5.0);
   vec3 va = vec3(0.0, 1.0, (ha-hg)*5.0);
-  vec3 n = normalize(cross(vr, va));
+  vec3 normal = cross(vr, va);
 
-  return n;
+  vec3 N = normalize(v_Normal);
+  vec3 T = normalize(v_Tangent);
+  vec3 B = normalize(v_Bitangent);
+  mat3 TBN = mat3(T, B, N);
+
+  return TBN*normal;
 }
 
 void main() {
@@ -74,10 +88,12 @@ void main() {
     roughness*0.1 + texture2D(textures[4], v_TexCoord).r*textureReady[4]
   );
   // normal
-  gl_FragData[1] = vec4((v_Normal+1.0)/2.0, 1.0) + texture2D(textures[1], v_TexCoord)*textureReady[1];
+  gl_FragData[1] = vec4((getNormal()+1.0)*0.5 , 1.0);
+  // gl_FragData[1] = vec4((v_Normal+1.0)*0.5 , 1.0);
   // specular
   gl_FragData[2] = albedoColor + texture2D(textures[3], v_TexCoord)*textureReady[3];
-  // roughness
-  // gl_FragData[3] = vec4(roughness, 1.0) + texture2D(textures[4], v_TexCoord)*textureReady[4];
 
+  // gl_FragData[0] = vec4(1.0, 0.0, 0.0, 1.0);
+  // gl_FragData[1] = vec4(0.0, 1.0, 0.0, 1.0);
+  // gl_FragData[2] = vec4(0.0, 0.0, 1.0, 1.0);
 }

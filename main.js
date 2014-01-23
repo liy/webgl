@@ -13,7 +13,7 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 2000)
 scene.add(camera);
-camera.z = 0.5;
+camera.z = 0.2;
 
 var loader = new NewObjLoader();
 loader.load("../webgl-meshes/head/", "head.obj");

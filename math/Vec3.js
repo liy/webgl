@@ -1,9 +1,9 @@
 function Vec3(x, y, z){
-  this.x = x;
-  this.y = y;
-  this.z = z;
+  this.x = x||0;
+  this.y = y||0;
+  this.z = z||0;
 }
-var p = Vec3.prototype = Object.create(null);
+var p = Vec3.prototype;
 
 p.add = function(v){
   this.x += v.x;
@@ -49,7 +49,7 @@ p.len = function(){
 }
 
 p.len2 = function(){
-  return this.x*this.x + this.y*this.y + this.z*this.z; 
+  return this.x*this.x + this.y*this.y + this.z*this.z;
 }
 
 p.setLen = function(l){

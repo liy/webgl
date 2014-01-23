@@ -36,7 +36,7 @@ function DeferredRenderer(){
   }
 
   this.mrtProgram = gl.createProgram();
-  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt_bump.vert', 'shader/mrt_bump.frag');
+  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
   gl.useProgram(this.mrtProgram);
   this.mrtShader.locateAttributes(this.mrtProgram);
   this.mrtShader.locateUniforms(this.mrtProgram);
@@ -96,7 +96,7 @@ p.render = function(scene, camera){
     var mesh = scene.meshes[i];
     // update model view matrix, normal matrix
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
-    mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
+    mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
   }
 
   // TODO: do the meshes state sorting, speed up rendering
@@ -151,7 +151,7 @@ p.draw = function(scene, camera){
     // normal, model view matrix
     gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
     gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
-    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_NormalMatrix'], false, mesh.normalMatrix);
+    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
 
     mesh.draw(this.mrtShader);
   }
