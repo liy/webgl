@@ -14,6 +14,8 @@ var scene = new Scene();
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 1000)
 scene.add(camera);
 camera.z = 0.3;
+camera.x = 1000;
+camera.lookTarget = vec3.fromValues(1,0,0)
 
 var loader = new NewObjLoader();
 loader.load("../webgl-meshes/crytek-sponza/", "sponza.obj");
@@ -24,7 +26,7 @@ scene.add(mesh1);
 function render(){
   stats.begin();
 
-  mesh1.rotationY -= 0.004;
+  // mesh1.rotationY -= 0.004;
 
   renderer.render(scene, camera);
 
