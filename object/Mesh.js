@@ -9,16 +9,17 @@ function Mesh(geometry, material){
   this.geometry = geometry;
   this.material = material || new BRDFMaterial();
 
-  // this.createBuffer();
+  this.createBuffer();
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
 
 p.createBuffer = function(){
   this.geometry.computeFaceNormal();
   // compute vertex normal, if there is no vertex normal defined
-  if(this.geometry.normals.length == 0)
+  if(this.geometry.normals.length === 0)
     this.geometry.computeVertexNormal();
-  this.geometry.computeTangent();
+  if(this.geometry.texCoords.length !== 0)
+    this.geometry.computeTangent();
 
   // vertices information
   var data = [];

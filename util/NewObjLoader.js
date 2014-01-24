@@ -10,7 +10,7 @@ p.load = function(baseURI, file, callback){
   this.mtllib = null;
   this.mtlLoader = new MtlLoader();
 
-  this.group = new Object3D();
+  this.object = new Object3D();
 
   console.log('loading: ' + this._baseURI + file);
 
@@ -50,10 +50,10 @@ p.onload = function(e){
 var geometry = new Geometry();
 geometry.vertexMap = Object.create(null);
   // just in case no mtl is defined.
-  var currentMesh = new Mesh(geometry, new Material());
+  var currentMeshInfo = new Mesh(geometry, new Material());
 
   // holds meshes
-  var meshMap = Object.create(null);
+  var meshInfoMap = Object.create(null);
 
   // load material
   function loadMtl(){
@@ -87,7 +87,10 @@ geometry.vertexMap = Object.create(null);
       var geometry = new Geometry();
       // each geometry has a vertex map to check whether a certain vertex already exist.
       geometry.vertexMap = Object.create(null);
-      meshMap[name] = new Mesh(geometry, material);
+      meshInfoMap[name] = {
+        geometry: geometry,
+        material: material
+      };
     }
 
     // TODO: continue parse vertex normal tex data, etc...
@@ -109,17 +112,17 @@ geometry.vertexMap = Object.create(null);
 
   function switchMesh(name){
     // some obj file missing mtl...
-    if(meshMap[name])
-      currentMesh = meshMap[name];
+    if(meshInfoMap[name])
+      currentMeshInfo = meshInfoMap[name];
   }
 
   function addIndex(key, vi, ti, ni){
-    var currentGeometry = currentMesh.geometry;
+    var currentGeometry = currentMeshInfo.geometry;
     var index = currentGeometry.vertexMap[key];
 
 
     if(index !== undefined){
-      // console.log("exist index " + meshMap[key]);
+      // console.log("exist index " + meshInfoMap[key]);
       currentGeometry.indexData.push(currentGeometry.vertexMap[key]);
     }
     else{
@@ -159,19 +162,19 @@ geometry.vertexMap = Object.create(null);
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
-      currentMesh.geometry.faces.push(new Face3(i0, i1, i2));
+      currentMeshInfo.geometry.faces.push(new Face3(i0, i1, i2));
     }
     // quad face, 2 triangle faces
     else{
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
-      currentMesh.geometry.faces.push(new Face3(i0, i1, i2));
+      currentMeshInfo.geometry.faces.push(new Face3(i0, i1, i2));
 
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
-      currentMesh.geometry.faces.push(new Face3(i1, i2, i3));
+      currentMeshInfo.geometry.faces.push(new Face3(i1, i2, i3));
     }
   }
 
@@ -250,19 +253,19 @@ geometry.vertexMap = Object.create(null);
     }
     console.timeEnd('regexp start');
 
-    for(var name in meshMap){
-      meshMap[name].createBuffer();
-      this.group.add(meshMap[name]);
+    for(var name in meshInfoMap){
+      var meshInfo = meshInfoMap[name];
+      var mesh = new Mesh(meshInfo.geometry, meshInfo.material)
+      this.object.add(mesh);
 
-      // console.log(meshMap[name].geometry.vertices);
-      // console.log(meshMap[name].geometry.normals);
-      // console.log(meshMap[name].geometry.texCoords);
-      // console.log(meshMap[name].geometry.indexData);
+      // console.log(meshInfoMap[name].geometry.vertices);
+      // console.log(meshInfoMap[name].geometry.normals);
+      // console.log(meshInfoMap[name].geometry.texCoords);
+      // console.log(meshInfoMap[name].geometry.indexData);
     }
 
-    if(this.group.children.length == 0){
-      currentMesh.createBuffer();
-      this.group = currentMesh;
+    if(this.object.children.length == 0){
+      this.object = new Mesh(currentMeshInfo.geometry, currentMeshInfo.material);
     }
 
     if(this.callback)
