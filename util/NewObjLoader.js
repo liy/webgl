@@ -45,23 +45,57 @@ p.onload = function(e){
   var tLookup = [];
   var nLookup = [];
 
-  var geometries = [];
+  var mesh = new Mesh(new Geometry(), new Material());
 
-  // FIXME: TODO: some mesh might not have material
-  var materials = [];
-
-  // since geometry's face use index to allocate vertex, the index must be related to current mesh geometry.
-  // If new mesh geometry is created, the vertex index must minus the number of previous mesh geometry vertex.
-  var vertexIndexOffset = 0;
-
-  // If there is no geometry created, this geometry will be used for storing data.
-  // However, if createGeometry function is called, the new geometry will be used.
-  var geometry = new Geometry();
-
-
+  // holds mesh
   var map = Object.create(null);
 
-  function createGeometry(){
+
+  // load material
+  function loadMtl(){
+    var len = lines.length;
+    for(var i=0; i<len; i++){
+      var line = lines[i];
+      // ignore comments
+      if(line.length === 0 || line.charAt(0) === '#')
+        continue;
+
+      if(/^mtllib /.test(line)){
+        this.mtllib = line.split('mtllib')[1].trim();
+        this.mtlLoader.load(this._baseURI, this.mtllib, bind(this, function(){
+          // find out all the material information.
+          for(var name in this.mtlLoader.matInfoMap){
+            var material = new Material();
+            material.setImageMap(this.mtlLoader.matInfoMap[name].imageMap);
+            // TODO: set color etc...
+
+            map[name] = new Mesh(new Geometry(), material);
+          }
+        }));
+      }
+      else if((result = vertex_pattern.exec(line)) !== null){
+        // TODO: continue parse vertex normal tex data, etc...
+        bind(this, parse)();
+        return;
+      }
+    }
+  }
+  bind(this, loadMtl)();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  function switchMesh(name){
     // vertex index must be based on current geometry's vertices array.
     vertexIndexOffset += geometry.vertices.length;
 
@@ -132,96 +166,85 @@ p.onload = function(e){
     }
   }
 
-  console.time('regexp start');
+  function parse(){
+    console.time('regexp start');
+    var len = lines.length;
+    for(var i=0; i<len; i++) {
+      line = lines[i].trim();
 
-  var len = lines.length;
-  for(var i=0; i<len; i++) {
-    line = lines[i].trim();
+      if(line.length === 0 || line.charAt(0) === '#')
+        continue;
 
-    if(line.length === 0 || line.charAt(0) === '#')
-      continue;
-
-    if((result = vertex_pattern.exec(line)) !== null){
-      // ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
-      vLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
+      if((result = vertex_pattern.exec(line)) !== null){
+        // ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
+        vLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
+      }
+      else if((result = normal_pattern.exec(line)) !== null) {
+        // ["vn 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
+        nLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
+      }
+      else if((result = texCoord_pattern.exec(line)) !== null){
+        // ["vt 0.1 0.2", "0.1", "0.2"]
+        tLookup.push( new Vec2(parseFloat(result[1]), parseFloat(result[2])) );
+      }
+      else if((result = face_pattern1.exec(line)) !== null){
+        // ["f 1 2 3", "1", "2", "3", undefined]
+        processFaceLine(
+          result[1], result[2], result[3], result[4],  // map key
+          result[1], result[2], result[3], result[4] // vertex indices
+        );
+      }
+      else if((result = face_pattern2.exec(line)) !== null){
+        // ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
+        processFaceLine(
+          result[1], result[4], result[7], result[10],  // map key
+          result[2], result[5], result[8], result[11], // vertex indices
+          result[3], result[6], result[9], result[12] // texture coordinate indices
+        );
+      }
+      else if((result = face_pattern3.exec(line)) !== null){
+        // ["f 1/1/1 2/2/2 3/3/3", " 1/1/1", "1", "1", "1", " 2/2/2", "2", "2", "2", " 3/3/3", "3", "3", "3", undefined, undefined, undefined, undefined]
+        processFaceLine(
+          result[1], result[5], result[9], result[13],  // map key
+          result[2], result[6], result[10], result[14], // vertex indices
+          result[3], result[7], result[11], result[15], // texture coordinate indices
+          result[4], result[8], result[12], result[16]  // normal indices
+        );
+      }
+      else if((result = face_pattern4.exec(line)) !== null){
+        // ["f 1//1 2//2 3//3", " 1//1", "1", "1", " 2//2", "2", "2", " 3//3", "3", "3", undefined, undefined, undefined]
+        processFaceLine(
+          result[1], result[4], result[7], result[10],  // map key
+          result[2], result[5], result[6], result[11], // vertex indices
+          undefined, undefined, undefined, undefined,   // texture coordinate indices
+          result[3], result[6], result[7], result[12]  // normal indices
+        );
+      }
+      else if(/^o /.test(line)){
+        // object, ignore.
+      }
+      else if(/^g /.test( line)){
+        // group, ignore for now
+      }
+      else if(/^usemtl /.test(line)){
+        // TODO: create mesh, geometry, and make sure to share same material.
+        geometry
+      }
+      else if(/^mtllib /.test(line)){
+        // do nothing... since it is handled already.
+      }
+      else if(/^s /.test(line)){
+        // Smooth shading, ignore for now
+      }
+      else{
+        console.warn("ObjLoader: Unhandled line " + line);
+      }
     }
-    else if((result = normal_pattern.exec(line)) !== null) {
-      // ["vn 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
-      nLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
-    }
-    else if((result = texCoord_pattern.exec(line)) !== null){
-      // ["vt 0.1 0.2", "0.1", "0.2"]
-      tLookup.push( new Vec2(parseFloat(result[1]), parseFloat(result[2])) );
-    }
-    else if((result = face_pattern1.exec(line)) !== null){
-      // ["f 1 2 3", "1", "2", "3", undefined]
-      processFaceLine(
-        result[1], result[2], result[3], result[4],  // map key
-        result[1], result[2], result[3], result[4] // vertex indices
-      );
-    }
-    else if((result = face_pattern2.exec(line)) !== null){
-      // ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
-      processFaceLine(
-        result[1], result[4], result[7], result[10],  // map key
-        result[2], result[5], result[8], result[11], // vertex indices
-        result[3], result[6], result[9], result[12] // texture coordinate indices
-      );
-    }
-    else if((result = face_pattern3.exec(line)) !== null){
-      // ["f 1/1/1 2/2/2 3/3/3", " 1/1/1", "1", "1", "1", " 2/2/2", "2", "2", "2", " 3/3/3", "3", "3", "3", undefined, undefined, undefined, undefined]
-      processFaceLine(
-        result[1], result[5], result[9], result[13],  // map key
-        result[2], result[6], result[10], result[14], // vertex indices
-        result[3], result[7], result[11], result[15], // texture coordinate indices
-        result[4], result[8], result[12], result[16]  // normal indices
-      );
-    }
-    else if((result = face_pattern4.exec(line)) !== null){
-      // ["f 1//1 2//2 3//3", " 1//1", "1", "1", " 2//2", "2", "2", " 3//3", "3", "3", undefined, undefined, undefined]
-      processFaceLine(
-        result[1], result[4], result[7], result[10],  // map key
-        result[2], result[5], result[6], result[11], // vertex indices
-        undefined, undefined, undefined, undefined,   // texture coordinate indices
-        result[3], result[6], result[7], result[12]  // normal indices
-      );
-    }
-    else if(/^o /.test(line)){
-      // object
-      createGeometry();
-
-      // default material, since no name is specified
-      var material = new Material();
-      materials.push(material)
-    }
-    else if(/^g /.test( line)){
-      // group, ignore for now
-    }
-    else if(/^usemtl /.test(line)){
-      // material
-      createGeometry();
-
-      var material = new Material();
-      // material name will be used to look up material information once mtl file is loaded.
-      material.name = line.substring(7).trim().toLowerCase();
-      materials.push(material)
-    }
-    else if(/^mtllib /.test(line)){
-      // mtl file
-      this.mtllib = line.split('mtllib')[1].trim();
-    }
-    else if(/^s /.test(line)){
-      // Smooth shading, ignore for now
-    }
-    else{
-      console.warn("ObjLoader: Unhandled line " + line);
-    }
+    console.timeEnd('regexp start');
   }
-  console.timeEnd('regexp start');
 
-  // if no mesh is created. That means the face definition is still in initial geometry, just create a mesh use that geometry
-  if(geometries.length === 0)
-    geometries.push(geometry);
+
+
 
   // console.log(geometry.vertices);
   // console.log(geometry.normals);
@@ -229,111 +252,4 @@ p.onload = function(e){
   // console.log(geometry.indexData);
   // console.log(geometry.faces.length);
 
-
-  if(this.mtllib){
-    this.mtlLoader.load(this._baseURI, this.mtllib, bind(this, function(){
-      // console.log(materials);
-      // console.log(this.mtlLoader.materialMap);
-
-      for(var i=0; i<geometries.length; ++i){
-        var material = materials[i];
-        if(this.mtlLoader.materialMap[material.name.toLowerCase()]){
-          var imageMap = this.mtlLoader.materialMap[material.name.toLowerCase()].imageMap;
-          material.setImageMap(imageMap);
-        }
-
-        var mesh = new Mesh(geometries[i], material);
-        this.group.add(mesh);
-      }
-
-      if(this.callback)
-        this.callback();
-    })); 
-  }
-
-
-
-
-
-
-
-
-
-  // load the materials
-  // if(this.mtllib){
-  //   this.mtlLoader.load(this._baseURI + this.mtllib);
-
-  //   // TODO: find a better place for texture manager
-  //   var materialMap = this.mtlLoader.materialMap;
-  //   for(var key in materialMap){
-  //     var objMaterial = materialMap[key.toLowerCase()];
-
-  //     console.log('lib: ' + this.mtllib);
-
-  //     if(objMaterial.map_Ka !== '')
-  //       TextureManager.instance.add(this._baseURI + objMaterial.map_Ka, objMaterial.map_Ka);
-  //     if(objMaterial.map_Kd !== '')
-  //       TextureManager.instance.add(this._baseURI + objMaterial.map_Kd, objMaterial.map_Kd);
-  //     if(objMaterial.map_bump !== '')
-  //       TextureManager.instance.add(this._baseURI + objMaterial.map_bump, objMaterial.map_bump);
-  //   }
-  //   TextureManager.instance.load(bind(this, textureLoaded));
-  // }
-
-  // function textureLoaded(){
-  //   var materialMap = this.mtlLoader.materialMap;
-  //   var textureLoaderMap = TextureManager.instance.map;
-
-  //   console.log(materialNames);
-  //   console.log(materialMap);
-  //   console.log(textureLoaderMap);
-
-  //   for(var i=0; i<geometries.length; ++i){
-
-  //     this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  //     this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  //     this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  //     this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
-  //     this.roughness = 65;
-
-  //     this.ambientTexture = null;
-  //     this.albedoTexture = null;
-  //     this.specularTexture = null;
-  //     this.roughnessTexture = null;
-
-  //     var alpha = 1.0;
-
-  //     var params = {
-  //       ambientColor: new Float32Array(materialMap[materialNames[i]].Ka.concat(alpha)),
-  //       albedoColor: new Float32Array(materialMap[materialNames[i]].Kd.concat(alpha)),
-  //       emissionColor: new Float32Array(materialMap[materialNames[i]].Ke.concat(alpha)),
-  //       specularColor: new Float32Array(materialMap[materialNames[i]].Ks.concat(alpha)),
-  //     };
-
-  //     // ambient texture? WTF is ambient texture!? environment map?
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ka])
-  //       params.ambientTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ka].texture;
-  //     // diffuse texture
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Kd])
-  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Kd].texture;
-  //     // specular texture map
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ks])
-  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ks].texture;
-  //     // shininess texture
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_Ns])
-  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_Ns].texture;
-  //     // alpha texture
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_d])
-  //       params.albedoTexture = textureLoaderMap[materialMap[materialNames[i]].map_d].texture;
-  //     // bump texture
-  //     if(textureLoaderMap[materialMap[materialNames[i]].map_bump])
-  //       params.bumpTexture = textureLoaderMap[materialMap.map_bump].texture;
-
-  //     var material = new BRDFMaterial(params);
-  //     var mesh = new Mesh(geometries[i], material);
-  //     this.group.add(mesh);
-  //   }
-
-  //   this.callback();
-  // }
 }

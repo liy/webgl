@@ -76,12 +76,12 @@ MatInfo.prototype.hasTexture = function(){
 
 function MtlLoader(){
   // contains materials
-  this.materialMap = Object.create(null);
+  this.matInfoMap = Object.create(null);
 }
 var p = MtlLoader.prototype;
 
 p.clear = function(){
-  this.materialMap = Object.create(null);
+  this.matInfoMap = Object.create(null);
 }
 
 p.load = function(baseURI, path, callback){
@@ -134,7 +134,7 @@ p.onload = function(e){
       case 'newmtl':
         currentMtl = new MatInfo();
         currentMtl.newmtl = chunks[chunks.length-1].trim().toLowerCase();
-        this.materialMap[currentMtl.newmtl] = currentMtl;
+        this.matInfoMap[currentMtl.newmtl] = currentMtl;
         break;
       case 'Ns':
         currentMtl.shininess = parseInt(chunks.slice(1));

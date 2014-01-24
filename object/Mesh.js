@@ -9,7 +9,7 @@ function Mesh(geometry, material){
   this.geometry = geometry;
   this.material = material || new BRDFMaterial();
 
-  this.createBuffer();
+  // this.createBuffer();
 }
 var p = Mesh.prototype = Object.create(Object3D.prototype);
 
