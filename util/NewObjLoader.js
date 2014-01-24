@@ -250,7 +250,6 @@ geometry.vertexMap = Object.create(null);
     }
     console.timeEnd('regexp start');
 
-    console.log(meshMap);
     for(var name in meshMap){
       meshMap[name].createBuffer();
       this.group.add(meshMap[name]);
@@ -269,10 +268,4 @@ geometry.vertexMap = Object.create(null);
     if(this.callback)
       this.callback();
   }
-
-
-
-
-
-
 }

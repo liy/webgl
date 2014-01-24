@@ -13,27 +13,28 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 1, 5000)
 scene.add(camera);
-camera.y = 50;
-camera.z = 150;
+// camera.y = 50;
+// camera.z = 150;
+camera.y = -10;
 camera.lookTarget = vec3.fromValues(1,camera.y,0);
 
 
 var loader = new NewObjLoader();
-loader.load("../webgl-meshes/crytek-sponza/", "sponza.obj");
+loader.load("../webgl-meshes/sibenik/", "sibenik.obj");
 var mesh1 = loader.group;
 scene.add(mesh1);
 
 var loader2 = new NewObjLoader();
 loader2.load("../webgl-meshes/head/", "head.obj");
 var mesh2 = loader2.group;
-mesh2.y = 100;
-mesh2.scale = 200;
+mesh2.y = 1;
+mesh2.scale = 2;
 scene.add(mesh2);
 
 function render(){
   stats.begin();
 
-  mesh2.rotationY -= 0.004;
+  mesh1.rotationY -= 0.004;
 
   renderer.render(scene, camera);
 
