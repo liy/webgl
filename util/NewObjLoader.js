@@ -122,7 +122,7 @@ geometry.vertexMap = Object.create(null);
 
 
     if(index !== undefined){
-      // console.log("exist index " + meshInfoMap[key]);
+      // console.log("exist index " + currentGeometry.vertexMap[key]);
       currentGeometry.indexData.push(currentGeometry.vertexMap[key]);
     }
     else{
