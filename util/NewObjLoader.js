@@ -45,11 +45,15 @@ p.onload = function(e){
   var tLookup = [];
   var nLookup = [];
 
-  var mesh = new Mesh(new Geometry(), new Material());
+  var indexOffset = 0;
 
-  // holds mesh
-  var map = Object.create(null);
+var geometry = new Geometry();
+geometry.vertexMap = Object.create(null);
+  // just in case no mtl is defined.
+  var currentMesh = new Mesh(geometry, new Material());
 
+  // holds meshes
+  var meshMap = Object.create(null);
 
   // load material
   function loadMtl(){
@@ -62,25 +66,33 @@ p.onload = function(e){
 
       if(/^mtllib /.test(line)){
         this.mtllib = line.split('mtllib')[1].trim();
-        this.mtlLoader.load(this._baseURI, this.mtllib, bind(this, function(){
-          // find out all the material information.
-          for(var name in this.mtlLoader.matInfoMap){
-            var material = new Material();
-            material.setImageMap(this.mtlLoader.matInfoMap[name].imageMap);
-            // TODO: set color etc...
-
-            map[name] = new Mesh(new Geometry(), material);
-          }
-        }));
+        this.mtlLoader.load(this._baseURI, this.mtllib, bind(this, mtlOnload));
+        return;
       }
       else if((result = vertex_pattern.exec(line)) !== null){
-        // TODO: continue parse vertex normal tex data, etc...
         bind(this, parse)();
         return;
       }
     }
   }
   bind(this, loadMtl)();
+
+  function mtlOnload(){
+    // find out all the material information.
+    for(var name in this.mtlLoader.matInfoMap){
+      var material = new Material();
+      material.setImageMap(this.mtlLoader.matInfoMap[name].imageMap);
+      // TODO: set color etc...
+
+      var geometry = new Geometry();
+      // each geometry has a vertex map to check whether a certain vertex already exist.
+      geometry.vertexMap = Object.create(null);
+      meshMap[name] = new Mesh(geometry, material);
+    }
+
+    // TODO: continue parse vertex normal tex data, etc...
+    bind(this, parse)();
+  }
 
 
 
@@ -96,43 +108,40 @@ p.onload = function(e){
 
 
   function switchMesh(name){
-    // vertex index must be based on current geometry's vertices array.
-    vertexIndexOffset += geometry.vertices.length;
-
-    // map needs to be cleared.
-    map = Object.create(null);
-
-    geometry = new Geometry();
-    geometries.push(geometry);
+    // some obj file missing mtl...
+    if(meshMap[name])
+      currentMesh = meshMap[name];
   }
 
   function addIndex(key, vi, ti, ni){
-    var index = map[key];
+    var currentGeometry = currentMesh.geometry;
+    var index = currentGeometry.vertexMap[key];
+
 
     if(index !== undefined){
-      // console.log("exist index " + map[key]);
-      geometry.indexData.push(map[key]);
+      // console.log("exist index " + meshMap[key]);
+      currentGeometry.indexData.push(currentGeometry.vertexMap[key]);
     }
     else{
-      index = map[key] = geometry.vertices.length;
+      index = currentGeometry.vertexMap[key] = currentGeometry.vertices.length;
 
-      geometry.indexData.push(index);
+      currentGeometry.indexData.push(index);
 
       if(vi<0){
-        geometry.vertices.push(vLookup[vi + vLookup.length]);
+        currentGeometry.vertices.push(vLookup[vi + vLookup.length]);
 
         if(ti)
-          geometry.texCoords.push(tLookup[ti + tLookup.length]);
+          currentGeometry.texCoords.push(tLookup[ti + tLookup.length]);
         if(ni)
-          geometry.normals.push(nLookup[ni + nLookup.length]);
+          currentGeometry.normals.push(nLookup[ni + nLookup.length]);
       }
       else{
-        geometry.vertices.push(vLookup[--vi]);
+        currentGeometry.vertices.push(vLookup[--vi]);
 
         if(ti)
-          geometry.texCoords.push(tLookup[--ti]);
+          currentGeometry.texCoords.push(tLookup[--ti]);
         if(ni)
-          geometry.normals.push(nLookup[--ni]);
+          currentGeometry.normals.push(nLookup[--ni]);
       }
     }
 
@@ -144,25 +153,25 @@ p.onload = function(e){
     vi1, vi2, vi3, vi4,
     ti1, ti2, ti3, ti4,
     ni1, ni2, ni3, ni4){
+
     // 1 triangle face
     if(vi4 === undefined){
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
-
-      geometry.faces.push(new Face3(i0, i1, i2));
+      currentMesh.geometry.faces.push(new Face3(i0, i1, i2));
     }
     // quad face, 2 triangle faces
     else{
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i1 = addIndex(k2, parseInt(vi2), parseInt(ti2), parseInt(ni2));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
-      geometry.faces.push(new Face3(i0, i1, i2));
+      currentMesh.geometry.faces.push(new Face3(i0, i1, i2));
 
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
-      geometry.faces.push(new Face3(i1, i2, i3));
+      currentMesh.geometry.faces.push(new Face3(i1, i2, i3));
     }
   }
 
@@ -224,11 +233,10 @@ p.onload = function(e){
         // object, ignore.
       }
       else if(/^g /.test( line)){
-        // group, ignore for now
+        // group, ignore.
       }
       else if(/^usemtl /.test(line)){
-        // TODO: create mesh, geometry, and make sure to share same material.
-        geometry
+        switchMesh(line.substring(7).trim().toLowerCase());
       }
       else if(/^mtllib /.test(line)){
         // do nothing... since it is handled already.
@@ -241,15 +249,30 @@ p.onload = function(e){
       }
     }
     console.timeEnd('regexp start');
+
+    console.log(meshMap);
+    for(var name in meshMap){
+      meshMap[name].createBuffer();
+      this.group.add(meshMap[name]);
+
+      // console.log(meshMap[name].geometry.vertices);
+      // console.log(meshMap[name].geometry.normals);
+      // console.log(meshMap[name].geometry.texCoords);
+      // console.log(meshMap[name].geometry.indexData);
+    }
+
+    if(this.group.children.length == 0){
+      currentMesh.createBuffer();
+      this.group = currentMesh;
+    }
+
+    if(this.callback)
+      this.callback();
   }
 
 
 
 
-  // console.log(geometry.vertices);
-  // console.log(geometry.normals);
-  // console.log(geometry.texCoords);
-  // console.log(geometry.indexData);
-  // console.log(geometry.faces.length);
+
 
 }

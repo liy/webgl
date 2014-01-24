@@ -23,15 +23,17 @@ loader.load("../webgl-meshes/crytek-sponza/", "sponza.obj");
 var mesh1 = loader.group;
 scene.add(mesh1);
 
-// var loader2 = new NewObjLoader();
-// loader2.load("../webgl-meshes/head/", "head.obj");
-// var mesh2 = loader2.group;
-// mesh2.y = 100;
-// mesh2.scale = 200;
-// scene.add(mesh2);
+var loader2 = new NewObjLoader();
+loader2.load("../webgl-meshes/head/", "head.obj");
+var mesh2 = loader2.group;
+mesh2.y = 100;
+mesh2.scale = 200;
+scene.add(mesh2);
 
 function render(){
   stats.begin();
+
+  mesh2.rotationY -= 0.004;
 
   renderer.render(scene, camera);
 
