@@ -156,5 +156,7 @@ p.draw = function(shader){
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
+
+  // gl.drawArrays(gl.TRIANGLES, 0, this.geometry.vertices.length);
   gl.bindVertexArrayOES(null);
 }

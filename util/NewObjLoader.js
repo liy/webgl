@@ -174,7 +174,7 @@ geometry.vertexMap = Object.create(null);
       var i0 = addIndex(k1, parseInt(vi1), parseInt(ti1), parseInt(ni1));
       var i2 = addIndex(k3, parseInt(vi3), parseInt(ti3), parseInt(ni3));
       var i3 = addIndex(k4, parseInt(vi4), parseInt(ti4), parseInt(ni4));
-      currentMeshInfo.geometry.faces.push(new Face3(i1, i2, i3));
+      currentMeshInfo.geometry.faces.push(new Face3(i0, i2, i3));
     }
   }
 
