@@ -49,8 +49,8 @@ vec3 getNormal(){
   float hr = texture2D(textures[2], vec2(v_TexCoord.x+ONE_OVER_TEX_WIDTH, v_TexCoord.y)).r;
   float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+ONE_OVER_TEX_WIDTH)).r;
 
-  float dx = (hg-ha)*5.0;
-  float dy = (hg-hr)*5.0;
+  float dx = (hg-ha)*1.0;
+  float dy = (hg-hr)*1.0;
 
   float scale = 1.0/sqrt(pow(dx, 2.0) + pow(dy, 2.0) + 1.0);
 

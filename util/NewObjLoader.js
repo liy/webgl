@@ -7,6 +7,10 @@ p.load = function(baseURI, file, callback){
   this.callback = callback;
   this._baseURI = baseURI;
 
+  // whether normal is defined in the obj file.
+  this.normalDefined = true;
+  this.texCoordDefined = true;
+
   this.mtllib = null;
   this.mtlLoader = new MtlLoader();
 
@@ -47,8 +51,8 @@ p.onload = function(e){
 
   var indexOffset = 0;
 
-var geometry = new Geometry();
-geometry.vertexMap = Object.create(null);
+  var geometry = new Geometry();
+  geometry.vertexMap = Object.create(null);
   // just in case no mtl is defined.
   var currentMeshInfo = new Mesh(geometry, new Material());
 
@@ -98,18 +102,6 @@ geometry.vertexMap = Object.create(null);
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
   function switchMesh(name){
     // some obj file missing mtl...
     if(meshInfoMap[name])
@@ -137,6 +129,14 @@ geometry.vertexMap = Object.create(null);
           currentGeometry.texCoords.push(tLookup[ti + tLookup.length]);
         if(ni)
           currentGeometry.normals.push(nLookup[ni + nLookup.length]);
+        else{
+          ni = vi + vLookup.length;
+          // ensure the same normal vector is shared by different vertex, so later Geometry class
+          // can perform smooth easily.
+          if(nLookup[ni] === undefined)
+            nLookup[ni] = new Vec3();
+          currentGeometry.normals.push(nLookup[ni]);
+        }
       }
       else{
         currentGeometry.vertices.push(vLookup[--vi]);
@@ -145,6 +145,13 @@ geometry.vertexMap = Object.create(null);
           currentGeometry.texCoords.push(tLookup[--ti]);
         if(ni)
           currentGeometry.normals.push(nLookup[--ni]);
+        else{
+          // ensure the same normal vector is shared by different vertex, so later Geometry class
+          // can perform smooth easily.
+          if(nLookup[vi] === undefined)
+            nLookup[vi] = new Vec3();
+          currentGeometry.normals.push(nLookup[vi]);
+        }
       }
     }
 
@@ -200,6 +207,8 @@ geometry.vertexMap = Object.create(null);
         tLookup.push( new Vec2(parseFloat(result[1]), parseFloat(result[2])) );
       }
       else if((result = face_pattern1.exec(line)) !== null){
+        this.normalDefined = false;
+        this.texCoordDefined = false;
         // ["f 1 2 3", "1", "2", "3", undefined]
         processFaceLine(
           result[1], result[2], result[3], result[4],  // map key
@@ -207,6 +216,7 @@ geometry.vertexMap = Object.create(null);
         );
       }
       else if((result = face_pattern2.exec(line)) !== null){
+        this.normalDefined = false;
         // ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
         processFaceLine(
           result[1], result[4], result[7], result[10],  // map key
@@ -224,6 +234,7 @@ geometry.vertexMap = Object.create(null);
         );
       }
       else if((result = face_pattern4.exec(line)) !== null){
+        this.texCoordDefined = false;
         // ["f 1//1 2//2 3//3", " 1//1", "1", "1", " 2//2", "2", "2", " 3//3", "3", "3", undefined, undefined, undefined]
         processFaceLine(
           result[1], result[4], result[7], result[10],  // map key
