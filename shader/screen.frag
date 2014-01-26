@@ -32,14 +32,76 @@ vec3 getDirectionalLight(){
   return normalize(vec3(-1, 0.5, 1));
 }
 
-float getDepth(){
-  // depth texture value is [0, 1], convert to [-1, 1]
-  return texture2D(depthTarget, v_TexCoord).x*2.0 - 1.0;
+float linearEyeSpaceDepth(){
+  // depth texture value is [0, 1], convert to [-1, 1], normalized device coordinate
+  float zn = texture2D(depthTarget, v_TexCoord).z * 2.0 - 1.0;
+
+  // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
+  // http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
+  //
+  // |  -   -   -   - |     | Xe |       | Xc |       | Xc/-Ze|   | Xn |
+  // |  -   -   -   - |  *  | Ye |   =   | Yc |  ==>  | Yc/-Ze| = | Yn |
+  // |  0   0   a   b |     | Ze |       | Zc |       | Zc/-Ze|   | Zn |
+  // |  0   0  -1   0 |     |  1 |       |-Ze |
+  //
+  // Zn = Zc/-Ze = (a*Ze + b)/-Ze
+  // Zn = (a*Ze + b)/-Ze
+  //
+  // Therefore:
+  // Ze = -b/(Zn + a)
+  //
+  // clip-space coordinate will be:
+  // | Xc | = | Xn * -Ze |
+  // | Yc | = | Yn * -Ze |
+  // | Zc | = | Zn * -Ze |
+  // | Wc | = | -Ze      |
+
+  // u_ProjectionMatrix[2][2] can be also written as u_ProjectionMatrix[2].z
+  float a = u_ProjectionMatrix[2][2];
+  float b = u_ProjectionMatrix[3][2];
+  // float zNear = - b / (1.0 - a);
+  float zFar = b/(1.0 + a);
+  float ze = -b/(zn + a);
+
+  // because ze is negative, so needs reverse to positive number.
+  return -ze/zFar;
 }
 
+float linearEyeSpaceDepth2()
+{
+  float A = u_ProjectionMatrix[2].z;
+  float B = u_ProjectionMatrix[3].z;
+  float zNear = - B / (1.0 - A);
+  float zFar  =   B / (1.0 + A);
+
+  // depth texture stores value in [0, 1], normalize device coordinate is [-1, 1]
+  float z_n = texture2D(depthTarget, v_TexCoord).x*2.0 - 1.0;
+  float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+
+  // map to [0, 1], dividing the max value.
+  return z_e/zFar;
+}
+
+float linearEyeSpaceDepth3()
+{
+  float A = u_ProjectionMatrix[2].z;
+  float B = u_ProjectionMatrix[3].z;
+  float zNear = - B / (1.0 - A);
+  float zFar  =   B / (1.0 + A);
+
+  // depth texture stores value in [0, 1], normalize device coordinate is [-1, 1]
+  float z_n = texture2D(depthTarget, v_TexCoord).x*2.0 - 1.0;
+  float z_e = (zNear/(zFar - z_n*(zFar-zNear))) * zFar;
+
+  // map to [0, 1], dividing the max value.
+  return z_e/zFar;
+}
+
+
 vec4 getEyeSpacePosition(){
-  // gl_FragColor = texture2D(u_Sampler[2], v_TexCoord) * texture2D(u_Sampler[1], v_TexCoord) * texture2D(u_Sampler[0], v_TexCoord);
-  vec3 ndc = vec3(v_Position, texture2D(depthTarget, v_TexCoord));
+  // depth texture value is [0, 1], convert to [-1, 1]
+  float zn = texture2D(depthTarget, v_TexCoord).z*2.0 - 1.0;
+  vec3 ndc = vec3(v_Position, zn);
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
   //
@@ -92,4 +154,5 @@ void main(){
   gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm, 1.0);
   // gl_FragColor = vec4(n, 1.0);
   // gl_FragColor = vec4(materialSpecular, 1.0);
+  // gl_FragColor = vec4(linearEyeSpaceDepth(), linearEyeSpaceDepth(), linearEyeSpaceDepth(), 1.0);
 }

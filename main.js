@@ -13,8 +13,8 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 300)
 scene.add(camera);
-camera.z = 0.4;
-camera.y = -0.08;
+camera.z = 0.3;
+camera.y = -0.05;
 camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
 var loader = new ObjectFile();
