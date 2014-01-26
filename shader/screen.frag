@@ -15,6 +15,7 @@ uniform mat4 u_InvProjectionMatrix;
 
 varying vec2 v_TexCoord;
 varying vec2 v_Position;
+varying vec3 v_EyeRay;
 
 vec3 fresnel(vec3 F0, float vdoth){
   return F0 + (1.0 - F0) * pow(1.0-max(vdoth, 0.0), 5.0);
@@ -97,8 +98,19 @@ float linearEyeSpaceDepth3()
   return z_e/zFar;
 }
 
+/**
+ * Using eye ray to recover the eye space position, avoid inverse projection matrix computation, and transformation.
+ */
+vec3 getEyeSpacePosition(){
+  // http://www.opengl.org/wiki/Compute_eye_space_from_window_space#Optimized_method_from_XYZ_of_gl_FragCoord
+  return normalize(v_EyeRay) * linearEyeSpaceDepth();
+}
 
-vec4 getEyeSpacePosition(){
+/**
+ * Naive way to rever the eye space position, by reverse transform from NDC to clip space, then apply invert projection matrix
+ * to rever the eye space position.
+ */
+vec4 getEyeSpacePosition2(){
   // depth texture value is [0, 1], convert to [-1, 1]
   float zn = texture2D(depthTarget, v_TexCoord).z*2.0 - 1.0;
   vec3 ndc = vec3(v_Position, zn);
