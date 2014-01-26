@@ -4,6 +4,7 @@ attribute vec2 a_Vertex;
 attribute vec2 a_TexCoord;
 
 varying vec2 v_TexCoord;
+varying vec2 v_Position;
 
 /**
  * final composition
@@ -11,4 +12,5 @@ varying vec2 v_TexCoord;
 void main(){
   gl_Position = vec4(a_Vertex, 0.0, 1.0);
   v_TexCoord = a_TexCoord;
+  v_Position = a_Vertex;
 }

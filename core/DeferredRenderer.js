@@ -36,7 +36,7 @@ function DeferredRenderer(){
   }
 
   this.mrtProgram = gl.createProgram();
-  this.mrtShader = new Shader(this.mrtProgram, 'shader/mrt.vert', 'shader/mrt.frag');
+  this.mrtShader = new Shader(this.mrtProgram, 'shader/multi_render_target_normal.vert', 'shader/multi_render_target_normal.frag');
   gl.useProgram(this.mrtProgram);
   this.mrtShader.locateAttributes(this.mrtProgram);
   this.mrtShader.locateUniforms(this.mrtProgram);
@@ -60,19 +60,19 @@ var p = DeferredRenderer.prototype;
 p.createGBuffers = function(){
   // Setup MRT
   // 3 textures as 3 render targets
-  this.albedoTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-  this.normalTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-  this.positionTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-  this.depthTexture = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
+  this.albedoTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.normalTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.specularTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
+  this.depthTarget = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
 
   // framebuffer to attach both textures and depth renderbuffer
   this.GFrameBuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
   // specify 3 textures as render targets
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.positionTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTarget, 0);
 
   // Specifies a list of color buffers to be drawn into
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
@@ -121,21 +121,29 @@ p.render = function(scene, camera){
   gl.useProgram(this.screenProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-  gl.clearColor(0.2, 0.2, 0.2, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  // FIXIME: TODO: move these const uniform into camera initialization method
+  // this.viewAngle = viewAngle || Math.PI/3;
+  // this.aspectRatio = aspectRatio || window.innerWidth/window.innerHeight;
+  // this.near = near || 0.1;
+  // this.far = far || 400;
+  gl.uniformMatrix4fv(this.screenShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.screenShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.albedoTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[0], 0);
+  gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+  gl.uniform1i(this.screenShader.uniforms['albedoTarget'], 0);
   gl.activeTexture(gl.TEXTURE0+1);
-  gl.bindTexture(gl.TEXTURE_2D, this.normalTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[1], 1);
+  gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+  gl.uniform1i(this.screenShader.uniforms['normalTarget'], 1);
   gl.activeTexture(gl.TEXTURE0+2);
-  gl.bindTexture(gl.TEXTURE_2D, this.positionTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[2], 2);
+  gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+  gl.uniform1i(this.screenShader.uniforms['specularTarget'], 2);
   gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
-  gl.uniform1i(this.screenShader.uniforms.textures[3], 3);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
+  gl.uniform1i(this.screenShader.uniforms['depthTarget'], 3);
 
   gl.bindVertexArrayOES(this.screenVAO);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -250,8 +258,8 @@ p.createScreenBuffer = function(){
 p._createColorTexture = function(w, h){
   var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -262,8 +270,8 @@ p._createColorTexture = function(w, h){
 p._createDepthTexture = function(w, h){
   var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, w, h, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);

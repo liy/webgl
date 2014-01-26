@@ -13,17 +13,19 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 300)
 scene.add(camera);
-camera.z = 0.3;
+camera.z = 0.4;
+camera.y = -0.08;
+camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
-var loader = new NewObjLoader();
-loader.load("../webgl-meshes/sibenik/", "sibenik.obj");
+var loader = new ObjectFile();
+loader.load("../webgl-meshes/head/head.obj");
 var obj = loader.object;
 scene.add(obj);
 
 function render(){
   stats.begin();
 
-  obj.rotationY -= 0.001;
+  obj.rotationY -= 0.003;
 
   renderer.render(scene, camera);
 

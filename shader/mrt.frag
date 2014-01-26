@@ -33,6 +33,8 @@ uniform float delta;
  */
 uniform sampler2D textures[6];
 uniform float textureReady[6];
+uniform float textureDeltaX;
+uniform float textureDeltaY; 
 
 // uniform Material u_Material;
 
@@ -43,14 +45,13 @@ varying vec3 v_Tangent;
 varying vec3 v_Bitangent;
 varying vec4 v_Color;
 
-vec3 getNormal(){
-  float ONE_OVER_TEX_WIDTH = 1.0/1024.0;
+vec3 getNormal2(){
   float hg = texture2D(textures[2], v_TexCoord).r;
-  float hr = texture2D(textures[2], vec2(v_TexCoord.x+ONE_OVER_TEX_WIDTH, v_TexCoord.y)).r;
-  float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+ONE_OVER_TEX_WIDTH)).r;
+  float hr = texture2D(textures[2], vec2(v_TexCoord.x+textureDeltaX, v_TexCoord.y)).r;
+  float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+textureDeltaY)).r;
 
-  float dx = (hg-ha)*1.0;
-  float dy = (hg-hr)*1.0;
+  float dx = (hg-ha)*2.0;
+  float dy = (hg-hr)*2.0;
 
   float scale = 1.0/sqrt(pow(dx, 2.0) + pow(dy, 2.0) + 1.0);
 
@@ -64,14 +65,13 @@ vec3 getNormal(){
   return normalize(TBN*normal);
 }
 
-vec3 getNormal2(){
-  float ONE_OVER_TEX_WIDTH = 1.0/1024.0;
+vec3 getNormal(){
   float hg = texture2D(textures[2], v_TexCoord).r;
-  float hr = texture2D(textures[2], vec2(v_TexCoord.x+ONE_OVER_TEX_WIDTH, v_TexCoord.y)).r;
-  float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+ONE_OVER_TEX_WIDTH)).r;
+  float hr = texture2D(textures[2], vec2(v_TexCoord.x+textureDeltaX, v_TexCoord.y)).r;
+  float ha = texture2D(textures[2], vec2(v_TexCoord.x, v_TexCoord.y+textureDeltaY)).r;
 
-  vec3 vr = vec3(1.0, 0.0, (hr-hg)*20.0);
-  vec3 va = vec3(0.0, 1.0, (ha-hg)*20.0);
+  vec3 vr = vec3(1.0, 0.0, (hr-hg)*5.0);
+  vec3 va = vec3(0.0, 1.0, (ha-hg)*5.0);
   vec3 normal = cross(vr, va);
 
   vec3 N = normalize(v_Normal);
@@ -89,10 +89,11 @@ void main() {
     roughness*0.1 + texture2D(textures[4], v_TexCoord).r*textureReady[4]
   );
   // normal
-  gl_FragData[1] = vec4((getNormal()+1.0)*0.5 , 1.0);
+  gl_FragData[1] = vec4((normalMapping()+1.0)*0.5 , 1.0);
+  // gl_FragData[1] = vec4((getNormal()+1.0)*0.5 , 1.0);
   // gl_FragData[1] = vec4((v_Normal+1.0)*0.5 , 1.0);
   // position
-  gl_FragData[2] = vec4((v_EyeSpacePosition.xyz + 1.0)*0.5, 1.0);
+  gl_FragData[2] = vec4(texture2D(textures[3], v_TexCoord), 1.0);
 
   // gl_FragData[0] = vec4(1.0, 0.0, 0.0, 1.0);
   // gl_FragData[1] = vec4(0.0, 1.0, 0.0, 1.0);
