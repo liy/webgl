@@ -11,23 +11,26 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.1, 300)
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
 scene.add(camera);
-camera.z = 2;
 // camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
-// var loader = new ObjectFile();
-// loader.load("../webgl-meshes/head/head.obj");
-// var obj = loader.object;
-// scene.add(obj);
+var pointLight = new PointLight(10);
+pointLight.x = -0.02;
+pointLight.z = -0.01;
+scene.add(pointLight);
 
-var sphereMesh = new Mesh(new SphereGeometry(), new Material());
-sphereMesh.z = -1;
-sphereMesh.scale = 100;
-scene.add(sphereMesh);
+var loader = new ObjectFile();
+loader.load("../webgl-meshes/head/head.obj");
+var obj = loader.object;
+obj.z = -0.3;
+obj.y = 0.05;
+scene.add(obj);
 
 function render(){
   stats.begin();
+
+  obj.rotationY -= 0.003;
 
   renderer.render(scene, camera);
 

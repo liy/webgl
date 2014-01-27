@@ -9,9 +9,16 @@ uniform sampler2D specularTarget;
 uniform sampler2D depthTarget;
 
 // point light attributes
-// TODO: make it into struct
-uniform float u_LightRadius;
-uniform vec3 u_LightPosition;
+struct Light {
+  // eye space position
+  vec3 position;
+  vec3 color;
+  vec3 attenuation;
+  bool enabled;
+  float radius;
+};
+
+uniform Light u_Light;
 
 // scene projection matrix
 uniform mat4 u_ProjectionMatrix;
@@ -64,7 +71,7 @@ float linearEyeSpaceDepth(vec2 texCoord){
 }
 
 vec3 getEyeSpacePosition(vec3 viewRay, vec2 texCoord){
-  return viewRay * linearEyeSpaceDepth(texCoord);
+  return viewRay * -linearEyeSpaceDepth(texCoord);
 }
 
 void main(){
@@ -82,7 +89,8 @@ void main(){
   
   // the view direction is the inverse of the eye space position
   vec3 v = -normalize(eyeSpacePosition);
-  vec3 l = normalize(u_LightPosition - eyeSpacePosition);
+  vec3 l = normalize(u_Light.position - eyeSpacePosition);
+  // vec3 l = normalize(vec3(0,0,1));
   vec3 n = normalize(texture2D(normalTarget, texCoord).xyz) * 2.0 - 1.0;
   vec3 h = normalize(l + v);
 
@@ -95,4 +103,5 @@ void main(){
   vec3 specularTerm = pow(max(ndoth, 0.0), 8.0) * materialSpecular*lightColor;
 
   gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm, 1.0);
+  // gl_FragColor = vec4(albedo, 1.0);
 }

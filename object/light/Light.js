@@ -2,6 +2,7 @@
 function Light(){
   Object3D.call(this);
 
+  // model view matrix
   this.modelViewMatrix = mat4.create();
 
   this.enabled = true;

@@ -41,14 +41,21 @@ function DeferredRenderer(){
   this.mrtShader.locateAttributes(this.mrtProgram);
   this.mrtShader.locateUniforms(this.mrtProgram);
 
-  this.directionalLightProgram = gl.createProgram();
-  this.screenShader = new Shader(this.directionalLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
-  gl.useProgram(this.directionalLightProgram);
-  this.screenShader.locateAttributes(this.directionalLightProgram);
-  this.screenShader.locateUniforms(this.directionalLightProgram);
+  this.pointLightProgram = gl.createProgram();
+  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point.vert', 'shader/light/point.frag');
+  gl.useProgram(this.pointLightProgram);
+  this.pointLightShader.locateAttributes(this.pointLightProgram);
+  this.pointLightShader.locateUniforms(this.pointLightProgram);
+
+  this.dirLightProgram = gl.createProgram();
+  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
+  gl.useProgram(this.dirLightProgram);
+  this.dirLightShader.locateAttributes(this.dirLightProgram);
+  this.dirLightShader.locateUniforms(this.dirLightProgram);
 
   this.createGBuffers();
-  this.createScreenBuffer();
+  // TODO: FIXME: move it into directional light class
+  this.createDirectionLightBuffer();
 
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
@@ -114,13 +121,17 @@ p.render = function(scene, camera){
   //   console.log(scene.meshes[i].material.name)
   // }
 
+  // gl.enable(gl.DEPTH_TEST);
   // draw to g-buffers
   this.draw(scene, camera);
 
+
+  // gl.disable(gl.DEPTH_TEST);
   // point light
+  this.pointLighting(scene, camera);
 
   // directional light
-  this.directionalLighting(scene, camera);
+  // this.directionalLighting(scene, camera);
 }
 
 
@@ -143,38 +154,67 @@ p.draw = function(scene, camera){
   }
 }
 
-p.pointLighting = function(){
-
-}
-
-p.directionalLighting = function(scene, camera){
-  // deferred lighting stage, combine different GBuffers.
-  gl.useProgram(this.directionalLightProgram);
+p.pointLighting = function(scene, camera){
+  gl.useProgram(this.pointLightProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
+  gl.activeTexture(gl.TEXTURE0+1);
+  gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
+  gl.activeTexture(gl.TEXTURE0+2);
+  gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
+  gl.activeTexture(gl.TEXTURE0+3);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
+
+  len = scene.lights.length;
+  for(var i=0; i<len; ++i){
+    var pointLight = scene.lights[i];
+
+    mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
+    vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
+
+    pointLight.draw(this.pointLightShader, camera);
+  }
+}
+
+p.directionalLighting = function(scene, camera){
+  // deferred lighting stage, combine different GBuffers.
+  gl.useProgram(this.dirLightProgram);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+  // gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // FIXIME: TODO: move these const uniform into camera initialization method
   // this.viewAngle = viewAngle || Math.PI/3;
   // this.aspectRatio = aspectRatio || window.innerWidth/window.innerHeight;
   // this.near = near || 0.1;
   // this.far = far || 400;
-  gl.uniformMatrix4fv(this.screenShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.screenShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+  gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
-  gl.uniform1i(this.screenShader.uniforms['albedoTarget'], 0);
+  gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
   gl.activeTexture(gl.TEXTURE0+1);
   gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
-  gl.uniform1i(this.screenShader.uniforms['normalTarget'], 1);
+  gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
   gl.activeTexture(gl.TEXTURE0+2);
   gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
-  gl.uniform1i(this.screenShader.uniforms['specularTarget'], 2);
+  gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
   gl.activeTexture(gl.TEXTURE0+3);
   gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
-  gl.uniform1i(this.screenShader.uniforms['depthTarget'], 3);
+  gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
 
   gl.bindVertexArrayOES(this.screenVAO);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -236,7 +276,7 @@ function sort(camera){
 
 
 
-p.createScreenBuffer = function(){
+p.createDirectionLightBuffer = function(){
   this.screenVAO = gl.createVertexArrayOES();
   gl.bindVertexArrayOES(this.screenVAO);
 
@@ -249,8 +289,8 @@ p.createScreenBuffer = function(){
                                                      1.0,  1.0,
                                                     -1.0,  1.0,
                                                     -1.0, -1.0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.screenShader.attributes.a_Vertex);
-  gl.vertexAttribPointer(this.screenShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.dirLightShader.attributes.a_Vertex);
+  gl.vertexAttribPointer(this.dirLightShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
   // texture coordinate buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
@@ -260,8 +300,8 @@ p.createScreenBuffer = function(){
                                                    1, 1,
                                                    0, 1,
                                                    0, 0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.screenShader.attributes.a_TexCoord);
-  gl.vertexAttribPointer(this.screenShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.dirLightShader.attributes.a_TexCoord);
+  gl.vertexAttribPointer(this.dirLightShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
 
   gl.bindVertexArrayOES(null);
 }

@@ -2,8 +2,8 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
   Geometry.call(this);
 
   this.radius = radius || 0.5;
-  this.latitudeBands = latitudeBands || 3;
-  this.longitudeBands = longitudeBands || 3;
+  this.latitudeBands = latitudeBands || 10;
+  this.longitudeBands = longitudeBands || 10;
 
   var theta = Math.PI/2;
   var phi = Math.PI/2;

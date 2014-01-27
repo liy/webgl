@@ -58,8 +58,7 @@ vec3 getNormal(){
 }
 
 void main() {
-  // gl_FragData[0] = vec4(texture2D(albedoTexture, v_TexCoord));
-  gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
+  gl_FragData[0] = vec4(texture2D(albedoTexture, v_TexCoord));
   gl_FragData[1] = vec4(getNormal(), 1.0);
   // gl_FragData[1] = vec4(v_Normal, 1.0);
   gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
