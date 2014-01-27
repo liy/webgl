@@ -41,11 +41,11 @@ function DeferredRenderer(){
   this.mrtShader.locateAttributes(this.mrtProgram);
   this.mrtShader.locateUniforms(this.mrtProgram);
 
-  this.screenProgram = gl.createProgram();
-  this.screenShader = new Shader(this.screenProgram, 'shader/screen.vert', 'shader/screen.frag');
-  gl.useProgram(this.screenProgram);
-  this.screenShader.locateAttributes(this.screenProgram);
-  this.screenShader.locateUniforms(this.screenProgram);
+  this.directionalLightProgram = gl.createProgram();
+  this.screenShader = new Shader(this.directionalLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
+  gl.useProgram(this.directionalLightProgram);
+  this.screenShader.locateAttributes(this.directionalLightProgram);
+  this.screenShader.locateUniforms(this.directionalLightProgram);
 
   this.createGBuffers();
   this.createScreenBuffer();
@@ -117,8 +117,39 @@ p.render = function(scene, camera){
   // draw to g-buffers
   this.draw(scene, camera);
 
+  // point light
+
+  // directional light
+  this.directionalLighting(scene, camera);
+}
+
+
+p.draw = function(scene, camera){
+  // camera
+  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
+
+  // meshes
+  len = scene.meshes.length;
+  for(var i=0; i<len; ++i){
+    var mesh = scene.meshes[i];
+
+    // normal, model view matrix
+    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
+    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
+    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
+
+    mesh.draw(this.mrtShader);
+  }
+}
+
+p.pointLighting = function(){
+
+}
+
+p.directionalLighting = function(scene, camera){
   // deferred lighting stage, combine different GBuffers.
-  gl.useProgram(this.screenProgram);
+  gl.useProgram(this.directionalLightProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -148,26 +179,6 @@ p.render = function(scene, camera){
   gl.bindVertexArrayOES(this.screenVAO);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   gl.bindVertexArrayOES(null);
-}
-
-
-p.draw = function(scene, camera){
-  // camera
-  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
-
-  // meshes
-  len = scene.meshes.length;
-  for(var i=0; i<len; ++i){
-    var mesh = scene.meshes[i];
-
-    // normal, model view matrix
-    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
-    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
-    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
-
-    mesh.draw(this.mrtShader);
-  }
 }
 
 function sort(camera){
