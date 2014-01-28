@@ -68,12 +68,11 @@ float linearEyeSpaceDepth(vec2 texCoord){
   float zFar = b/(1.0 + a);
   float ze = -b/(zn + a);
 
-  // because ze is negative, so needs reverse to positive number.
-  return -ze/zFar;
+  return ze;
 }
 
 vec3 getEyeSpacePosition(vec3 viewRay, vec2 texCoord){
-  return viewRay * -linearEyeSpaceDepth(texCoord);
+  return viewRay * linearEyeSpaceDepth(texCoord);
 }
 
 vec4 getEyeSpacePosition2(vec2 texCoord){
@@ -119,8 +118,8 @@ void main(){
   // texture to restore the actual eye space position of this fragment.
   vec3 viewRay = vec3(v_ViewSpacePosition.xy/v_ViewSpacePosition.z, 1.0);
   // get the eye space position of the fragment
-  // vec3 eyeSpacePosition = getEyeSpacePosition(viewRay, texCoord);
-  vec3 eyeSpacePosition = getEyeSpacePosition2(texCoord).xyz;
+  vec3 eyeSpacePosition = getEyeSpacePosition(viewRay, texCoord);
+  // vec3 eyeSpacePosition = getEyeSpacePosition2(texCoord).xyz;
   
   // the view direction is the inverse of the eye space position
   vec3 v = -normalize(eyeSpacePosition);
@@ -135,8 +134,8 @@ void main(){
 
   vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
-  // gl_FragColor = albedo*max(ndotl, 0.0) + specularTerm;
-  gl_FragColor = albedo*max(ndotl, 0.0);
+  gl_FragColor = albedo*max(ndotl, 0.0) + specularTerm;
+  // gl_FragColor = albedo*max(ndotl, 0.0);
   // gl_FragColor.rgb *= u_Light.color;
   // gl_FragColor = vec4(albedo);
   // gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
@@ -144,5 +143,5 @@ void main(){
   // float d = linearEyeSpaceDepth(texCoord);
   // gl_FragColor = vec4(d, d, d, 1.0);
 
-  // gl_FragColor = vec4(v_ViewSpacePosition.xy, 0.0, 1.0);
+  // gl_FragColor = vec4(eyeSpacePosition.xy, 0.0, 1.0);
 }
