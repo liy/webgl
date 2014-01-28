@@ -57,10 +57,8 @@ function DeferredRenderer(){
   // TODO: FIXME: move it into directional light class
   this.createDirectionLightBuffer();
 
-  gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.CULL_FACE);
 }
 var p = DeferredRenderer.prototype;
 
@@ -109,7 +107,6 @@ p.render = function(scene, camera){
   }
 
   // TODO: do the meshes state sorting, speed up rendering
-
   // for(var i=0; i<scene.meshes.length; ++i){
   //   console.log(scene.meshes[i].material.name)
   // }
@@ -123,19 +120,23 @@ p.render = function(scene, camera){
 
   // gl.enable(gl.DEPTH_TEST);
   // draw to g-buffers
-  this.draw(scene, camera);
+  this.drawGBuffers(scene, camera);
 
 
   // gl.disable(gl.DEPTH_TEST);
   // point light
-  this.pointLighting(scene, camera);
-
-  // directional light
-  // this.directionalLighting(scene, camera);
+  this.lighting(scene, camera);
 }
 
 
-p.draw = function(scene, camera){
+p.drawGBuffers = function(scene, camera){
+  // cull face needs to be enabled during G-buffer filling
+  gl.enable(gl.CULL_FACE);
+  // depth test of course is needed
+  gl.enable(gl.DEPTH_TEST);
+  // TODO: disable blend for now for G-Buffer, future needs support transparency.
+  gl.disable(gl.BLEND);
+
   // camera
   gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
   gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
@@ -154,14 +155,27 @@ p.draw = function(scene, camera){
   }
 }
 
-p.pointLighting = function(scene, camera){
-  gl.useProgram(this.pointLightProgram);
+p.lighting = function(scene, camera){
+  // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  gl.enable(gl.BLEND);
+  // enable add blend function
+  gl.blendEquation(gl.FUNC_ADD);
+  // blend lighting
+  gl.blendFunc(gl.ONE, gl.ONE);
+  // disable depth test, all the light volumes needs to be rendered
+  gl.disable(gl.DEPTH_TEST);
+
+
+  gl.useProgram(this.pointLightProgram);
+  // FIXIME: TODO: move these const uniform into camera initialization method
   gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
@@ -185,40 +199,33 @@ p.pointLighting = function(scene, camera){
 
     pointLight.draw(this.pointLightShader, camera);
   }
-}
+  // reset to default counter clock wise front face. Since positional lighting stage might change the order depending on whether the camera
+  // is enclosed by the lighting proxy geometry.
+  gl.frontFace(gl.CCW);
 
-p.directionalLighting = function(scene, camera){
-  // deferred lighting stage, combine different GBuffers.
-  gl.useProgram(this.dirLightProgram);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-  // gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // FIXIME: TODO: move these const uniform into camera initialization method
-  // this.viewAngle = viewAngle || Math.PI/3;
-  // this.aspectRatio = aspectRatio || window.innerWidth/window.innerHeight;
-  // this.near = near || 0.1;
-  // this.far = far || 400;
-  gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+  // directional light
+  // gl.useProgram(this.dirLightProgram);
+  // // FIXIME: TODO: move these const uniform into camera initialization method
+  // gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  // gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
-  gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
-  gl.activeTexture(gl.TEXTURE0+1);
-  gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
-  gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
-  gl.activeTexture(gl.TEXTURE0+2);
-  gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
-  gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-  gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
-  gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
+  // gl.activeTexture(gl.TEXTURE0);
+  // gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+  // gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
+  // gl.activeTexture(gl.TEXTURE0+1);
+  // gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+  // gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
+  // gl.activeTexture(gl.TEXTURE0+2);
+  // gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+  // gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
+  // gl.activeTexture(gl.TEXTURE0+3);
+  // gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
+  // gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
 
-  gl.bindVertexArrayOES(this.screenVAO);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-  gl.bindVertexArrayOES(null);
+  // gl.bindVertexArrayOES(this.screenVAO);
+  // gl.drawArrays(gl.TRIANGLES, 0, 6);
+  // gl.bindVertexArrayOES(null);
 }
 
 function sort(camera){

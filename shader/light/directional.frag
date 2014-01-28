@@ -146,7 +146,7 @@ void main(){
   float roughness = texture2D(normalTarget, v_TexCoord).a;
 
   vec3 materialSpecular = texture2D(specularTarget, v_TexCoord).rgb;
-  vec3 albedo = texture2D(albedoTarget, v_TexCoord).rgb;
+  vec4 albedo = texture2D(albedoTarget, v_TexCoord);
 
   vec3 v = -normalize(getEyeSpacePosition().xyz);
   vec3 l = normalize(getDirectionalLight());
@@ -158,13 +158,12 @@ void main(){
   float ndotv = dot(n, v);
   float vdoth = dot(v, h);
 
+  vec3 lightColor = vec3(0.3, 0.3, 0.3);
 
-  vec3 lightColor = vec3(1.5, 1.5, 1.5);
-  vec3 specularTerm = pow(max(ndoth, 0.0), 8.0) * materialSpecular*lightColor;
+  vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
-
-  // gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm, 1.0);
-  gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm, 1.0);
+  gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm);
+  gl_FragColor.rgb *= lightColor;  
   // gl_FragColor = vec4(n, 1.0);
   // gl_FragColor = vec4(materialSpecular, 1.0);
   // gl_FragColor = vec4(linearEyeSpaceDepth(), linearEyeSpaceDepth(), linearEyeSpaceDepth(), 1.0);

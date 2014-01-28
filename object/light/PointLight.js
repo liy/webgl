@@ -75,20 +75,14 @@ p.draw = function(shader, camera){
 
   // if camera outside of the sphere cull back face; if the camera is inside the light geometry, cull front face
   var distance = vec3.distance(this._position, camera._position);
-  // false 0.20000000298023224 1 
-  // console.log(distance > this.radius, distance, this.radius);
   // outside of the geometry, cull back face, back face is treated as CCW
-  // if(distance > this.radius)
-  //   gl.frontFace(gl.CCW);
-  // else
-  //   gl.frontFace(gl.CW);
-  // gl.enable(gl.CULL_FACE);
+  if(distance > this.radius)
+    gl.frontFace(gl.CCW);
+  else
+    gl.frontFace(gl.CW);
 
-
-  gl.disable(gl.CULL_FACE);
   // draw light volume
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   gl.bindVertexArrayOES(null);
-  gl.enable(gl.CULL_FACE);
 }
