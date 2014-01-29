@@ -15,7 +15,7 @@ function DeferredRenderer(){
   this.vaoExt = gl.getExtension("OES_vertex_array_object");
 
   // include extensions' properties into gl, for convenience reason.
-  var exts = [this.dbExt, this.dtExt, this.vaoExt];
+  var exts = [this.dbExt, this.dtExt, this.vaoExt, this.pdsExt];
   for(var i=0; i<exts.length; ++i){
     var ext = exts[i];
     for(var name in ext){
@@ -58,7 +58,12 @@ function DeferredRenderer(){
   this.createDirectionLightBuffer();
 
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+  // We need the stencil test to be enabled but we want it
+  // to succeed always. Only the depth test matters.
+  gl.stencilFunc(gl.ALWAYS, 0, 0);
+  gl.enable(gl.STENCIL_TEST);
 }
 var p = DeferredRenderer.prototype;
 
@@ -68,7 +73,8 @@ p.createGBuffers = function(){
   this.albedoTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.normalTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.specularTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-  this.depthTarget = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
+  // this.depthTarget = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
+  this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
 
   // framebuffer to attach both textures and depth renderbuffer
   this.GFrameBuffer = gl.createFramebuffer();
@@ -77,7 +83,8 @@ p.createGBuffers = function(){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTarget, 0);
+  // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
 
   // Specifies a list of color buffers to be drawn into
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
@@ -186,9 +193,12 @@ p.lighting = function(scene, camera){
   gl.activeTexture(gl.TEXTURE0+2);
   gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
   gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
+  // gl.activeTexture(gl.TEXTURE0+3);
+  // gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
+  // gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
   gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
 
   len = scene.lights.length;
   for(var i=0; i<len; ++i){
@@ -333,6 +343,19 @@ p._createDepthTexture = function(w, h){
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, w, h, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+
+  return texture;
+}
+
+p._createDepthStencilTexture = function(w, h){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  // this requires WEBKIT_WEBGL_depth_texture extension, notice the type of the data must be: UNSIGNED_INT_24_8_WEBGL
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, w, h, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8_WEBGL, null);
 
   return texture;
 }
