@@ -37,7 +37,7 @@ uniform sampler2D bumpTexture;
 uniform sampler2D roughnessTexture;
 
 uniform float textureDeltaX;
-uniform float textureDeltaY; 
+uniform float textureDeltaY;
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
@@ -84,9 +84,9 @@ vec3 getNormal(){
 }
 
 void main() {
-  gl_FragData[0] = vec4(texture2D(albedoTexture, v_TexCoord));
+  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord);
   // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
   gl_FragData[1] = vec4(getNormal(), 1.0);
-  // gl_FragData[1] = vec4(v_Normal, 1.0);
+  // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
 }
