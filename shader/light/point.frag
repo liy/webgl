@@ -29,6 +29,14 @@ varying vec4 v_ViewSpacePosition;
 // The clip space position of the light volume. Use it to find out the texture coordinate.
 varying vec4 v_ClipSpacePosition; // correct
 
+vec4 toLinear(vec4 color){
+  return pow(color, vec4(gamma));
+}
+
+vec4 toRGB(vec4 color){
+  return pow(color, vec4(1.0/gamma));
+}
+
 // correct
 vec2 getTexCoord(){
   // By dividing the w component of the clip space position.
@@ -136,9 +144,11 @@ void main(){
 
   vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
-  // gl_FragColor = albedo*max(ndotl, 0.0) + specularTerm;
-  // gl_FragColor.rgb *= u_Light.color;
-  gl_FragColor = vec4(ndotl,ndotl,ndotl,1.0);
+  vec4 color = (albedo*max(ndotl, 0.0));
+  // gl_FragColor = toLinear(vec4(color.rgb * u_Light.color, color.a));
+  gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
+
+  // gl_FragColor = vec4(ndotl,ndotl,ndotl,1.0);
   // gl_FragColor = vec4(albedo);
   // gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
 

@@ -163,7 +163,7 @@ void main(){
   vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
   gl_FragColor = vec4(albedo*max(ndotl, 0.0) + specularTerm);
-  gl_FragColor.rgb *= lightColor;  
+  gl_FragColor.rgb *= lightColor;
   // gl_FragColor = vec4(n, 1.0);
   // gl_FragColor = vec4(materialSpecular, 1.0);
   // gl_FragColor = vec4(linearEyeSpaceDepth(), linearEyeSpaceDepth(), linearEyeSpaceDepth(), 1.0);
