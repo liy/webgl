@@ -145,19 +145,10 @@ void main(){
   vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
   vec4 color = albedo*max(ndotl, 0.0);
+
+  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
   // gl_FragColor = toLinear(vec4(color.rgb * u_Light.color, color.a));
   gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 
 
-
-
-
-  // float zn = texture2D(depthStencilTarget, texCoord).x * 2.0 - 1.0;
-  // float a = u_ProjectionMatrix[2][2];
-  // float b = u_ProjectionMatrix[3][2];
-  // // float zNear = - b / (1.0 - a);
-  // float zFar = b/(1.0 + a);
-  // float ze = -b/(zn + a)/zFar;
-
-  // gl_FragColor = vec4(ze, ze, ze, 1.0)
 }

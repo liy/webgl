@@ -109,6 +109,8 @@ p.createCompositionFrameBuffers = function(){
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
+
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0]);
 }
 
 p.render = function(scene, camera){
@@ -183,18 +185,14 @@ p.stencil = function(light, camera){
   gl.useProgram(this.stencilProgram);
   gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
-  // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
-  // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-  
-  // stencil buffer is refreshed for each light, 0
-  gl.clear(gl.STENCIL_BUFFER_BIT);
 
-  // gl.stencilFunc(gl.ALWAYS, 1, 0xFF);
-  // gl.stencilOp(gl.KEEP, gl.REPLACE, gl.REPLACE);
-  // // write to stencil buffer
-  // gl.stencilMask(0xFF);
+  gl.clearStencil(0);
+  gl.clear(gl.STENCIL_BUFFER_BIT);
+  gl.stencilFunc(gl.ALWAYS, 0, 0);
+  gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
+  gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
   
 
   // only stencil write is needed, do not write to color buffer, save some processing power
@@ -221,18 +219,14 @@ p.lighting = function(light, camera){
     gl.activeTexture(gl.TEXTURE0+3);
     gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
     gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
-
-
-    // stop stencil write when doing lighting
-    gl.stencilMask(0x00);
-    gl.stencilFunc(gl.EQUAL, 0, 0xFF);
-
+    
     // all light volumes need to be drawn
     gl.disable(gl.DEPTH_TEST);
-    // alway cull front face and leave the back face of light volume for lighting.
-    // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
+
+    
+    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
     
     // enable color drawing
     gl.colorMask(true, true, true, true);
