@@ -35,77 +35,89 @@ function DeferredRenderer(){
     }
   }
 
-  this.mrtProgram = gl.createProgram();
-  this.mrtShader = new Shader(this.mrtProgram, 'shader/multi_render_target_bump.vert', 'shader/multi_render_target_bump.frag');
-  gl.useProgram(this.mrtProgram);
-  this.mrtShader.locateAttributes(this.mrtProgram);
-  this.mrtShader.locateUniforms(this.mrtProgram);
+  // filling g-buffers
+  this.gbufferProgram = gl.createProgram();
+  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer_bump.vert', 'shader/gbuffer_bump.frag');
+  gl.useProgram(this.gbufferProgram);
+  this.gbufferShader.locateAttributes(this.gbufferProgram);
+  this.gbufferShader.locateUniforms(this.gbufferProgram);
 
+  // point light calculation
   this.pointLightProgram = gl.createProgram();
   this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point.vert', 'shader/light/point.frag');
   gl.useProgram(this.pointLightProgram);
   this.pointLightShader.locateAttributes(this.pointLightProgram);
   this.pointLightShader.locateUniforms(this.pointLightProgram);
 
+  // directional light calculation
   this.dirLightProgram = gl.createProgram();
   this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
   gl.useProgram(this.dirLightProgram);
   this.dirLightShader.locateAttributes(this.dirLightProgram);
   this.dirLightShader.locateUniforms(this.dirLightProgram);
 
+  // null shader for stencil update
   this.stencilProgram = gl.createProgram();
   this.stencilShader = new Shader(this.stencilProgram, 'shader/stencil.vert', 'shader/stencil.frag');
   gl.useProgram(this.stencilProgram);
   this.stencilShader.locateAttributes(this.stencilProgram);
   this.stencilShader.locateUniforms(this.stencilProgram);
 
+  // put on to screen
+  this.screenProgram = gl.createProgram();
+  this.screenShader = new Shader(this.screenProgram, 'shader/screen.vert', 'shader/screen.frag');
+  gl.useProgram(this.screenProgram);
+  this.screenShader.locateAttributes(this.screenProgram);
+  this.screenShader.locateUniforms(this.screenProgram);
+
+  // this depth and stencil target will be shared by g-buffer framebuffer and composition framebuffer.
+  this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
+
   this.createGBuffers();
-  // TODO: FIXME: move it into directional light class
-  this.createDirectionLightBuffer();
+  this.createCompositionFrameBuffers();
+
+  this.createScreenBuffer();
 
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 var p = DeferredRenderer.prototype;
 
 p.createGBuffers = function(){
-  // Setup MRT
-  // 3 textures as 3 render targets
+  // Create multiple textures for filling g-buffer
   this.albedoTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.normalTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.specularTarget = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-  // this.depthTarget = this._createDepthTexture(this.GBufferWidth, this.GBufferHeight);
-  this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
 
   // framebuffer to attach both textures and depth renderbuffer
-  this.GFrameBuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
+  this.gFrameBuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.gFrameBuffer);
   // specify 3 textures as render targets
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget, 0);
-  // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
 
   // Specifies a list of color buffers to be drawn into
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
 }
 
-p.render = function(scene, camera){
-  // enable depth buffer
-  gl.depthMask(true);
+p.createCompositionFrameBuffers = function(){
+  this.compositionTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
 
-  // g-buffers render
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.GFrameBuffer);
-  gl.viewport(0, 0, this.GBufferWidth, this.GBufferHeight);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.useProgram(this.mrtProgram);
+  this.cFrameBuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
+}
+
+p.render = function(scene, camera){
+  gl.useProgram(this.gbufferProgram);
 
   // update all object's matrix.
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
-    scene.children[i].update(this.mrtShader);
+    scene.children[i].update(this.gbufferShader);
   }
 
   // calculated view dependent matrix(model view matrix and normal matrix, etc.)
@@ -117,27 +129,28 @@ p.render = function(scene, camera){
     mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
   }
 
-  // TODO: do the meshes state sorting, speed up rendering
-  // for(var i=0; i<scene.meshes.length; ++i){
-  //   console.log(scene.meshes[i].material.name)
-  // }
-  // console.log('');
-  // console.log('');
-  // console.log('');
-  // scene.meshes.sort(sort(camera));
-  // for(var i=0; i<scene.meshes.length; ++i){
-  //   console.log(scene.meshes[i].material.name)
-  // }
-
+  
   // draw to g-buffers
   this.drawGBuffers(scene, camera);
 
   // do lighting
-  this.lighting(scene, camera);
+  this.composite(scene, camera);
+
+  // draw to screen
+  this.drawScreen();
 }
 
 
 p.drawGBuffers = function(scene, camera){
+  // enable depth buffer
+  gl.depthMask(true);
+
+  // g-buffers render
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.gFrameBuffer);
+  gl.viewport(0, 0, this.GBufferWidth, this.GBufferHeight);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
   // cull face needs to be enabled during G-buffer filling
   gl.enable(gl.CULL_FACE);
   // depth test of course is needed
@@ -146,8 +159,8 @@ p.drawGBuffers = function(scene, camera){
   gl.disable(gl.BLEND);
 
   // camera
-  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
+  gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+  gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
 
   // meshes
   len = scene.meshes.length;
@@ -155,11 +168,11 @@ p.drawGBuffers = function(scene, camera){
     var mesh = scene.meshes[i];
 
     // normal, model view matrix
-    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
-    gl.uniformMatrix4fv(this.mrtShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
-    gl.uniformMatrix3fv(this.mrtShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
+    gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
+    gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
+    gl.uniformMatrix3fv(this.gbufferShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
 
-    mesh.draw(this.mrtShader);
+    mesh.draw(this.gbufferShader);
   }
 
   // now you have finished filling the G-Buffers, the depth information is recorded.
@@ -172,65 +185,28 @@ p.stencil = function(light, camera){
   gl.useProgram(this.stencilProgram);
   gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
-  gl.clear(gl.STENCIL_BUFFER_BIT);
-
-  // need to check the depth test
+  // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
-
-  // We need to use different stencil function for different faces. So do not cull back faces.
+  // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-
+  // stencil buffer is refreshed for each light 
+  gl.clear(gl.STENCIL_BUFFER_BIT);
   // We need the stencil test to be enabled but we want it
   // to succeed always. Only the depth test matters.
   gl.stencilFunc(gl.ALWAYS, 0, 0);
-  
-  // increment on back face, decrement on front face
-  // gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
-  // gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
-  gl.stencilOpSeparate(gl.BACK, gl.INCR_WRAP, gl.INCR_WRAP, gl.INCR_WRAP);
-  gl.stencilOpSeparate(gl.FRONT, gl.INCR_WRAP, gl.INCR_WRAP, gl.INCR_WRAP);
-  // gl.stencilOpSeparate(face, fail, zfail, zpass);
+  // increase and decrease the stencil according to the rule:
+  // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
+  gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
+  gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
 
-  // no color draw to the buffer
-  // gl.colorMask(false, false, false, false);
+  // only stencil write is needed, do not write to color buffer, save some processing power
+  gl.colorMask(false, false, false, false);
   
   light.draw(this.stencilShader, camera);
 }
 
-p.lighting = function(scene, camera){
-  // draw to the default screen framebuffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  // do not clear the depth
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  gl.enable(gl.BLEND);
-  // enable add blend function
-  gl.blendEquation(gl.FUNC_ADD);
-  // blend lighting
-  gl.blendFunc(gl.ONE, gl.ONE);
-
-
-  // enable stencil for stencil pass
-  gl.enable(gl.STENCIL_TEST);
-
-
-  len = scene.lights.length;
-  for(var i=0; i<len; ++i){
-    var pointLight = scene.lights[i];
-
-    // update light's view based matrix
-    mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
-    vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
-
-    // fill stencil buffer for each light, since different light
-    this.stencil(pointLight, camera);
-
-
-
-
-    // use point light program
+p.lighting = function(light, camera){
+     // use point light program
     gl.useProgram(this.pointLightProgram);
     // FIXIME: TODO: move these const uniform into camera initialization method
     gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
@@ -245,68 +221,96 @@ p.lighting = function(scene, camera){
     gl.activeTexture(gl.TEXTURE0+2);
     gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
     gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-    // gl.activeTexture(gl.TEXTURE0+3);
-    // gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
-    // gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
     gl.activeTexture(gl.TEXTURE0+3);
     gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
     gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
 
     
-
-    // gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
-    gl.stencilFunc(gl.GEQUAL, 10, 0xFF);
+    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
     // all light volumes need to be drawn
     gl.disable(gl.DEPTH_TEST);
-
     // alway cull front face and leave the back face of light volume for lighting.
     // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
-
     // enable color drawing
     gl.colorMask(true, true, true, true);
 
-    pointLight.draw(this.pointLightShader, camera);
-  }
 
-  // No longer need to change order if use stencil buffer
-  // 
-  // reset to default counter clock wise front face. Since positional lighting stage might change the order depending on whether the camera
-  // is enclosed by the lighting proxy geometry.
-  // gl.frontFace(gl.CCW);
+    light.draw(this.pointLightShader, camera);
+}
+
+p.composite = function(scene, camera){
+  // draw to the default screen framebuffer
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
+
+  gl.viewport(0, 0, this.GBufferWidth, this.GBufferHeight);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // light composition blend: add
+  gl.enable(gl.BLEND);
+  gl.blendEquation(gl.FUNC_ADD);
+  gl.blendFunc(gl.ONE, gl.ONE);
+
+  // enable stencil for stencil pass
+  gl.enable(gl.STENCIL_TEST);
+
+  len = scene.lights.length;
+  for(var i=0; i<len; ++i){
+    var pointLight = scene.lights[i];
+
+    // TODO: move this to update method
+    // update light's view based matrix
+    mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
+    vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
+
+    // fill stencil buffer for each light, since different light
+    this.stencil(pointLight, camera);
+
+    this.lighting(pointLight, camera);
+   }
   
-
   // disable stencil test for directional lighting
   gl.disable(gl.STENCIL_TEST);
-
   // switch back to normal back face culling, for geometry rendering next frame
   gl.cullFace(gl.BACK)
-
-
-  // directional light
-  // gl.useProgram(this.dirLightProgram);
-  // // FIXIME: TODO: move these const uniform into camera initialization method
-  // gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  // gl.uniformMatrix4fv(this.dirLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
-
-  // gl.activeTexture(gl.TEXTURE0);
-  // gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
-  // gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
-  // gl.activeTexture(gl.TEXTURE0+1);
-  // gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
-  // gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
-  // gl.activeTexture(gl.TEXTURE0+2);
-  // gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
-  // gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-  // gl.activeTexture(gl.TEXTURE0+3);
-  // gl.bindTexture(gl.TEXTURE_2D, this.depthTarget);
-  // gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
-
-  // gl.bindVertexArrayOES(this.screenVAO);
-  // gl.drawArrays(gl.TRIANGLES, 0, 6);
-  // gl.bindVertexArrayOES(null);
 }
+
+p.drawScreen = function(){
+  gl.useProgram(this.screenProgram);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, this.compositionTexture);
+  gl.uniform1i(this.screenShader.uniforms['texture'], 0);
+
+  gl.bindVertexArrayOES(this.screenVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.bindVertexArrayOES(null);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function sort(camera){
   return function(a, b){
@@ -355,15 +359,7 @@ function sort(camera){
   }
 }
 
-
-
-
-
-
-
-
-
-p.createDirectionLightBuffer = function(){
+p.createScreenBuffer = function(){
   this.screenVAO = gl.createVertexArrayOES();
   gl.bindVertexArrayOES(this.screenVAO);
 
@@ -376,8 +372,8 @@ p.createDirectionLightBuffer = function(){
                                                      1.0,  1.0,
                                                     -1.0,  1.0,
                                                     -1.0, -1.0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.dirLightShader.attributes.a_Vertex);
-  gl.vertexAttribPointer(this.dirLightShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.screenShader.attributes.a_Vertex);
+  gl.vertexAttribPointer(this.screenShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
   // texture coordinate buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
@@ -387,8 +383,8 @@ p.createDirectionLightBuffer = function(){
                                                    1, 1,
                                                    0, 1,
                                                    0, 0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.dirLightShader.attributes.a_TexCoord);
-  gl.vertexAttribPointer(this.dirLightShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.screenShader.attributes.a_TexCoord);
+  gl.vertexAttribPointer(this.screenShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
 
   gl.bindVertexArrayOES(null);
 }
