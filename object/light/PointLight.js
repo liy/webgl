@@ -73,13 +73,15 @@ p.draw = function(shader, camera){
     this.createVertexArray(shader);
   this.setUniforms(shader);
 
+  // use stencil buffer to handle situation camera is inside the light volume
+  // 
   // if camera outside of the sphere cull back face; if the camera is inside the light geometry, cull front face
-  var distance = vec3.distance(this._position, camera._position);
-  // outside of the geometry, cull back face, back face is treated as CCW
-  if(distance > this.radius)
-    gl.frontFace(gl.CCW);
-  else
-    gl.frontFace(gl.CW);
+  // var distance = vec3.distance(this._position, camera._position);
+  // // outside of the geometry, cull back face, back face is treated as CCW
+  // if(distance > this.radius)
+  //   gl.frontFace(gl.CCW);
+  // else
+  //   gl.frontFace(gl.CW);
 
   // draw light volume
   gl.bindVertexArrayOES(this.vao);

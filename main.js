@@ -22,7 +22,7 @@ p1.color = vec3.fromValues(1.0, 0.2, 0.0);
 
 // no effect on cube.
 var p2 = new PointLight();
-p2.z = 1.1;
+p2.z = 2.0;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
 scene.add(p1);
