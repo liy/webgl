@@ -181,26 +181,35 @@ p.drawGBuffers = function(scene, camera){
 }
 
 p.stencil = function(light, camera){
+  light.scale = 0.5;
+  light.update();
+  mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+  vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
+
+
+
   // TODO: use stencil shader program
   gl.useProgram(this.stencilProgram);
   gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
-  gl.enable(gl.DEPTH_TEST);
-  gl.disable(gl.CULL_FACE);
-
-  gl.clearStencil(0);
-  gl.clear(gl.STENCIL_BUFFER_BIT);
-  gl.stencilFunc(gl.ALWAYS, 0, 0);
-  gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
-  gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
+  gl.stencilOp( gl.REPLACE, gl.REPLACE, gl.REPLACE );
+  gl.stencilFunc( gl.ALWAYS, 1, 0xffffffff );
+  gl.clearStencil( 0 );
   
 
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
-  light.draw(this.stencilShader, camera);
+  // light.draw(this.stencilShader, camera);
 }
 
 p.lighting = function(light, camera){
+    light.scale = 1.0;
+    light.update();
+    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
+
+
+
      // use point light program
     gl.useProgram(this.pointLightProgram);
     // FIXIME: TODO: move these const uniform into camera initialization method
@@ -219,14 +228,10 @@ p.lighting = function(light, camera){
     gl.activeTexture(gl.TEXTURE0+3);
     gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
     gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
-    
-    // all light volumes need to be drawn
-    gl.disable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.FRONT);
 
     
-    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
+    gl.stencilFunc( gl.EQUAL, 1, 0xffffffff );  // draw if == 1
+
     
     // enable color drawing
     gl.colorMask(true, true, true, true);
@@ -255,8 +260,8 @@ p.composite = function(scene, camera){
 
     // TODO: move this to update method
     // update light's view based matrix
-    mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
-    vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
+    // mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
+    // vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
 
     // fill stencil buffer for each light, since different light
     this.stencil(pointLight, camera);
