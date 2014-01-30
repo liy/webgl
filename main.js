@@ -11,7 +11,7 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.05, 3)
 scene.add(camera);
 camera.z = 3;
 camera.lookTarget = vec3.fromValues(0, camera.y, -1);
@@ -26,7 +26,7 @@ p2.z = 2.0;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
 scene.add(p1);
-scene.add(p2);
+// scene.add(p2);
 
 
 var loader = new ObjectFile();

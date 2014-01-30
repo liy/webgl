@@ -128,8 +128,6 @@ p.render = function(scene, camera){
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
     mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
   }
-
-  
   // draw to g-buffers
   this.drawGBuffers(scene, camera);
 
@@ -189,19 +187,18 @@ p.stencil = function(light, camera){
   gl.enable(gl.DEPTH_TEST);
   // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-  // stencil buffer is refreshed for each light 
+  
+  // stencil buffer is refreshed for each light, 0
   gl.clear(gl.STENCIL_BUFFER_BIT);
-  // We need the stencil test to be enabled but we want it
-  // to succeed always. Only the depth test matters.
-  gl.stencilFunc(gl.ALWAYS, 0, 0);
-  // increase and decrease the stencil according to the rule:
-  // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
-  gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
-  gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
+
+  // gl.stencilFunc(gl.ALWAYS, 1, 0xFF);
+  // gl.stencilOp(gl.KEEP, gl.REPLACE, gl.REPLACE);
+  // // write to stencil buffer
+  // gl.stencilMask(0xFF);
+  
 
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
-  
   light.draw(this.stencilShader, camera);
 }
 
@@ -225,18 +222,20 @@ p.lighting = function(light, camera){
     gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
     gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
 
-    
-    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
+
+    // stop stencil write when doing lighting
+    gl.stencilMask(0x00);
+    gl.stencilFunc(gl.EQUAL, 0, 0xFF);
+
     // all light volumes need to be drawn
     gl.disable(gl.DEPTH_TEST);
     // alway cull front face and leave the back face of light volume for lighting.
     // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
+    
     // enable color drawing
     gl.colorMask(true, true, true, true);
-
-
     light.draw(this.pointLightShader, camera);
 }
 
