@@ -3,7 +3,7 @@ function Camera(){
 
   this.projectionMatrix = mat4.create();
   this.invertProjectionMatrix = mat4.create();
-  this.lookTarget = vec3.fromValues(0,0,-1);
+  this.lookTarget = vec3.fromValues(0, 0, 0);
   this.viewMatrix = mat4.create();
 }
 var p = Camera.prototype = Object.create(Object3D.prototype);

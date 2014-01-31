@@ -261,12 +261,40 @@ p.compositePass = function(scene, camera){
     // Every light requires a clean stencil test.
     this.stencil(light, camera);
     this.lighting(light, camera);
-   }
+  }
   
   // disable stencil test for directional lighting
   gl.disable(gl.STENCIL_TEST);
   // switch back to normal back face culling, for geometry rendering next frame
   gl.cullFace(gl.BACK)
+
+  // directional light
+  this.directionalLighting(scene, camera);
+}
+
+p.directionalLighting = function(scene, camera){
+  gl.useProgram(this.dirLightProgram);
+
+  len = scene.directionalLights.length;
+  for(var i=0; i<len; ++i){
+    var light = scene.directionalLights[i];
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+    gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
+    gl.activeTexture(gl.TEXTURE0+1);
+    gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+    gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
+    gl.activeTexture(gl.TEXTURE0+2);
+    gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+    gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
+    gl.activeTexture(gl.TEXTURE0+3);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthColorTarget);
+    gl.uniform1i(this.dirLightShader.uniforms['depthColorTarget'], 3);
+
+    camera.uploadUniforms(this.dirLightShader);
+    light.lit(this.dirLightShader, camera);
+  }
 }
 
 p.screenPass = function(){
@@ -337,9 +365,6 @@ function sort(camera){
       else
         return -1;
     }
-
-    vec3.transformMat4(a._viewSpacePosition, a._position, camera.viewMatrix);
-    vec3.transformMat4(b._viewSpacePosition, b._position, camera.viewMatrix);
 
 
     if(a._viewSpacePosition[2] < b._viewSpacePosition[2])
