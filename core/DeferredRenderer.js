@@ -11,11 +11,13 @@ function DeferredRenderer(){
   window.addEventListener('resize', this.onResize);
 
   this.dbExt = gl.getExtension("WEBGL_draw_buffers");
-  this.dtExt = gl.getExtension("WEBKIT_WEBGL_depth_texture");
+  this.dtExt = gl.getExtension("WEBGL_depth_texture");
   this.vaoExt = gl.getExtension("OES_vertex_array_object");
 
   // include extensions' properties into gl, for convenience reason.
-  var exts = [this.dbExt, this.dtExt, this.vaoExt, this.pdsExt];
+  var exts = [this.dbExt, this.dtExt, this.vaoExt];
+  ExtensionCheck.check(exts);
+
   for(var i=0; i<exts.length; ++i){
     var ext = exts[i];
     for(var name in ext){
@@ -37,14 +39,14 @@ function DeferredRenderer(){
 
   // filling g-buffers
   this.gbufferProgram = gl.createProgram();
-  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer_color_depth.vert', 'shader/gbuffer_color_depth.frag');
+  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer.vert', 'shader/gbuffer.frag');
   gl.useProgram(this.gbufferProgram);
   this.gbufferShader.locateAttributes(this.gbufferProgram);
   this.gbufferShader.locateUniforms(this.gbufferProgram);
 
   // point light calculation
   this.pointLightProgram = gl.createProgram();
-  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point_color_depth.vert', 'shader/light/point_color_depth.frag');
+  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point.vert', 'shader/light/point.frag');
   gl.useProgram(this.pointLightProgram);
   this.pointLightShader.locateAttributes(this.pointLightProgram);
   this.pointLightShader.locateUniforms(this.pointLightProgram);
@@ -70,8 +72,7 @@ function DeferredRenderer(){
   this.screenShader.locateAttributes(this.screenProgram);
   this.screenShader.locateUniforms(this.screenProgram);
 
-  // this depth and stencil target will be shared by g-buffer framebuffer and composition framebuffer.
-  // this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
+  // both depth color and depth stencil will be shared by gbuffer framebuffer and composition framebuffer.
   this.depthColorTarget = this._createColorDepthTexture(this.GBufferWidth, this.GBufferHeight);
   this.depthStencilRenderBuffer = this._createDepthStencilRenderBuffer(this.GBufferWidth, this.GBufferHeight);
 
@@ -113,8 +114,6 @@ p.createCompositionFrameBuffers = function(){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.depthColorTarget, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-
-  // gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0]);
 }
 
 p.render = function(scene, camera){
@@ -189,17 +188,19 @@ p.stencil = function(light, camera){
   gl.useProgram(this.stencilProgram);
   gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
+  // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
+  // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-
-  gl.stencilMask(0xFF);
-  gl.clearStencil(0);
+  // stencil buffer is refreshed for each light 
   gl.clear(gl.STENCIL_BUFFER_BIT);
+  // always write to stencil buffer in stencil stage.
   gl.stencilFunc(gl.ALWAYS, 0, 0);
+  // increase and decrease the stencil according to the rule:
+  // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
   gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
   gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
   
-
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
   light.draw(this.stencilShader, camera);
@@ -227,11 +228,13 @@ p.lighting = function(light, camera){
   
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
+  // alway cull front face and leave the back face of light volume for lighting.
+  // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.FRONT);
 
+  // lighting effect will have none-zero stencil value.
   gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
-  gl.stencilMask(0x00);
   
   // enable color drawing
   gl.colorMask(true, true, true, true);
@@ -254,19 +257,19 @@ p.composite = function(scene, camera){
   // enable stencil for stencil pass
   gl.enable(gl.STENCIL_TEST);
 
-  len = scene.lights.length;
+  len = scene.positionalLights.length;
   for(var i=0; i<len; ++i){
-    var pointLight = scene.lights[i];
+    var light = scene.lights[i];
 
     // TODO: move this to update method
     // update light's view based matrix
-    mat4.mul(pointLight.modelViewMatrix, camera.viewMatrix, pointLight.worldMatrix);
-    vec3.transformMat4(pointLight._viewSpacePosition, pointLight._position, camera.viewMatrix);
+    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
 
     // fill stencil buffer for each light, since different light
-    this.stencil(pointLight, camera);
+    this.stencil(light, camera);
 
-    this.lighting(pointLight, camera);
+    this.lighting(light, camera);
    }
   
   // disable stencil test for directional lighting

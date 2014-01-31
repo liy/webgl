@@ -3,8 +3,13 @@ function Scene(){
 
   this.scene = this;
 
-  // contains lights only
+  // contains all lights
   this.lights = [];
+  // contains spot lights, point lights, which have position
+  this.positionalLights = [];
+  // only contains directional lights.
+  this.directionalLights = [];
+
   // contains meshes only
   this.meshes = [];
   // contains cameras only
@@ -31,8 +36,14 @@ p.track = function(obj3D){
     // add object to specific category
     if(obj3D instanceof Mesh)
       this.meshes.push(obj3D);
-    else if(obj3D instanceof Light)
+    else if(obj3D instanceof Light){
       this.lights.push(obj3D);
+      // further categorization.
+      if(obj3D instanceof DirectionalLight)
+        this.directionalLights.push(obj3D);
+      else
+        this.positionalLights.push(obj3D);
+    }
     else
       this.cameras.push(obj3D);
 
@@ -59,6 +70,15 @@ p.untrack = function(obj3D){
     else if(obj3D instanceof Light){
       index = this.lights.indexOf(obj3D);
       this.lights.splice(index, 1);
+
+      if(obj3D instanceof DirectionalLight){
+        index = this.directionalLights.indexOf(obj3D);
+        this.directionalLights.splice(index, 1);
+      }
+      else{
+        index = this.positionalLights.indexOf(obj3D);
+        this.positionalLights.splice(index, 1);
+      }
     }
     else{
       index = this.cameras.indexOf(obj3D);
