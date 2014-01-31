@@ -109,8 +109,6 @@ p.createCompositionFrameBuffers = function(){
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
-
-  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0]);
 }
 
 p.render = function(scene, camera){
@@ -130,6 +128,8 @@ p.render = function(scene, camera){
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
     mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
   }
+
+  
   // draw to g-buffers
   this.drawGBuffers(scene, camera);
 
@@ -185,53 +185,59 @@ p.stencil = function(light, camera){
   gl.useProgram(this.stencilProgram);
   gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
+  // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
+  // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-
-  gl.stencilMask(0xFF);
-  gl.clearStencil(0);
+  // stencil buffer is refreshed for each light 
   gl.clear(gl.STENCIL_BUFFER_BIT);
+  // We need the stencil test to be enabled but we want it
+  // to succeed always. Only the depth test matters.
   gl.stencilFunc(gl.ALWAYS, 0, 0);
+  // increase and decrease the stencil according to the rule:
+  // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
   gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
   gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
-  
 
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
+  
   light.draw(this.stencilShader, camera);
 }
 
 p.lighting = function(light, camera){
-   // use point light program
-  gl.useProgram(this.pointLightProgram);
-  // FIXIME: TODO: move these const uniform into camera initialization method
-  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+     // use point light program
+    gl.useProgram(this.pointLightProgram);
+    // FIXIME: TODO: move these const uniform into camera initialization method
+    gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
+    gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
-  gl.activeTexture(gl.TEXTURE0+1);
-  gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
-  gl.activeTexture(gl.TEXTURE0+2);
-  gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-  gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
-  
-  // all light volumes need to be drawn
-  gl.disable(gl.DEPTH_TEST);
-  gl.enable(gl.CULL_FACE);
-  gl.cullFace(gl.FRONT);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+    gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
+    gl.activeTexture(gl.TEXTURE0+1);
+    gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+    gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
+    gl.activeTexture(gl.TEXTURE0+2);
+    gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+    gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
+    gl.activeTexture(gl.TEXTURE0+3);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
+    gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
 
-  gl.stencilFunc(gl.EQUAL, 0, 0xFF);
-  gl.stencilMask(0x00);
-  
-  // enable color drawing
-  gl.colorMask(true, true, true, true);
-  light.draw(this.pointLightShader, camera);
+    
+    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
+    // all light volumes need to be drawn
+    gl.disable(gl.DEPTH_TEST);
+    // alway cull front face and leave the back face of light volume for lighting.
+    // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    // enable color drawing
+    gl.colorMask(true, true, true, true);
+
+
+    light.draw(this.pointLightShader, camera);
 }
 
 p.composite = function(scene, camera){
@@ -248,7 +254,7 @@ p.composite = function(scene, camera){
   gl.blendFunc(gl.ONE, gl.ONE);
 
   // enable stencil for stencil pass
-  // gl.enable(gl.STENCIL_TEST);
+  gl.enable(gl.STENCIL_TEST);
 
   len = scene.lights.length;
   for(var i=0; i<len; ++i){
@@ -266,7 +272,7 @@ p.composite = function(scene, camera){
    }
   
   // disable stencil test for directional lighting
-  // gl.disable(gl.STENCIL_TEST);
+  gl.disable(gl.STENCIL_TEST);
   // switch back to normal back face culling, for geometry rendering next frame
   gl.cullFace(gl.BACK)
 }
