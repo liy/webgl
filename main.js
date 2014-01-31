@@ -26,7 +26,7 @@ p2.z = 2.0;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
 scene.add(p1);
-// scene.add(p2);
+scene.add(p2);
 
 
 var loader = new ObjectFile();
