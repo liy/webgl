@@ -22,7 +22,7 @@ function PhongMaterial(params){
 }
 var p = PhongMaterial.prototype = Object.create(Material.prototype);
 
-p.updateUniforms = function(shader){
+p.uploadUniforms = function(shader){
   gl.uniform4fv(shader.uniforms['u_Material.ambient'], this.ambient);
   gl.uniform4fv(shader.uniforms['u_Material.diffuse'], this.diffuse);
   gl.uniform4fv(shader.uniforms['u_Material.specular'], this.specular);

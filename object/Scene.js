@@ -5,6 +5,7 @@ function Scene(){
 
   // contains all lights
   this.lights = [];
+  // TODO: do I need to categorize them, for easier lighting pass?
   // contains spot lights, point lights, which have position
   this.positionalLights = [];
   // only contains directional lights.

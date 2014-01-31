@@ -146,17 +146,24 @@ p.createVertexArray = function(shader){
   gl.bindVertexArrayOES(null);
 }
 
+p.uploadUniforms = function(shader){
+  gl.uniformMatrix4fv(shader.uniforms['u_ModelMatrix'], false, this.worldMatrix);
+  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  gl.uniformMatrix3fv(shader.uniforms['u_ModelViewMatrixInverseTranspose'], false, this.modelViewMatrixInverseTranspose);
+
+  if(this.material)
+    this.material.uploadUniforms(shader);
+}
+
 p.draw = function(shader){
   // Any better way to setup vertex array object? It needs shader attributes access...
   if(this.vao === undefined)
     this.createVertexArray(shader);
 
-  if(this.material)
-    this.material.bind(shader);
+  this.uploadUniforms(shader);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
-
   // gl.drawArrays(gl.TRIANGLES, 0, this.geometry.vertices.length);
   gl.bindVertexArrayOES(null);
 }

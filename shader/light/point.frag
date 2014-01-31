@@ -149,9 +149,8 @@ void main(){
   vec3 n = texture2D(normalTarget, texCoord).xyz * 2.0 - 1.0;
   vec3 h = normalize(l + v);
 
-  float dis = distance(u_Light.position, eyeSpacePosition);
-  float attenuation = clamp(1.0 - dis/u_Light.radius, 0.0, 1.0);
-  // squared fall off
+  // squared fall off, physically correct?
+  float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/u_Light.radius, 0.0, 1.0);
   attenuation *= attenuation;
 
   float ndotl = dot(n, l);

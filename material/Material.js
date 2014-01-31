@@ -66,7 +66,7 @@ p.setTextureMap = function(map){
   uniform sampler2D roughnessTexture;
   uniform sampler2D depthTexture;
  */
-p.bind = function(shader){
+p.uploadUniforms = function(shader){
   // albedo
   if(this.textureMap.albedo && this.textureMap.albedo.data){
     gl.uniform1i(shader.uniforms['albedoTexture'], 0);

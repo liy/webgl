@@ -28,3 +28,9 @@ p.update = function(){
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();
 }
+
+p.uploadUniforms = function(shader){
+  gl.uniformMatrix4fv(shader.uniforms['u_ProjectionMatrix'], false, this.projectionMatrix);
+  gl.uniformMatrix4fv(shader.uniforms['u_InvProjectionMatrix'], false, this.invertProjectionMatrix);
+  gl.uniformMatrix4fv(shader.uniforms['u_ViewMatrix'], false, this.viewMatrix);
+}

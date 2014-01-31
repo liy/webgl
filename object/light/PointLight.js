@@ -1,18 +1,14 @@
 function PointLight(radius){
-  PositionalLight.call(this);
+  Light.call(this);
 
   this.radius = radius || 0.5;
   // TOOD: use attenuation to calculate the radius of the sphere
   // for now, just hardcode the radius
   this.geometry = new SphereGeometry(this.radius);
 
-  // this.attenuation[0] = 1;
-  // this.attenuation[1] = 2/this.radius;
-  // this.attenuation[2] = 1/(this.radius*this.radius);
-
   this.createBuffer();
 }
-var p = PointLight.prototype = Object.create(PositionalLight.prototype);
+var p = PointLight.prototype = Object.create(Light.prototype);
 
 p.createBuffer = function(){
   // vertices information
@@ -52,9 +48,8 @@ p.createVertexArray = function(shader){
   gl.bindVertexArrayOES(null);
 }
 
-p.setUniforms = function(shader){
+p.uploadUniforms = function(shader){
   gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
-  // console.log(this.modelViewMatrix);
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
   gl.uniform3fv(shader.uniforms['u_Light.position'], this._viewSpacePosition);
@@ -62,26 +57,15 @@ p.setUniforms = function(shader){
   gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
   gl.uniform1i(shader.uniforms['u_Light.enabled'], this.enabled);
   gl.uniform1f(shader.uniforms['u_Light.radius'], this.radius);
-
-  // console.log(this._viewSpacePosition);
 }
 
 // draw the light volume
-p.draw = function(shader, camera){
+p.lit = function(shader, camera){
   // Any better way to setup vertex array object? It needs shader attributes access...
   if(this.vao === undefined)
     this.createVertexArray(shader);
-  this.setUniforms(shader);
 
-  // use stencil buffer to handle situation camera is inside the light volume
-  // 
-  // if camera outside of the sphere cull back face; if the camera is inside the light geometry, cull front face
-  // var distance = vec3.distance(this._position, camera._position);
-  // // outside of the geometry, cull back face, back face is treated as CCW
-  // if(distance > this.radius)
-  //   gl.frontFace(gl.CCW);
-  // else
-  //   gl.frontFace(gl.CW);
+  this.uploadUniforms(shader);
 
   // draw light volume
   gl.bindVertexArrayOES(this.vao);

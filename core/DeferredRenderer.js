@@ -17,7 +17,6 @@ function DeferredRenderer(){
   // include extensions' properties into gl, for convenience reason.
   var exts = [this.dbExt, this.dtExt, this.vaoExt];
   ExtensionCheck.check(exts);
-
   for(var i=0; i<exts.length; ++i){
     var ext = exts[i];
     for(var name in ext){
@@ -38,11 +37,11 @@ function DeferredRenderer(){
   }
 
   // filling g-buffers
-  this.gbufferProgram = gl.createProgram();
-  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer.vert', 'shader/gbuffer.frag');
-  gl.useProgram(this.gbufferProgram);
-  this.gbufferShader.locateAttributes(this.gbufferProgram);
-  this.gbufferShader.locateUniforms(this.gbufferProgram);
+  this.geometryProgram = gl.createProgram();
+  this.geometryShader = new Shader(this.geometryProgram, 'shader/geometry.vert', 'shader/geometry.frag');
+  gl.useProgram(this.geometryProgram);
+  this.geometryShader.locateAttributes(this.geometryProgram);
+  this.geometryShader.locateUniforms(this.geometryProgram);
 
   // point light calculation
   this.pointLightProgram = gl.createProgram();
@@ -108,7 +107,6 @@ p.createGBuffers = function(){
 
 p.createCompositionFrameBuffers = function(){
   this.compositionTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
-
   this.cFrameBuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
@@ -117,15 +115,24 @@ p.createCompositionFrameBuffers = function(){
 }
 
 p.render = function(scene, camera){
-  gl.useProgram(this.gbufferProgram);
+  // update the matrix
+  this.update();
+  // g-buffers pass
+  this.geometryPass(scene, camera);
+  // lighting pass
+  this.compositePass(scene, camera);
+  // simply copy the final texture to the screen
+  this.screenPass();
+}
 
-  // update all object's matrix.
+p.update = function(){
+  // update all object's matrix, which are not dependent the view matrix
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
-    scene.children[i].update(this.gbufferShader);
+    scene.children[i].update();
   }
 
-  // calculated view dependent matrix(model view matrix and normal matrix, etc.)
+  // update meshes' view dependent matrix
   len = scene.meshes.length;
   for(var i=0; i<len; ++i){
     var mesh = scene.meshes[i];
@@ -133,21 +140,22 @@ p.render = function(scene, camera){
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
     mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
   }
-  // draw to g-buffers
-  this.drawGBuffers(scene, camera);
 
-  // do lighting
-  this.composite(scene, camera);
-
-  // draw to screen
-  this.drawScreen();
+  // update the lights' view dependent matrix
+  len = scene.lights.length;
+  for(var i=0; i<len; ++i){
+    var light = scene.lights[i];
+    // update light's view dependent matrix, and related position, etc.
+    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
+  }
 }
 
-
-p.drawGBuffers = function(scene, camera){
+p.geometryPass = function(scene, camera){  
   // enable depth buffer
   gl.depthMask(true);
 
+  gl.useProgram(this.geometryProgram);
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.gFrameBuffer);
   gl.viewport(0, 0, this.GBufferWidth, this.GBufferHeight);
@@ -161,21 +169,12 @@ p.drawGBuffers = function(scene, camera){
   // TODO: disable blend for now for G-Buffer, future needs support transparency.
   gl.disable(gl.BLEND);
 
-  // camera
-  gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ViewMatrix'], false, camera.viewMatrix);
+  // upload camera uniforms for geometry shader
+  camera.uploadUniforms(this.geometryShader);
 
-  // meshes
   len = scene.meshes.length;
   for(var i=0; i<len; ++i){
-    var mesh = scene.meshes[i];
-
-    // normal, model view matrix
-    gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ModelMatrix'], false, mesh.worldMatrix);
-    gl.uniformMatrix4fv(this.gbufferShader.uniforms['u_ModelViewMatrix'], false, mesh.modelViewMatrix);
-    gl.uniformMatrix3fv(this.gbufferShader.uniforms['u_ModelViewMatrixInverseTranspose'], false, mesh.modelViewMatrixInverseTranspose);
-
-    mesh.draw(this.gbufferShader);
+    scene.meshes[i].draw(this.geometryShader);
   }
 
   // now you have finished filling the G-Buffers, the depth information is recorded.
@@ -186,7 +185,6 @@ p.drawGBuffers = function(scene, camera){
 p.stencil = function(light, camera){
   // TODO: use stencil shader program
   gl.useProgram(this.stencilProgram);
-  gl.uniformMatrix4fv(this.stencilShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
 
   // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
@@ -200,19 +198,30 @@ p.stencil = function(light, camera){
   // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
   gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.INCR_WRAP, gl.KEEP);
   gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.DECR_WRAP, gl.KEEP);
-  
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
-  light.draw(this.stencilShader, camera);
+
+  
+  camera.uploadUniforms(this.stencilShader)
+  light.lit(this.stencilShader, camera);
 }
 
 p.lighting = function(light, camera){
    // use point light program
   gl.useProgram(this.pointLightProgram);
-  // FIXIME: TODO: move these const uniform into camera initialization method
-  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_ProjectionMatrix'], false, camera.projectionMatrix);
-  gl.uniformMatrix4fv(this.pointLightShader.uniforms['u_InvProjectionMatrix'], false, camera.invertProjectionMatrix);
+  
+  // all light volumes need to be drawn
+  gl.disable(gl.DEPTH_TEST);
+  // alway cull front face and leave the back face of light volume for lighting.
+  // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.FRONT);
+  // lighting effect will have none-zero stencil value.
+  gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
+  // enable color drawing
+  gl.colorMask(true, true, true, true);
 
+  // bind the geometry targets
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
   gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
@@ -225,23 +234,12 @@ p.lighting = function(light, camera){
   gl.activeTexture(gl.TEXTURE0+3);
   gl.bindTexture(gl.TEXTURE_2D, this.depthColorTarget);
   gl.uniform1i(this.pointLightShader.uniforms['depthColorTarget'], 3);
-  
-  // all light volumes need to be drawn
-  gl.disable(gl.DEPTH_TEST);
-  // alway cull front face and leave the back face of light volume for lighting.
-  // Since once camera pass back face of the volume, it should not affecting anything in front of the camera.
-  gl.enable(gl.CULL_FACE);
-  gl.cullFace(gl.FRONT);
 
-  // lighting effect will have none-zero stencil value.
-  gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
-  
-  // enable color drawing
-  gl.colorMask(true, true, true, true);
-  light.draw(this.pointLightShader, camera);
+  camera.uploadUniforms(this.pointLightShader)
+  light.lit(this.pointLightShader, camera);
 }
 
-p.composite = function(scene, camera){
+p.compositePass = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
 
@@ -260,15 +258,8 @@ p.composite = function(scene, camera){
   len = scene.positionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.lights[i];
-
-    // TODO: move this to update method
-    // update light's view based matrix
-    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
-    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
-
-    // fill stencil buffer for each light, since different light
+    // Every light requires a clean stencil test.
     this.stencil(light, camera);
-
     this.lighting(light, camera);
    }
   
@@ -278,7 +269,7 @@ p.composite = function(scene, camera){
   gl.cullFace(gl.BACK)
 }
 
-p.drawScreen = function(){
+p.screenPass = function(){
   gl.useProgram(this.screenProgram);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
