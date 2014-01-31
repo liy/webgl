@@ -37,14 +37,14 @@ function DeferredRenderer(){
 
   // filling g-buffers
   this.gbufferProgram = gl.createProgram();
-  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer_bump.vert', 'shader/gbuffer_bump.frag');
+  this.gbufferShader = new Shader(this.gbufferProgram, 'shader/gbuffer_color_depth.vert', 'shader/gbuffer_color_depth.frag');
   gl.useProgram(this.gbufferProgram);
   this.gbufferShader.locateAttributes(this.gbufferProgram);
   this.gbufferShader.locateUniforms(this.gbufferProgram);
 
   // point light calculation
   this.pointLightProgram = gl.createProgram();
-  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point.vert', 'shader/light/point.frag');
+  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point_color_depth.vert', 'shader/light/point_color_depth.frag');
   gl.useProgram(this.pointLightProgram);
   this.pointLightShader.locateAttributes(this.pointLightProgram);
   this.pointLightShader.locateUniforms(this.pointLightProgram);
@@ -71,7 +71,9 @@ function DeferredRenderer(){
   this.screenShader.locateUniforms(this.screenProgram);
 
   // this depth and stencil target will be shared by g-buffer framebuffer and composition framebuffer.
-  this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
+  // this.depthStencilTarget = this._createDepthStencilTexture(this.GBufferWidth, this.GBufferHeight);
+  this.depthColorTarget = this._createColorDepthTexture(this.GBufferWidth, this.GBufferHeight);
+  this.depthStencilRenderBuffer = this._createDepthStencilRenderBuffer(this.GBufferWidth, this.GBufferHeight);
 
   this.createGBuffers();
   this.createCompositionFrameBuffers();
@@ -96,10 +98,11 @@ p.createGBuffers = function(){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.depthColorTarget, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
 
   // Specifies a list of color buffers to be drawn into
-  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
 }
 
 p.createCompositionFrameBuffers = function(){
@@ -108,9 +111,10 @@ p.createCompositionFrameBuffers = function(){
   this.cFrameBuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, this.depthStencilTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.depthColorTarget, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
 
-  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0]);
+  // gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0]);
 }
 
 p.render = function(scene, camera){
@@ -218,15 +222,15 @@ p.lighting = function(light, camera){
   gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
   gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
   gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthStencilTarget);
-  gl.uniform1i(this.pointLightShader.uniforms['depthStencilTarget'], 3);
+  gl.bindTexture(gl.TEXTURE_2D, this.depthColorTarget);
+  gl.uniform1i(this.pointLightShader.uniforms['depthColorTarget'], 3);
   
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.FRONT);
 
-  gl.stencilFunc(gl.EQUAL, 0, 0xFF);
+  gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
   gl.stencilMask(0x00);
   
   // enable color drawing
@@ -248,7 +252,7 @@ p.composite = function(scene, camera){
   gl.blendFunc(gl.ONE, gl.ONE);
 
   // enable stencil for stencil pass
-  // gl.enable(gl.STENCIL_TEST);
+  gl.enable(gl.STENCIL_TEST);
 
   len = scene.lights.length;
   for(var i=0; i<len; ++i){
@@ -266,7 +270,7 @@ p.composite = function(scene, camera){
    }
   
   // disable stencil test for directional lighting
-  // gl.disable(gl.STENCIL_TEST);
+  gl.disable(gl.STENCIL_TEST);
   // switch back to normal back face culling, for geometry rendering next frame
   gl.cullFace(gl.BACK)
 }
@@ -407,6 +411,21 @@ p._createDepthTexture = function(w, h){
   return texture;
 }
 
+/**
+ * You should encode depth data into RGBA manually.
+ */
+p._createColorDepthTexture = function(w, h){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  return texture;
+}
+
 p._createDepthStencilTexture = function(w, h){
   var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -418,6 +437,14 @@ p._createDepthStencilTexture = function(w, h){
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, w, h, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8_WEBGL, null);
 
   return texture;
+}
+
+p._createDepthStencilRenderBuffer = function(w, h){
+  var renderbuffer = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h);
+
+  return renderbuffer;
 }
 
 p.onResize = function(e){
