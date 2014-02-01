@@ -1,7 +1,7 @@
 function DirectionalLight(){
   Light.call(this);
 
-  this.direction = vec3.create();
+  this.direction = new Vec3();
 
   this.createBuffer();
 }
@@ -37,11 +37,11 @@ p.createVertexArray = function(shader){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix.m);
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
-  gl.uniform3fv(shader.uniforms['u_Light.direction'], this.direction);
-  gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
+  gl.uniform3fv(shader.uniforms['u_Light.direction'], this.direction.getData());
+  gl.uniform3fv(shader.uniforms['u_Light.color'], this.color.getData3());
   gl.uniform1i(shader.uniforms['u_Light.enabled'], this.enabled);
 
   // console.log(this._viewSpacePosition);
@@ -54,10 +54,15 @@ p.lit = function(shader, camera){
     this.createVertexArray(shader);
 
 
-  var origin = vec3.fromValues(0,0,0);
-  vec3.transformMat4(origin, origin, camera.viewMatrix);
-  vec3.transformMat4(this._viewSpacePosition, this._position, camera.viewMatrix);
-  vec3.sub(this.direction, this._viewSpacePosition, origin);
+  // var origin = vec3.fromValues(0,0,0);
+  // vec3.transformMat4(origin, origin, camera.viewMatrix);
+  // vec3.transformMat4(this._viewSpacePosition, this._position, camera.viewMatrix);
+  // vec3.sub(this.direction, this._viewSpacePosition, origin);
+
+  var origin = new Vec3();
+  origin.applyMat4(camera.viewMatrix);
+  Vec3.transformMat4(this._viewSpacePosition, this._position, camera.viewMatrix);
+  Vec3.sub(this.direction, this._viewSpacePosition, origin);
 
 
   this.uploadUniforms(shader);

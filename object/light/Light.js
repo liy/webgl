@@ -3,7 +3,7 @@ function Light(){
   Object3D.call(this);
 
   // model view matrix
-  this.modelViewMatrix = mat4.create();
+  this.modelViewMatrix = new Mat4();
 
   this.enabled = true;
 
@@ -12,7 +12,7 @@ function Light(){
   this.framebufferSize = 512;
 
   // color of the light
-  this.color = vec3.fromValues(1.0, 1.0, 1.0);
+  this.color = new Color(1.0, 1.0, 1.0);
   // intensity of the light
   this.intensity = 1.0;
 }

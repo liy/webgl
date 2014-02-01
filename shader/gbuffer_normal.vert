@@ -14,7 +14,7 @@ uniform mat4 u_ViewMatrix;
 // set by mesh
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ModelViewMatrix;
-uniform mat3 u_ModelViewMatrixInverseTranspose;
+uniform mat3 u_NormalMatrix;
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
@@ -26,8 +26,8 @@ void main(){
   gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(a_Vertex, 1.0);
   v_TexCoord = a_TexCoord;
 
-  v_Normal = u_ModelViewMatrixInverseTranspose * a_Normal;
-  v_Tangent = u_ModelViewMatrixInverseTranspose * a_Tangent;
-  v_Bitangent = u_ModelViewMatrixInverseTranspose * a_Bitangent;
+  v_Normal = u_NormalMatrix * a_Normal;
+  v_Tangent = u_NormalMatrix * a_Tangent;
+  v_Bitangent = u_NormalMatrix * a_Bitangent;
   v_Color = a_Color;
 }

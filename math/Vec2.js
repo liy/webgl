@@ -2,7 +2,7 @@ function Vec2(x, y){
   this.x = x||0;
   this.y = y||0;
 }
-var p = Vec2.prototype;
+var p = Vec2.prototype = Object.create(null);
 
 p.add = function(v){
   this.x += v.x;

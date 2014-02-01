@@ -12,6 +12,6 @@ p.perspective = function(viewAngle, aspectRatio, near, far){
   this.near = near || 0.1;
   this.far = far || 400;
 
-  mat4.perspective(this.projectionMatrix, this.viewAngle, this.aspectRatio, this.near, this.far);
-  mat4.invert(this.invertProjectionMatrix, this.projectionMatrix);
+  this.projectionMatrix.perspective(this.viewAngle, this.aspectRatio, this.near, this.far);
+  Mat4.invert(this.invertProjectionMatrix, this.projectionMatrix);
 }

@@ -3,15 +3,11 @@ function Material(){
 
   this.name = '';
 
-  this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
+  this.color = new Color(1.0, 1.0, 1.0);
+  this.ambientColor = new Color(1.0, 1.0, 1.0);
+  this.albedoColor = new Color(1.0, 1.0, 1.0);
+  this.specularColor = new Color(1.0, 1.0, 1.0);
+  this.emissionColor = new Color(0.0, 0.0, 0.0);
   // float
   this.roughness = 65;
 
@@ -114,10 +110,10 @@ p.uploadUniforms = function(shader){
     TextureManager.instance.unbindTexture(gl.TEXTURE0+4);
   }
 
-  gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);
-  gl.uniform4fv(shader.uniforms['albedoColor'], this.albedoColor);
-  gl.uniform4fv(shader.uniforms['specularColor'], this.specularColor);
-  gl.uniform4fv(shader.uniforms['emissionColor'], this.emissionColor);
+  gl.uniform3fv(shader.uniforms['ambientColor'], this.ambientColor.getData());
+  gl.uniform3fv(shader.uniforms['albedoColor'], this.albedoColor.getData());
+  gl.uniform3fv(shader.uniforms['specularColor'], this.specularColor.getData());
+  gl.uniform3fv(shader.uniforms['emissionColor'], this.emissionColor.getData());
   gl.uniform1f(shader.uniforms['roughness'], this.roughness);
 }
 

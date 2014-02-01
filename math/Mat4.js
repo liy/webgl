@@ -22,13 +22,13 @@ function Mat4(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m
 
   // TODO: do I need to do the checking?
   for(var i=0; i<16; ++i){
-    if(m[i] === undefined){
+    if(isNaN(m[i])){
       this.identity();
       break;
     }
   }
 }
-var p = Mat4.prototype;
+var p = Mat4.prototype = Object.create(null);
 
 p.set = function(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44){
   this.m[0] = m11; this.m[4] = m12; this.m[8]  = m13; this.m[12] = m14;
@@ -81,50 +81,41 @@ p.multiply = function(n){
   return this;
 }
 
-/*
-  this = a * b
- */
-p.multiplies = function(a, b){
-  var a11 = a.m[0], a12 = a.m[4], a13 = a.m[8],  a14 = a.m[12];
-  var a21 = a.m[1], a22 = a.m[5], a23 = a.m[9],  a24 = a.m[13];
-  var a31 = a.m[2], a32 = a.m[6], a33 = a.m[10], a34 = a.m[14];
-  var a41 = a.m[3], a42 = a.m[7], a43 = a.m[11], a44 = a.m[15];
-
-  var b11 = b.m[0], b12 = b.m[4], b13 = b.m[8],  b14 = b.m[12];
-  var b21 = b.m[1], b22 = b.m[5], b23 = b.m[9],  b24 = b.m[13];
-  var b31 = b.m[2], b32 = b.m[6], b33 = b.m[10], b34 = b.m[14];
-  var b41 = b.m[3], b42 = b.m[7], b43 = b.m[11], b44 = b.m[15];
-
-  this.m[0]  = a11*b11 + a12*b21 + a13*b31 + a14*b41;
-  this.m[4]  = a11*b12 + a12*b22 + a13*b32 + a14*b42;
-  this.m[8]  = a11*b13 + a12*b23 + a13*b33 + a14*b43;
-  this.m[12] = a11*b14 + a12*b24 + a13*b34 + a14*b44;
-
-  this.m[1]  = a21*b11 + a22*b21 + a23*b31 + a24*b41;
-  this.m[5]  = a21*b12 + a22*b22 + a23*b32 + a24*b42;
-  this.m[9]  = a21*b13 + a22*b23 + a23*b33 + a24*b43;
-  this.m[13] = a21*b14 + a22*b24 + a23*b34 + a24*b44;
-
-  this.m[2]  = a31*b11 + a32*b21 + a33*b31 + a34*b41;
-  this.m[6]  = a31*b12 + a32*b22 + a33*b32 + a34*b42;
-  this.m[10] = a31*b13 + a32*b23 + a33*b33 + a34*b43;
-  this.m[14] = a31*b14 + a32*b24 + a33*b34 + a34*b44;
-
-  this.m[3]  = a41*b11 + a42*b21 + a43*b31 + a44*b41;
-  this.m[7]  = a41*b12 + a42*b22 + a43*b32 + a44*b42;
-  this.m[11] = a41*b13 + a42*b23 + a43*b33 + a44*b43;
-  this.m[15] = a41*b14 + a42*b24 + a43*b34 + a44*b44;
-
-  return this;
-}
-
-p.setTranslation = function(x, y, z){
+p.setPosition = function(x, y, z){
   this.m[12] = x;
   this.m[13] = y;
   this.m[14] = z;
 
   return this;
 }
+
+p.translate = function(v) {
+  var m11 = this.m[0], m12 = this.m[4], m13 = this.m[8],  m14 = this.m[12];
+  var m21 = this.m[1], m22 = this.m[5], m23 = this.m[9],  m24 = this.m[13];
+  var m31 = this.m[2], m32 = this.m[6], m33 = this.m[10], m34 = this.m[14];
+  var m41 = this.m[3], m42 = this.m[7], m43 = this.m[11], m44 = this.m[15];
+  
+  this.m[0] = m11 + m41*v.x;
+  this.m[1] = m21 + m41*v.y;
+  this.m[2] = m31 + m41*v.z;
+  this.m[3] = m41;
+
+  this.m[4] = m12 + m42*v.x;
+  this.m[5] = m22 + m42*v.y;
+  this.m[6] = m32 + m42*v.z;
+  this.m[7] = m42;
+
+  this.m[8] = m13 + m43*v.x;
+  this.m[9] = m23 + m43*v.y;
+  this.m[10] = m33 + m43*v.z;
+  this.m[11] = m43;
+  this.m[12] = m14 + m44*v.x;
+  this.m[13] = m24 + m44*v.y;
+  this.m[14] = m34 + m44*v.z;
+  this.m[15] = m44;
+
+  return this;
+};
 
 p.setRotationX = function(radian){
   var c = Math.cos(radian);
@@ -168,6 +159,87 @@ p.setRotationZ = function(radian){
   return this;
 }
 
+p.rotateX = function(radian){
+  var s = Math.sin(radian),
+      c = Math.cos(radian),
+      m12 = this.m[4],
+      m22 = this.m[5],
+      m32 = this.m[6],
+      m42 = this.m[7],
+      m13 = this.m[8],
+      m23 = this.m[9],
+      m33 = this.m[10],
+      m43 = this.m[11];
+
+  this.m[4] = m12*c + m13*s;
+  this.m[5] = m22*c + m23*s;
+  this.m[6] = m32*c + m33*s;
+  this.m[7] = m42*c + m43*s;
+  this.m[8] = m13*c - m12*s;
+  this.m[9] = m23*c - m22*s;
+  this.m[10] = m33*c - m32*s;
+  this.m[11] = m43*c - m42*s;
+
+  return this;
+};
+
+p.rotateY = function(radian){
+  var s = Math.sin(radian),
+      c = Math.cos(radian),
+      m11 = this.m[0],
+      m21 = this.m[1],
+      m31 = this.m[2],
+      m41 = this.m[3],
+      m13 = this.m[8],
+      m23 = this.m[9],
+      m33 = this.m[10],
+      m43 = this.m[11];
+
+  this.m[0] = m11*c - m13*s;
+  this.m[1] = m21*c - m23*s;
+  this.m[2] = m31*c - m33*s;
+  this.m[3] = m41*c - m43*s;
+  this.m[8] = m11*s + m13*c;
+  this.m[9] = m21*s + m23*c;
+  this.m[10] = m31*s + m33*c;
+  this.m[11] = m41*s + m43*c;
+
+  return this;
+};
+
+p.rotateZ = function(radian) {
+  var s = Math.sin(radian),
+      c = Math.cos(radian),
+      m11 = this.m[0],
+      m21 = this.m[1],
+      m31 = this.m[2],
+      m41 = this.m[3],
+      m12 = this.m[4],
+      m22 = this.m[5],
+      m32 = this.m[6],
+      m42 = this.m[7];
+
+  this.m[0] = m11*c + m12*s;
+  this.m[1] = m21*c + m22*s;
+  this.m[2] = m31*c + m32*s;
+  this.m[3] = m41*c + m42*s;
+  this.m[4] = m12*c - m11*s;
+  this.m[5] = m22*c - m21*s;
+  this.m[6] = m32*c - m31*s;
+  this.m[7] = m42*c - m41*s;
+
+  return this;
+};
+
+p.multiplyScalar = function(s){
+  this.m[0] *= s; this.m[4] *= s; this.m[8] *= s; this.m[12] *= s;
+  this.m[1] *= s; this.m[5] *= s; this.m[9] *= s; this.m[13] *= s;
+  this.m[2] *= s; this.m[6] *= s; this.m[10] *= s; this.m[14] *= s;
+  this.m[3] *= s; this.m[7] *= s; this.m[11] *= s; this.m[15] *= s;
+
+  return this;
+}
+
 p.setScale = function(x, y, z){
   this.set(
     x, 0, 0, 0,
@@ -179,11 +251,11 @@ p.setScale = function(x, y, z){
   return this;
 }
 
-p.scale = function(s){
-  this.m[0] *= s; this.m[4] *= s; this.m[8] *= s; this.m[12] *= s;
-  this.m[1] *= s; this.m[5] *= s; this.m[9] *= s; this.m[13] *= s;
-  this.m[2] *= s; this.m[6] *= s; this.m[10] *= s; this.m[14] *= s;
-  this.m[3] *= s; this.m[7] *= s; this.m[11] *= s; this.m[15] *= s;
+p.scale = function(v){
+  this.m[0] *= v.x; this.m[4] *= v.y; this.m[8] *= v.z;
+  this.m[1] *= v.x; this.m[5] *= v.y; this.m[9] *= v.z;
+  this.m[2] *= v.x; this.m[6] *= v.y; this.m[10] *= v.z;
+  this.m[3] *= v.x; this.m[7] *= v.y; this.m[11] *= v.z;
 
   return this;
 }
@@ -235,33 +307,32 @@ p.ortho = function(left, right, top, bottom, near, far){
   return this;
 }
 
-p.lookAt = function(){
+// FIXME: problems
+p.lookAt = function(eye, target, up){
   var x = new Vec3();
   var y = new Vec3();
   var z = new Vec3();
 
-  return function (eye, target, up){
-    z.subVectors( eye, target ).normalize();
+  Vec3.sub(z, eye, target).normalize();
 
-    if(z.len() === 0)
-      z.z = 1;
+  if(z.len() === 0)
+    z.z = 1;
 
-    x.crossVectors( up, z ).normalize();
+  Vec3.cross(x, up, z ).normalize();
 
-    if(x.len() === 0){
-      z.x += 0.0001;
-      x.crossVectors( up, z ).normalize();
-    }
+  if(x.len() === 0){
+    z.x += 0.0001;
+    Vec3.cross(x, up, z).normalize();
+  }
 
-    y.crossVectors( z, x );
+  Vec3.cross(y, z, x);
 
-    this.m[0] = x.x; this.m[4] = y.x; this.m[8] = z.x;
-    this.m[1] = x.y; this.m[5] = y.y; this.m[9] = z.y;
-    this.m[2] = x.z; this.m[6] = y.z; this.m[10] = z.z;
+  this.m[0] = x.x; this.m[4] = y.x; this.m[8] = z.x;
+  this.m[1] = x.y; this.m[5] = y.y; this.m[9] = z.y;
+  this.m[2] = x.z; this.m[6] = y.z; this.m[10] = z.z;
 
-    return this;
-  };
-}();
+  return this;
+};
 
 p.transpose = function(){
   var tmp;
@@ -319,7 +390,7 @@ p.invert = function(){
   this.m[15] = m12*m23*m31 - m13*m22*m31 + m13*m21*m32 - m11*m23*m32 - m12*m21*m33 + m11*m22*m33;
 
   var det = m11*this.m[0] + m21*this.m[4] + m31*this.m[8] + m41*this.m[12];
-  return this.scale(1/det);
+  return this.multiplyScalar(1/det);
 }
 
 p.clone = function(){
@@ -329,6 +400,16 @@ p.clone = function(){
     this.m[2], this.m[6], this.m[10], this.m[14],
     this.m[3], this.m[7], this.m[11], this.m[15]
   );
+}
+
+p.copy = function(m){
+  this.set(
+    m.m[0], m.m[4], m.m[8],  m.m[12],
+    m.m[1], m.m[5], m.m[9],  m.m[13],
+    m.m[2], m.m[6], m.m[10], m.m[14],
+    m.m[3], m.m[7], m.m[11], m.m[15]
+  );
+  return this;
 }
 
 p.identity = function(){
@@ -349,4 +430,70 @@ p.isIdentity = function(){
     this.m[2]===0 && this.m[6]===0 && this.m[10]===1 && this.m[14]===0 &&
     this.m[3]===0 && this.m[7]===0 && this.m[11]===0 && this.m[15]===1
   );
+}
+
+/*
+  out = a * b
+ */
+Mat4.multiply = function(out, a, b){
+  var a11 = a.m[0], a12 = a.m[4], a13 = a.m[8],  a14 = a.m[12];
+  var a21 = a.m[1], a22 = a.m[5], a23 = a.m[9],  a24 = a.m[13];
+  var a31 = a.m[2], a32 = a.m[6], a33 = a.m[10], a34 = a.m[14];
+  var a41 = a.m[3], a42 = a.m[7], a43 = a.m[11], a44 = a.m[15];
+
+  var b11 = b.m[0], b12 = b.m[4], b13 = b.m[8],  b14 = b.m[12];
+  var b21 = b.m[1], b22 = b.m[5], b23 = b.m[9],  b24 = b.m[13];
+  var b31 = b.m[2], b32 = b.m[6], b33 = b.m[10], b34 = b.m[14];
+  var b41 = b.m[3], b42 = b.m[7], b43 = b.m[11], b44 = b.m[15];
+
+  out.m[0]  = a11*b11 + a12*b21 + a13*b31 + a14*b41;
+  out.m[4]  = a11*b12 + a12*b22 + a13*b32 + a14*b42;
+  out.m[8]  = a11*b13 + a12*b23 + a13*b33 + a14*b43;
+  out.m[12] = a11*b14 + a12*b24 + a13*b34 + a14*b44;
+
+  out.m[1]  = a21*b11 + a22*b21 + a23*b31 + a24*b41;
+  out.m[5]  = a21*b12 + a22*b22 + a23*b32 + a24*b42;
+  out.m[9]  = a21*b13 + a22*b23 + a23*b33 + a24*b43;
+  out.m[13] = a21*b14 + a22*b24 + a23*b34 + a24*b44;
+
+  out.m[2]  = a31*b11 + a32*b21 + a33*b31 + a34*b41;
+  out.m[6]  = a31*b12 + a32*b22 + a33*b32 + a34*b42;
+  out.m[10] = a31*b13 + a32*b23 + a33*b33 + a34*b43;
+  out.m[14] = a31*b14 + a32*b24 + a33*b34 + a34*b44;
+
+  out.m[3]  = a41*b11 + a42*b21 + a43*b31 + a44*b41;
+  out.m[7]  = a41*b12 + a42*b22 + a43*b32 + a44*b42;
+  out.m[11] = a41*b13 + a42*b23 + a43*b33 + a44*b43;
+  out.m[15] = a41*b14 + a42*b24 + a43*b34 + a44*b44;
+
+  return out;
+}
+
+
+Mat4.invert = function(out, m){
+  var m11 = m.m[0], m12 = m.m[4], m13 = m.m[8],  m14 = m.m[12];
+  var m21 = m.m[1], m22 = m.m[5], m23 = m.m[9],  m24 = m.m[13];
+  var m31 = m.m[2], m32 = m.m[6], m33 = m.m[10], m34 = m.m[14];
+  var m41 = m.m[3], m42 = m.m[7], m43 = m.m[11], m44 = m.m[15];
+
+  // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
+  out.m[0]  = m23*m34*m42 - m24*m33*m42 + m24*m32*m43 - m22*m34*m43 - m23*m32*m44 + m22*m33*m44;
+  out.m[4]  = m14*m33*m42 - m13*m34*m42 - m14*m32*m43 + m12*m34*m43 + m13*m32*m44 - m12*m33*m44;
+  out.m[8]  = m13*m24*m42 - m14*m23*m42 + m14*m22*m43 - m12*m24*m43 - m13*m22*m44 + m12*m23*m44;
+  out.m[12] = m14*m23*m32 - m13*m24*m32 - m14*m22*m33 + m12*m24*m33 + m13*m22*m34 - m12*m23*m34;
+  out.m[1]  = m24*m33*m41 - m23*m34*m41 - m24*m31*m43 + m21*m34*m43 + m23*m31*m44 - m21*m33*m44;
+  out.m[5]  = m13*m34*m41 - m14*m33*m41 + m14*m31*m43 - m11*m34*m43 - m13*m31*m44 + m11*m33*m44;
+  out.m[9]  = m14*m23*m41 - m13*m24*m41 - m14*m21*m43 + m11*m24*m43 + m13*m21*m44 - m11*m23*m44;
+  out.m[13] = m13*m24*m31 - m14*m23*m31 + m14*m21*m33 - m11*m24*m33 - m13*m21*m34 + m11*m23*m34;
+  out.m[2]  = m22*m34*m41 - m24*m32*m41 + m24*m31*m42 - m21*m34*m42 - m22*m31*m44 + m21*m32*m44;
+  out.m[6]  = m14*m32*m41 - m12*m34*m41 - m14*m31*m42 + m11*m34*m42 + m12*m31*m44 - m11*m32*m44;
+  out.m[10] = m12*m24*m41 - m14*m22*m41 + m14*m21*m42 - m11*m24*m42 - m12*m21*m44 + m11*m22*m44;
+  out.m[14] = m14*m22*m31 - m12*m24*m31 - m14*m21*m32 + m11*m24*m32 + m12*m21*m34 - m11*m22*m34;
+  out.m[3]  = m23*m32*m41 - m22*m33*m41 - m23*m31*m42 + m21*m33*m42 + m22*m31*m43 - m21*m32*m43;
+  out.m[7]  = m12*m33*m41 - m13*m32*m41 + m13*m31*m42 - m11*m33*m42 - m12*m31*m43 + m11*m32*m43;
+  out.m[11] = m13*m22*m41 - m12*m23*m41 - m13*m21*m42 + m11*m23*m42 + m12*m21*m43 - m11*m22*m43;
+  out.m[15] = m12*m23*m31 - m13*m22*m31 + m13*m21*m32 - m11*m23*m32 - m12*m21*m33 + m11*m22*m33;
+
+  var det = m11*out.m[0] + m21*out.m[4] + m31*out.m[8] + m41*out.m[12];
+  return out.multiplyScalar(1/det);
 }

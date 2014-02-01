@@ -2,8 +2,10 @@ function Vec3(x, y, z){
   this.x = x||0;
   this.y = y||0;
   this.z = z||0;
+
+  this.data = new Float32Array(3);
 }
-var p = Vec3.prototype;
+var p = Vec3.prototype = Object.create(null);
 
 p.add = function(v){
   this.x += v.x;
@@ -102,4 +104,38 @@ p.normalize = function(){
 
 p.clone = function(){
   return new Vec3(this.x, this.y, this.z);
+}
+
+p.getData = function(){
+  this.data[0] = this.x;
+  this.data[1] = this.y;
+  this.data[2] = this.z;
+
+  return this.data;
+}
+
+Vec3.transformMat4 = function(out, v, m){
+  out.x = m.m[0] * v.x + m.m[4] * v.y + m.m[8] * v.z + m.m[12];
+  out.y = m.m[1] * v.x + m.m[5] * v.y + m.m[9] * v.z + m.m[13];
+  out.z = m.m[2] * v.x + m.m[6] * v.y + m.m[10] * v.z + m.m[14];
+
+  return out;
+}
+
+Vec3.sub = function(out, a, b){
+  out.x = a.x - b.x;
+  out.y = a.y - b.y;
+  out.z = a.z - b.z;
+  return out;
+}
+
+Vec3.cross = function(out, a, b) {
+  var ax = a.x, ay = a.y, az = a.z;
+  var bx = b.x, by = b.y, bz = b.z;
+
+  out.x = ay * bz - az * by;
+  out.y = az * bx - ax * bz;
+  out.z = ax * by - ay * bx;
+
+  return out;
 }

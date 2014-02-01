@@ -3,19 +3,19 @@
 <head>
 <title></title>
 <script src="lib/stats.min.js"></script>
-<script src='lib/gl-matrix.js'></script>
 <script src='lib/utils.js'></script>
 <script src='lib/ShaderLoader.js'></script>
 <script src='lib/Shader.js'></script>
-<script src="lib/texture-util.js"></script>
 <script src='lib/dat.gui.min.js'></script>
 <script src='math/Vec3.js'></script>
 <script src='math/Vec2.js'></script>
 <script src='math/Mat3.js'></script>
+<script src='math/Mat4.js'></script>
 
 <script src="event/Event.js"></script>
 <script src="event/EventDispatcher.js"></script>
 
+<script src="util/Color.js"></script>
 <script src="util/texture/Texture.js"></script>
 <script src="util/texture/TGALoader.js"></script>
 <script src="util/texture/ImageLoader.js"></script>
@@ -43,7 +43,6 @@
 
 <script src='object/light/Light.js'></script>
 <script src='object/light/DirectionalLight.js'></script>
-<script src='object/light/AmbientLight.js'></script>
 <script src='object/light/SpotLight.js'></script>
 <script src='object/light/PointLight.js'></script>
 <script src="object/Face3.js"></script>
@@ -52,22 +51,11 @@
 
 <script src="object/Mesh.js"></script>
 
-<script src="core/pass/RenderPass.js"></script>
-<script src="core/pass/AlbedoPass.js"></script>
-<script src="core/pass/DepthPass.js"></script>
-<script src="core/pass/NormalPass.js"></script>
-<script src="core/pass/PositionPass.js"></script>
-<script src="core/pass/PositionalLightPass.js"></script>
-<script src="core/pass/DirectionalLightPass.js"></script>
-<script src="core/Composition.js"></script>
 
 <script src="util/ObjectMatFile.js"></script>
 <script src="util/ObjectFile.js"></script>
-<script src="util/MRTDebugger.js"></script>
 <script src='util/ExtensionCheck.js'></script>
 
-<script src="core/Renderer.js"></script>
-<script src="core/BRDFRenderer.js"></script>
 <script src="core/DeferredRenderer.js"></script>
 </head>
 <body style="margin:0">

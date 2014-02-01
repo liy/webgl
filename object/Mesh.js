@@ -2,12 +2,12 @@ function Mesh(geometry, material){
   Object3D.call(this);
 
   // model view matrix
-  this.modelViewMatrix = mat4.create();
+  this.modelViewMatrix = new Mat4();
   // for normal transformation and tangent transformation
-  this.modelViewMatrixInverseTranspose = mat3.create();
+  this.normalMatrix = new Mat3();
 
   this.geometry = geometry;
-  this.material = material || new BRDFMaterial();
+  this.material = material || new Material();
 
   this.createBuffer();
 }
@@ -61,10 +61,9 @@ p.createBuffer = function(){
 
     // tint color, RGBA
     if(this.material.color.length !== 0){
-      data.push(this.material.color[0]);
-      data.push(this.material.color[1]);
-      data.push(this.material.color[2]);
-      data.push(this.material.color[3]);
+      data.push(this.material.color.r);
+      data.push(this.material.color.g);
+      data.push(this.material.color.b);
     }
   }
 
@@ -102,7 +101,7 @@ p.createVertexArray = function(shader){
     strideBytes += 12;
   // color
   if(this.material.color.length !== 0)
-    strideBytes += 16;
+    strideBytes += 12;
 
   // starting point of each attribute data
   var pointerOffset = 0;
@@ -137,7 +136,7 @@ p.createVertexArray = function(shader){
   // tint color
   if(this.material.color.length !== 0){
     gl.enableVertexAttribArray(shader.attributes.a_Color);
-    gl.vertexAttribPointer(shader.attributes.a_Color, 4, gl.FLOAT, false, strideBytes, pointerOffset+=12);
+    gl.vertexAttribPointer(shader.attributes.a_Color, 3, gl.FLOAT, false, strideBytes, pointerOffset+=12);
   }
 
   // index information
@@ -147,9 +146,10 @@ p.createVertexArray = function(shader){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelMatrix'], false, this.worldMatrix);
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
-  gl.uniformMatrix3fv(shader.uniforms['u_ModelViewMatrixInverseTranspose'], false, this.modelViewMatrixInverseTranspose);
+
+  gl.uniformMatrix4fv(shader.uniforms['u_ModelMatrix'], false, this.worldMatrix.m);
+  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix.m);
+  gl.uniformMatrix3fv(shader.uniforms['u_NormalMatrix'], false, this.normalMatrix.m);
 
   if(this.material)
     this.material.uploadUniforms(shader);
@@ -164,6 +164,5 @@ p.draw = function(shader){
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
-  // gl.drawArrays(gl.TRIANGLES, 0, this.geometry.vertices.length);
   gl.bindVertexArrayOES(null);
 }

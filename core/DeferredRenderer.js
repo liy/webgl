@@ -137,8 +137,8 @@ p.update = function(){
   for(var i=0; i<len; ++i){
     var mesh = scene.meshes[i];
     // update model view matrix, normal matrix
-    mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
-    mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
+    Mat4.multiply(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
+    mesh.normalMatrix.normalFromMat4(mesh.modelViewMatrix);
   }
 
   // update the lights' view dependent matrix
@@ -146,8 +146,8 @@ p.update = function(){
   for(var i=0; i<len; ++i){
     var light = scene.lights[i];
     // update light's view dependent matrix, and related position, etc.
-    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
-    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
+    Mat4.multiply(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+    Vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
   }
 }
 
@@ -367,9 +367,9 @@ function sort(camera){
     }
 
 
-    if(a._viewSpacePosition[2] < b._viewSpacePosition[2])
+    if(a._viewSpacePosition.z < b._viewSpacePosition.z)
       return 1;
-    else if(a._viewSpacePosition[2] > b._viewSpacePosition[2])
+    else if(a._viewSpacePosition.z > b._viewSpacePosition.z)
       return -1
     else
       return 0;
