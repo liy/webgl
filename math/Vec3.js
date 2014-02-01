@@ -40,6 +40,41 @@ p.cross = function(v, out){
   return out;
 }
 
+p.applyMat3 = function(mat3){
+  var x = this.x;
+  var y = this.y;
+  var z = this.z;
+
+  this.x = mat3.m[0]*x + mat3.m[3]*y + mat3.m[6]*z;
+  this.y = mat3.m[1]*x + mat3.m[4]*y + mat3.m[7]*z;
+  this.z = mat3.m[2]*x + mat3.m[5]*y + mat3.m[8]*z;
+
+  return this;
+}
+
+p.applyMat4 = function(mat4){
+  var x=this.x, y=this.y, z=this.z;
+
+  this.x = mat4.m[0]*x + mat4.m[4]*y + mat4.m[8]*z + mat4.m[12];
+  this.y = mat4.m[1]*x + mat4.m[5]*y + mat4.m[9]*z + mat4.m[13];
+  this.z = mat4.m[2]*x + mat4.m[6]*y + mat4.m[10]*z + mat4.m[14];
+
+  return this;
+}
+
+p.transformAsDirection = function(mat4){
+  // vector interpreted as a direction
+  var x = this.x, y = this.y, z = this.z;
+
+  this.x = mat4.m[0]*x + mat4.m[4]*y + mat4.m[8]*z;
+  this.y = mat4.m[1]*x + mat4.m[5]*y + mat4.m[9]*z;
+  this.z = mat4.m[2]*x + mat4.m[6]*y + mat4.m[10]*z;
+
+  this.normalize();
+
+  return this;
+}
+
 p.equals = function(v){
   return this.x===v.x && this.y===v.y && this.z===v.z;
 }
