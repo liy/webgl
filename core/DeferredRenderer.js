@@ -138,7 +138,7 @@ p.update = function(){
     var mesh = scene.meshes[i];
     // update model view matrix, normal matrix
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
-    mat3.normalFromMat4(mesh.modelViewMatrixInverseTranspose, mesh.modelViewMatrix);
+    mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
   }
 
   // update the lights' view dependent matrix

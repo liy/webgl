@@ -12,7 +12,7 @@ varying vec3 v_Bitangent;
 varying vec3 v_WorldNormal;
 varying vec4 v_WorldPosition;
 
-uniform mat3 u_ModelViewMatrixInverseTranspose;
+uniform mat3 u_NormalMatrix;
 
 // texture sampling.
 uniform sampler2D diffuseTexture;
@@ -56,7 +56,7 @@ vec3 calculateNormal(){
   vec3 permuted = normalize(texture2D(bumpTexture, v_TexCoord) * 2.0 - 1.0).xyz ;
 
   vec3 N = normalize(v_Normal);
-  vec3 T = normalize(u_ModelViewMatrixInverseTranspose * v_Tangent.xyz);
+  vec3 T = normalize(u_NormalMatrix * v_Tangent.xyz);
   vec3 B = normalize(v_Bitangent);
   // transform from tangent space into world space
   // T,B,N corresponds to first, second and third column?

@@ -12,7 +12,7 @@ uniform mat4 u_ViewMatrix;
 uniform mat4 u_ModelViewMatrix;
 uniform mat4 u_ModelMatrixInverse;
 uniform mat3 u_ModelMatrixInverseTranspose;
-uniform mat3 u_ModelViewMatrixInverseTranspose;
+uniform mat3 u_NormalMatrix;
 
 uniform vec3 u_LightPosition;
 uniform vec3 u_CameraPosition;
@@ -26,8 +26,8 @@ varying vec3 v_Bitangent;
 void main(){
   v_Vertex = u_ModelViewMatrix * vec4(a_Vertex, 1.0);
   gl_Position = u_ProjectionMatrix * v_Vertex;
-  v_Normal = u_ModelViewMatrixInverseTranspose * a_Normal;
+  v_Normal = u_NormalMatrix * a_Normal;
   v_TexCoord = a_TexCoord;
-  v_Tangent = vec4(normalize(u_ModelViewMatrixInverseTranspose * a_Tangent.xyz), 1.0);
-  v_Bitangent = normalize(u_ModelViewMatrixInverseTranspose * a_Bitangent);
+  v_Tangent = vec4(normalize(u_NormalMatrix * a_Tangent.xyz), 1.0);
+  v_Bitangent = normalize(u_NormalMatrix * a_Bitangent);
 }

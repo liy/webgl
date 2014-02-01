@@ -3,15 +3,11 @@ function Material(){
 
   this.name = '';
 
-  this.color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.ambientColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.albedoColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.specularColor = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // vec4
-  this.emissionColor = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
+  this.color = vec3.fromValues(1.0, 1.0, 1.0);
+  this.ambientColor = vec3.fromValues(1.0, 1.0, 1.0);
+  this.albedoColor = vec3.fromValues(1.0, 1.0, 1.0);
+  this.specularColor = vec3.fromValues(1.0, 1.0, 1.0);
+  this.emissionColor = vec3.fromValues(0.0, 0.0, 0.0);
   // float
   this.roughness = 65;
 
