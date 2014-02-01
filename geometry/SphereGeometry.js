@@ -21,9 +21,9 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
       y = sinTheta;
       z = cosTheta * Math.sin(phi);
 
-      this.vertices.push(new Vec3(x*this.radius, y*this.radius, z*this.radius));
-      this.texCoords.push(new Vec2(j/this.longitudeBands, i/this.latitudeBands));
-      this.normals.push(new Vec3(x, y, z));
+      this.vertices.push(vec3.fromValues(x*this.radius, y*this.radius, z*this.radius));
+      this.texCoords.push(vec2.fromValues(j/this.longitudeBands, i/this.latitudeBands));
+      this.normals.push(vec3.fromValues(x, y, z));
     }
   }
 

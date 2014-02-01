@@ -9,6 +9,6 @@ function Face3(a, b, c){
   this.b = b;
   this.c = c;
 
-  this.normal = null;
+  this.normal = vec3.create();
 }
 var p = Face3.prototype;

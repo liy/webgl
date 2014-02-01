@@ -143,7 +143,7 @@ p.onload = function(e){
           // ensure the same normal vector is shared by different vertex, so later Geometry class
           // can perform smooth easily.
           if(nLookup[ni] === undefined)
-            nLookup[ni] = new Vec3();
+            nLookup[ni] = vec3.create();
           currentGeometry.normals.push(nLookup[ni]);
         }
       }
@@ -158,7 +158,7 @@ p.onload = function(e){
           // ensure the same normal vector is shared by different vertex, so later Geometry class
           // can perform smooth easily.
           if(nLookup[vi] === undefined)
-            nLookup[vi] = new Vec3();
+            nLookup[vi] = vec3.create();
           currentGeometry.normals.push(nLookup[vi]);
         }
       }
@@ -205,15 +205,15 @@ p.onload = function(e){
 
       if((result = vertex_pattern.exec(line)) !== null){
         // ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
-        vLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
+        vLookup.push( vec3.fromValues(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
       }
       else if((result = normal_pattern.exec(line)) !== null) {
         // ["vn 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
-        nLookup.push( new Vec3(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
+        nLookup.push( vec3.fromValues(parseFloat(result[1]), parseFloat(result[2]), parseFloat(result[3])) );
       }
       else if((result = texCoord_pattern.exec(line)) !== null){
         // ["vt 0.1 0.2", "0.1", "0.2"]
-        tLookup.push( new Vec2(parseFloat(result[1]), parseFloat(result[2])) );
+        tLookup.push( vec2.fromValues(parseFloat(result[1]), parseFloat(result[2])) );
       }
       else if((result = face_pattern1.exec(line)) !== null){
         this.normalDefined = false;

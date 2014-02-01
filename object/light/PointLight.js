@@ -16,9 +16,9 @@ p.createBuffer = function(){
   for(var i=0; i<this.geometry.vertices.length; ++i){
     // vertex
     var v = this.geometry.vertices[i];
-    data.push(v.x);
-    data.push(v.y);
-    data.push(v.z);
+    data.push(v[0]);
+    data.push(v[1]);
+    data.push(v[2]);
   }
 
   // vertex buffer

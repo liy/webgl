@@ -27,36 +27,36 @@ p.createBuffer = function(){
   for(var i=0; i<len; ++i){
     // vertex
     var v = this.geometry.vertices[i];
-    data.push(v.x);
-    data.push(v.y);
-    data.push(v.z);
+    data.push(v[0]);
+    data.push(v[1]);
+    data.push(v[2]);
 
     // normal
     if(this.geometry.normals.length !== 0){
       var n = this.geometry.normals[i];
-      data.push(n.x);
-      data.push(n.y);
-      data.push(n.z);
+      data.push(n[0]);
+      data.push(n[1]);
+      data.push(n[2]);
     }
 
     // texCoords
     if(this.geometry.texCoords.length !== 0){
       var t = this.geometry.texCoords[i];
-      data.push(t.x);
-      data.push(t.y);
+      data.push(t[0]);
+      data.push(t[1]);
     }
 
     // tangents and bitangents
     if(this.geometry.tangents.length !== 0){
       var ta = this.geometry.tangents[i];
-      data.push(ta.x);
-      data.push(ta.y);
-      data.push(ta.z);
+      data.push(ta[0]);
+      data.push(ta[1]);
+      data.push(ta[2]);
 
        var bt = this.geometry.bitangents[i];
-      data.push(bt.x);
-      data.push(bt.y);
-      data.push(bt.z);
+      data.push(bt[0]);
+      data.push(bt[1]);
+      data.push(bt[2]);
     }
 
     // tint color, RGBA
