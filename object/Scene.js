@@ -1,5 +1,5 @@
 function Scene(){
-  Object3D.call(this);
+  Node.call(this);
 
   this.scene = this;
 
@@ -21,7 +21,7 @@ function Scene(){
   // if it is dirty, the buffer will be updated
   this.dirty = true;
 }
-var p = Scene.prototype = Object.create(Object3D.prototype);
+var p = Scene.prototype = Object.create(Node.prototype);
 
 p.track = function(obj3D){
   var index = this.objects.indexOf(obj3D);

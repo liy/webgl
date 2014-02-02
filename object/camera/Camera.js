@@ -1,12 +1,12 @@
 function Camera(){
-  Object3D.call(this);
+  Node.call(this);
 
   this.projectionMatrix = mat4.create();
   this.invertProjectionMatrix = mat4.create();
   this.lookTarget = vec3.fromValues(0, 0, 0);
   this.viewMatrix = mat4.create();
 }
-var p = Camera.prototype = Object.create(Object3D.prototype);
+var p = Camera.prototype = Object.create(Node.prototype);
 
 // TODO: camera update matrix needs more work
 p.update = function(){

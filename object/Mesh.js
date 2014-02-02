@@ -1,5 +1,5 @@
 function Mesh(geometry, material){
-  Object3D.call(this);
+  Node.call(this);
 
   // model view matrix
   this.modelViewMatrix = mat4.create();
@@ -11,7 +11,7 @@ function Mesh(geometry, material){
 
   this.createBuffer();
 }
-var p = Mesh.prototype = Object.create(Object3D.prototype);
+var p = Mesh.prototype = Object.create(Node.prototype);
 
 p.createBuffer = function(){
   this.geometry.computeFaceNormal();

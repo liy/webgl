@@ -1,6 +1,6 @@
 // by default position directional light, from (1, 1, 1)
 function Light(){
-  Object3D.call(this);
+  Node.call(this);
 
   // model view matrix
   this.modelViewMatrix = mat4.create();
@@ -16,7 +16,7 @@ function Light(){
   // intensity of the light
   this.intensity = 1.0;
 }
-var p = Light.prototype = Object.create(Object3D.prototype);
+var p = Light.prototype = Object.create(Node.prototype);
 
 Object.defineProperty(p, "castShadow", {
   set: function(value){

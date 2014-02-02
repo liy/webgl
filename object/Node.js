@@ -1,4 +1,4 @@
-function Object3D(){
+function Node(){
   this._position = vec3.create();
   // eye space position, used by sorting function in renderer only.
   this._viewSpacePosition = vec3.create();
@@ -22,9 +22,9 @@ function Object3D(){
   this.parent = null;
   this.scene = null;
 
-  this.id = Object3D.id++;
+  this.id = Node.id++;
 }
-var p = Object3D.prototype;
+var p = Node.prototype = Object.create(null);
 
 // If use convenient setter methods, the matrix must be updated, sync with the position.
 p.update = function(){
@@ -202,5 +202,5 @@ Object.defineProperty(p, "matrix", {
   }
 });
 
-Object3D.origin = vec3.create();
-Object3D.id = 0;
+Node.origin = vec3.create();
+Node.id = 0;

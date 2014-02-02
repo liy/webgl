@@ -108,6 +108,6 @@ void main(){
 
   vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
-  vec4 color = albedo*max(ndotl, 0.0) + specularTerm;
+  vec4 color = albedo*max(ndotl, 0.0);
   gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 }

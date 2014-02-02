@@ -21,7 +21,7 @@ p.load = function(url, callback){
   this.matFile = new ObjectMatFile();
 
   // it contains the 
-  this.object = new Object3D();
+  this.object = new Node();
 
   console.log('loading: ' + this.url);
 
