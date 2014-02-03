@@ -52,7 +52,7 @@ function DeferredRenderer(){
 
   // directional light calculation
   this.dirLightProgram = gl.createProgram();
-  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
+  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/sh.vert', 'shader/light/sh.frag');
   gl.useProgram(this.dirLightProgram);
   this.dirLightShader.locateAttributes(this.dirLightProgram);
   this.dirLightShader.locateUniforms(this.dirLightProgram);
