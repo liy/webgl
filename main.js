@@ -16,11 +16,11 @@ scene.add(camera);
 camera.z = 3;
 camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
-var p1 = new PointLight(3);
+var p1 = new PointLight();
 p1.z = 0.6;
 p1.color = vec3.fromValues(1.0, 0.2, 0.0);
 
-var p2 = new PointLight(1);
+var p2 = new PointLight();
 p2.z = 0.7;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
