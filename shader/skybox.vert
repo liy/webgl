@@ -1,7 +1,7 @@
 precision mediump float;
 
 attribute vec3 a_Vertex;
-attribute vec3 a_TexCoord;
+// attribute vec3 a_TexCoord;
 
 uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_ModelMatrix;

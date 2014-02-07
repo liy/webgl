@@ -152,6 +152,7 @@ void main(){
   // squared fall off, physically correct?
   float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/u_Light.radius, 0.0, 1.0);
   attenuation *= attenuation;
+  attenuation = 1.0;
 
   float ndotl = dot(n, l);
   float ndoth = dot(n, h);

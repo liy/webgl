@@ -17,72 +17,86 @@ function Scene(){
   this.cameras = [];
   // contains every objects in the scene.
   this.objects = [];
+  // sky box
+  this.skyBoxes = [];
 
   // if it is dirty, the buffer will be updated
   this.dirty = true;
 }
 var p = Scene.prototype = Object.create(Node.prototype);
 
-p.track = function(obj3D){
-  var index = this.objects.indexOf(obj3D);
+p.track = function(node){
+  var index = this.objects.indexOf(node);
   if(index === -1){
-    this.objects.push(obj3D);
-    obj3D.scene = this;
+    this.objects.push(node);
+    node.scene = this;
 
     // scan all its children to add them to the sort list
-    for(var i=0; i<obj3D.children.length; ++i){
-      this.track(obj3D.children[i]);
+    for(var i=0; i<node.children.length; ++i){
+      this.track(node.children[i]);
     }
 
     // add object to specific category
-    if(obj3D instanceof Mesh)
-      this.meshes.push(obj3D);
-    else if(obj3D instanceof Light){
-      this.lights.push(obj3D);
+    if(node instanceof Mesh){
+      this.meshes.push(node);
+
+      if(node instanceof SkyBox)
+        this.skyBoxes.push(node);
+    }
+    else if(node instanceof Light){
+      this.lights.push(node);
       // further categorization.
-      if(obj3D instanceof DirectionalLight)
-        this.directionalLights.push(obj3D);
+      if(node instanceof DirectionalLight)
+        this.directionalLights.push(node);
       else
-        this.positionalLights.push(obj3D);
+        this.positionalLights.push(node);
     }
     else
-      this.cameras.push(obj3D);
+      this.cameras.push(node);
+
+
 
     this.dirty = true;
   }
 }
 
-p.untrack = function(obj3D){
-  var index = this.objects.indexOf(obj3D);
+p.untrack = function(node){
+  var index = this.objects.indexOf(node);
   if(index !== -1){
     this.objects.splice(index, 1);
-    obj3D.scene = null;
+    node.scene = null;
 
     // recursively, scan all its children and remove them from the sort list and their categories
-    for(var i=0; i<obj3D.children.length; ++i){
-      this.untrack(obj3D.children[i]);
+    for(var i=0; i<node.children.length; ++i){
+      this.untrack(node.children[i]);
     }
 
     // remove object from specific category
-    if(obj3D instanceof Mesh){
-      index = this.meshes.indexOf(obj3D);
+    if(node instanceof Mesh){
+      index = this.meshes.indexOf(node);
       this.meshes.splice(index, 1);
+
+      // sky box
+      if(node instanceof SkyBox){
+        index = this.skyBoxes.indexOf(node);
+        this.skyBoxes.splice(node);
+      }
     }
-    else if(obj3D instanceof Light){
-      index = this.lights.indexOf(obj3D);
+    else if(node instanceof Light){
+      index = this.lights.indexOf(node);
       this.lights.splice(index, 1);
 
-      if(obj3D instanceof DirectionalLight){
-        index = this.directionalLights.indexOf(obj3D);
+      if(node instanceof DirectionalLight){
+        index = this.directionalLights.indexOf(node);
         this.directionalLights.splice(index, 1);
       }
       else{
-        index = this.positionalLights.indexOf(obj3D);
+        index = this.positionalLights.indexOf(node);
         this.positionalLights.splice(index, 1);
       }
     }
     else{
-      index = this.cameras.indexOf(obj3D);
+      index = this.cameras.indexOf(node);
       this.cameras.splice(index, 1);
     }
 

@@ -52,7 +52,7 @@ function DeferredRenderer(){
 
   // directional light calculation
   this.dirLightProgram = gl.createProgram();
-  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/sh.vert', 'shader/light/sh.frag');
+  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
   gl.useProgram(this.dirLightProgram);
   this.dirLightShader.locateAttributes(this.dirLightProgram);
   this.dirLightShader.locateUniforms(this.dirLightProgram);
@@ -63,6 +63,13 @@ function DeferredRenderer(){
   gl.useProgram(this.stencilProgram);
   this.stencilShader.locateAttributes(this.stencilProgram);
   this.stencilShader.locateUniforms(this.stencilProgram);
+
+  // sky box
+  this.skyBoxProgram = gl.createProgram();
+  this.skyBoxShader = new Shader(this.skyBoxProgram, 'shader/skybox.vert', 'shader/skybox.frag');
+  gl.useProgram(this.skyBoxProgram);
+  this.skyBoxShader.locateAttributes(this.skyBoxProgram);
+  this.skyBoxShader.locateUniforms(this.skyBoxProgram);
 
   // put on to screen
   this.screenProgram = gl.createProgram();
@@ -151,7 +158,7 @@ p.update = function(){
   }
 }
 
-p.geometryPass = function(scene, camera){  
+p.geometryPass = function(scene, camera){
   // enable depth buffer
   gl.depthMask(true);
 
@@ -190,7 +197,7 @@ p.stencil = function(light, camera){
   gl.enable(gl.DEPTH_TEST);
   // needs both faces to correctly increase stencil buffer
   gl.disable(gl.CULL_FACE);
-  // stencil buffer is refreshed for each light 
+  // stencil buffer is refreshed for each light
   gl.clear(gl.STENCIL_BUFFER_BIT);
   // always write to stencil buffer in stencil stage.
   gl.stencilFunc(gl.ALWAYS, 0, 0);
@@ -201,7 +208,7 @@ p.stencil = function(light, camera){
   // only stencil write is needed, do not write to color buffer, save some processing power
   gl.colorMask(false, false, false, false);
 
-  
+
   camera.uploadUniforms(this.stencilShader)
   light.lit(this.stencilShader, camera);
 }
@@ -209,7 +216,7 @@ p.stencil = function(light, camera){
 p.lighting = function(light, camera){
    // use point light program
   gl.useProgram(this.pointLightProgram);
-  
+
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
   // alway cull front face and leave the back face of light volume for lighting.
@@ -262,14 +269,17 @@ p.compositePass = function(scene, camera){
     this.stencil(light, camera);
     this.lighting(light, camera);
   }
-  
+
   // disable stencil test for directional lighting
   gl.disable(gl.STENCIL_TEST);
   // switch back to normal back face culling, for geometry rendering next frame
   gl.cullFace(gl.BACK)
 
   // directional light
-  this.directionalLighting(scene, camera);
+  // this.directionalLighting(scene, camera);
+
+  // sky box
+  // this.skybox(scene, camera);
 }
 
 p.directionalLighting = function(scene, camera){
@@ -294,6 +304,18 @@ p.directionalLighting = function(scene, camera){
 
     camera.uploadUniforms(this.dirLightShader);
     light.lit(this.dirLightShader, camera);
+  }
+}
+
+p.skybox = function(scene, camera){
+  gl.useProgram(this.skyBoxProgram);
+
+  var len = scene.skyBoxes.length;
+  for(var i=0; i<len; ++i){
+    var skyBox = scene.skyBoxes[i];
+
+    camera.uploadUniforms(this.skyBoxShader);
+    skyBox.draw(this.skyBoxShader, camera);
   }
 }
 
