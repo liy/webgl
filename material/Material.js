@@ -55,6 +55,19 @@ p.setTextureMap = function(map){
   }
 }
 
+p.setCubeMap = function(faces){
+  var texture = this.textureMap['cubeMap'] = new Texture(gl.TEXTURE_CUBE_MAP, gl.createTexture());
+  texture.name = 'cubeMap';
+  gl.activeTexture(gl.TEXTURE0+5);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture.glTexture);
+  gl.texParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameterf(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+  texture.loadCubeMap(faces);
+}
+
 /**
   uniform sampler2D albedoTexture;
   uniform sampler2D specularTexture;
@@ -99,7 +112,7 @@ p.uploadUniforms = function(shader){
     TextureManager.instance.unbindTexture(gl.TEXTURE0+3);
   }
 
-    // bump
+  // bump
   if(this.textureMap.bump && this.textureMap.bump.data){
     gl.uniform1f(shader.uniforms['textureDeltaX'], 1/this.textureMap.bump.width);
     gl.uniform1f(shader.uniforms['textureDeltaY'], 1/this.textureMap.bump.height);
@@ -108,6 +121,18 @@ p.uploadUniforms = function(shader){
   }
   else{
     TextureManager.instance.unbindTexture(gl.TEXTURE0+4);
+  }
+
+  // cube map
+  if(this.textureMap.cubeMap && this.textureMap.cubeMap.data){
+    console.log('bind cube map')
+    gl.activeTexture(gl.TEXTURE0+5);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.textureMap.cubeMap.glTexture);
+    gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);
+  }
+  else{
+    gl.activeTexture(gl.TEXTURE0+5);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
   }
 
   gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);

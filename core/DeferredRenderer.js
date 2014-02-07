@@ -280,7 +280,7 @@ p.compositePass = function(scene, camera){
   this.directionalLighting(scene, camera);
 
   // sky box
-  this.skybox(scene, camera);
+  this.skyBox(scene, camera);
 }
 
 p.directionalLighting = function(scene, camera){
@@ -309,16 +309,16 @@ p.directionalLighting = function(scene, camera){
   }
 }
 
-p.skybox = function(scene, camera){
+p.skyBox = function(scene, camera){
   gl.useProgram(this.skyBoxProgram);
 
-  var len = scene.skyBoxes.length;
-  for(var i=0; i<len; ++i){
-    var skyBox = scene.skyBoxes[i];
+  // var len = scene.skyBoxes.length;
+  // for(var i=0; i<len; ++i){
+  //   var skyBox = scene.skyBoxes[i];
 
-    camera.uploadUniforms(this.skyBoxShader);
-    skyBox.draw(this.skyBoxShader, camera);
-  }
+  //   camera.uploadUniforms(this.skyBoxShader);
+  //   skyBox.draw(this.skyBoxShader, camera);
+  // }
 }
 
 p.screenPass = function(){

@@ -1,4 +1,4 @@
-function SkyboxGeometry(width, height, depth){
+function SkyBoxGeometry(width, height, depth){
   Geometry.call(this);
 
   this.width = width ? width : 1;
@@ -99,4 +99,4 @@ function SkyboxGeometry(width, height, depth){
     20, 22, 21,  20, 23, 22  // right
   ];
 }
-var p = SkyboxGeometry.prototype = Object.create(Geometry.prototype);
+var p = SkyBoxGeometry.prototype = Object.create(Geometry.prototype);

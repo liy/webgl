@@ -40,6 +40,21 @@ loader.load("../webgl-meshes/cube/cube.obj");
 var obj = loader.object;
 scene.add(obj);
 
+
+/**
+ * 
+ */
+
+var skyBox = new SkyBox([
+  {url: "../webgl-meshes/sphere_map/pos-x.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
+  {url: "../webgl-meshes/sphere_map/neg-x.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
+  {url: "../webgl-meshes/sphere_map/pos-y.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
+  {url: "../webgl-meshes/sphere_map/neg-y.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+  {url: "../webgl-meshes/sphere_map/pos-z.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
+  {url: "../webgl-meshes/sphere_map/neg-z.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
+]);
+scene.add(skyBox);
+
 function render(){
   stats.begin();
 
