@@ -216,6 +216,8 @@ p.lighting = function(light, camera){
    // use point light program
   gl.useProgram(this.pointLightProgram);
 
+    // console.log(light.x, light.y, light.z)
+
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
   // alway cull front face and leave the back face of light volume for lighting.
@@ -263,7 +265,7 @@ p.compositePass = function(scene, camera){
 
   len = scene.positionalLights.length;
   for(var i=0; i<len; ++i){
-    var light = scene.lights[i];
+    var light = scene.positionalLights[i];
     // Every light requires a clean stencil test.
     this.stencil(light, camera);
     this.lighting(light, camera);
@@ -287,6 +289,7 @@ p.directionalLighting = function(scene, camera){
   len = scene.directionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
+
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
