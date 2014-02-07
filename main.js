@@ -13,7 +13,7 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
 scene.add(camera);
-camera.z = 3;
+camera.z = 2;
 camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
 var p1 = new PointLight();
@@ -27,10 +27,10 @@ p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 scene.add(p1);
 scene.add(p2);
 
-var p3 = new DirectionalLight();
-p3.z = 1;
-p3.x = 1;
-scene.add(p3);
+// var p3 = new DirectionalLight();
+// p3.z = 1;
+// p3.x = 1;
+// scene.add(p3);
 
 var loader = new ObjectFile();
 loader.load("../webgl-meshes/cube/cube.obj");

@@ -41,7 +41,7 @@ p.createVertexArray = function(shader){
   gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
   gl.enableVertexAttribArray(shader.attributes['a_Vertex']);
   gl.vertexAttribPointer(shader.attributes['a_Vertex'], 3, gl.FLOAT, false, 12, 0);
-  
+
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
@@ -53,10 +53,9 @@ p.uploadUniforms = function(shader){
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
   gl.uniform3fv(shader.uniforms['u_Light.position'], this._viewSpacePosition);
-  gl.uniform1f(shader.uniforms['u_Light.intensity'], this.intensity);
   gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
-  gl.uniform1i(shader.uniforms['u_Light.enabled'], this.enabled);
   gl.uniform1f(shader.uniforms['u_Light.radius'], this.radius);
+  gl.uniform1f(shader.uniforms['radius'], this.radius);
 }
 
 // draw the light volume

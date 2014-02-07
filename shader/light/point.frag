@@ -15,15 +15,17 @@ uniform sampler2D depthColorTarget;
 
 // point light attributes
 struct Light {
-  // eye space position
-  vec3 position;
   vec3 color;
-  vec3 attenuation;
-  bool enabled;
+  vec3 position;
+  // FIXME: on windows chrome canery, this float type(int type as well) is not working, also
+  // breaks any properties after the float type!!
   float radius;
 };
 
+uniform float radius;
+
 uniform Light u_Light;
+
 
 // scene projection matrix
 uniform mat4 u_ProjectionMatrix;
@@ -150,9 +152,8 @@ void main(){
   vec3 h = normalize(l + v);
 
   // squared fall off, physically correct?
-  float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/u_Light.radius, 0.0, 1.0);
+  float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/radius, 0.0, 1.0);
   attenuation *= attenuation;
-  attenuation = 1.0;
 
   float ndotl = dot(n, l);
   float ndoth = dot(n, h);
@@ -165,4 +166,9 @@ void main(){
 
   // gl_FragColor = toLinear(vec4(color.rgb * u_Light.color, color.a));
   gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
+
+  // float t = distance(u_Light.position, eyeSpacePosition)/u_Light.radius;
+  // gl_FragColor = vec4(u_Light.color, 1.0);
+
+  // gl_FragColor = vec4(u_Light.radius, 0, 0, 1.0);
 }
