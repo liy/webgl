@@ -1,5 +1,8 @@
 // needs to specify this line in order to use multiple render targets: gl_FragData[]
-#extension GL_EXT_draw_buffers : require
+// #extension GL_EXT_draw_buffers : require
+#ifdef GL_EXT_draw_buffers
+  #extension GL_EXT_draw_buffers : require
+#endif
 
 precision mediump float;
 
@@ -119,7 +122,7 @@ vec4 pack(float depth){
   float b = fract(g * 255.0);
   float a = fract(b * 255.0);
   vec4 colour = vec4(r, g, b, a);
-  
+
   return colour - (colour.yzww * bias);
 }
 

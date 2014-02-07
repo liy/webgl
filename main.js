@@ -27,6 +27,10 @@ p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 scene.add(p1);
 scene.add(p2);
 
+var p3 = new DirectionalLight();
+p3.z = 1;
+p3.x = 1;
+scene.add(p3);
 
 var loader = new ObjectFile();
 loader.load("../webgl-meshes/cube/cube.obj");

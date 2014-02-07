@@ -275,10 +275,10 @@ p.compositePass = function(scene, camera){
   gl.cullFace(gl.BACK)
 
   // directional light
-  // this.directionalLighting(scene, camera);
+  this.directionalLighting(scene, camera);
 
   // sky box
-  // this.skybox(scene, camera);
+  this.skybox(scene, camera);
 }
 
 p.directionalLighting = function(scene, camera){
