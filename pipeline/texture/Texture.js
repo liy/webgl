@@ -4,15 +4,14 @@ function Texture(target){
   this.target = target;
   this.unit = gl.TEXTURE0;
 
+  this.ready = false;
+
   this.id = Texture.id++;
 }
 var p = Texture.prototype = Object.create(null);
 
 // key is the unit
 Texture.boundTextures = {};
-
-// id
-Texture.id = 0;
 
 p.bind = function(unit){
   unit = unit || gl.TEXTURE0;
@@ -44,3 +43,6 @@ p.unbind = function(){
 p.isBound = function(){
   return isNaN(this.unit);
 }
+
+// id
+Texture.id = 0;

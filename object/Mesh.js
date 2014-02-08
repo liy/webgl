@@ -66,7 +66,7 @@ p.createBuffer = function(){
       data.push(this.material.color[2]);
     }
   }
-
+  
   // create the buffer contains all the data
   this.buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);

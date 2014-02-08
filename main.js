@@ -50,12 +50,12 @@ var skyBox = new SkyBox([
   {url: "../webgl-meshes/sphere_map/pos-z.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
   {url: "../webgl-meshes/sphere_map/neg-z.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
 ]);
-// scene.add(skyBox);
+scene.add(skyBox);
 
 function render(){
   stats.begin();
 
-  obj.rotationY += 0.003;
+  // obj.rotationY += 0.003;
 
 
   renderer.render(scene, camera);

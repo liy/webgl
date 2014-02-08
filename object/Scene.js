@@ -38,10 +38,11 @@ p.track = function(node){
 
     // add object to specific category
     if(node instanceof Mesh){
-      this.meshes.push(node);
-
+      // TODO: Feel not right here, SkyBox should not be a Mesh?!
       if(node instanceof SkyBox)
         this.skyBoxes.push(node);
+      else
+        this.meshes.push(node);  
     }
     else if(node instanceof Light){
       this.lights.push(node);
@@ -73,13 +74,14 @@ p.untrack = function(node){
 
     // remove object from specific category
     if(node instanceof Mesh){
-      index = this.meshes.indexOf(node);
-      this.meshes.splice(index, 1);
-
       // sky box
       if(node instanceof SkyBox){
         index = this.skyBoxes.indexOf(node);
         this.skyBoxes.splice(node);
+      }
+      else{
+        index = this.meshes.indexOf(node);
+        this.meshes.splice(index, 1);
       }
     }
     else if(node instanceof Light){

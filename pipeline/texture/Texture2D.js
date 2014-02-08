@@ -1,10 +1,8 @@
 function Texture2D(){
   Texture.call(this, gl.TEXTURE_2D);
 
-  this.ready = false;
-
   // setup default parameters
-  this.bind(gl.TEXTURE0);
+  this.bind();
   gl.texParameterf(this.target, gl.TEXTURE_WRAP_S, gl.REPEAT);
   gl.texParameterf(this.target, gl.TEXTURE_WRAP_T, gl.REPEAT);
   gl.texParameterf(this.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -20,13 +18,10 @@ p.load = function(url){
 }
 
 p.onComplete = function(e){
-  this.bind(gl.TEXTURE0);
+  this.bind();
 
-  console.log('loaded');
-
-
-  this.width = this.resource.loader.width;
-  this.height = this.resource.loader.height;
+  this.width = this.resource.width;
+  this.height = this.resource.height;
 
   // flip the texture content in y direction.
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -37,7 +32,6 @@ p.onComplete = function(e){
 
   if(this.setParameters)
     this.setParameters(this);
-
 
   this.ready = true;
 

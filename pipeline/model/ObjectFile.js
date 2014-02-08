@@ -95,7 +95,7 @@ p.onload = function(e){
     // find out all the material information.
     for(var name in this.matFile.matInfoMap){
       var material = new Material();
-      material.setImageMap(this.matFile.matInfoMap[name].imageMap);
+      material.setTextureMap(this.matFile.matInfoMap[name].imageMap);
       // TODO: set color etc...
 
       var geometry = new Geometry();

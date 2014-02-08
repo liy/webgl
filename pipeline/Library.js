@@ -6,9 +6,8 @@ var p = Library.prototype;
 p.get = function(url){
   var resource = this.resourceMap[url];
 
-  if(!resource){
+  if(!resource)
     resource = this.resourceMap[url] = this.createResource(url);
-  }
 
   return resource;
 }
@@ -34,13 +33,3 @@ p.createResource = function(url){
 }
 
 Library.instance = new Library();
-
-// p.load = function(callback){
-//   var len = this.loaders.length;
-//   for(var i=0; i<len; ++i){
-//     this.loaders[i].load(function(){
-//       if(--len==0 && callback)
-//         callback();
-//     });
-//   }
-// }

@@ -16,7 +16,7 @@ function Material(){
 }
 var p = Material.prototype;
 
-p.setImageMap = function(map){
+p.setTextureMap = function(map){
   for(var name in map){
     if(map[name]){
       var texture = this.textureMap[name] = new Texture2D();
@@ -33,15 +33,8 @@ p.setImageMap = function(map){
   }
 }
 
-// p.setTextureMap = function(map){
-//   for(var name in texture){
-//     this.textureMap[name] = map[name];
-//   }
-// }
-
 p.setCubeMap = function(faces){
-  var texture = this.textureMap['cubeMap'] = new TextureCube(faces);
-  texture.name = 'cubeMap';
+  this.textureMap['cubeMap'] = new TextureCube(faces);
 }
 
 /**
@@ -101,7 +94,7 @@ p.uploadUniforms = function(shader){
       this.textureMap.bump.bind(gl.TEXTURE0+4);  
     }
     else
-      this.textureMap.bump.unbind();  
+      this.textureMap.bump.unbind();
   }
 
   // cube map
@@ -110,8 +103,8 @@ p.uploadUniforms = function(shader){
       this.textureMap.cubeMap.bind(gl.TEXTURE0+5);
       gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);  
     }
-    // else
-      // this.textureMap.cubeMap.unbind();
+    else
+      this.textureMap.cubeMap.unbind();
   }
 
   gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);

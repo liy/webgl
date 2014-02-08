@@ -304,13 +304,18 @@ p.directionalLighting = function(scene, camera){
 p.skyBox = function(scene, camera){
   gl.useProgram(this.skyBoxProgram);
 
-  // var len = scene.skyBoxes.length;
-  // for(var i=0; i<len; ++i){
-  //   var skyBox = scene.skyBoxes[i];
+  gl.disable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
 
-  //   camera.uploadUniforms(this.skyBoxShader);
-  //   skyBox.draw(this.skyBoxShader, camera);
-  // }
+  var len = scene.skyBoxes.length;
+  for(var i=0; i<len; ++i){
+    var skyBox = scene.skyBoxes[i];
+
+    camera.uploadUniforms(this.skyBoxShader);
+    skyBox.draw(this.skyBoxShader, camera);
+  }
+  gl.depthFunc(gl.LESS);
 }
 
 p.screenPass = function(){
