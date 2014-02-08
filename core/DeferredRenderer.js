@@ -102,10 +102,10 @@ p.createGBuffers = function(){
   this.gFrameBuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.gFrameBuffer);
   // specify 3 textures as render targets
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.depthColorTarget, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.albedoTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.normalTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.specularTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.depthColorTarget.glTexture, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
 
   // Specifies a list of color buffers to be drawn into
@@ -116,7 +116,7 @@ p.createCompositionFrameBuffers = function(){
   this.compositionTexture = this._createColorTexture(this.GBufferWidth, this.GBufferHeight);
   this.cFrameBuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.cFrameBuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.compositionTexture.glTexture, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
 }
 
@@ -230,17 +230,13 @@ p.lighting = function(light, camera){
   gl.colorMask(true, true, true, true);
 
   // bind the geometry targets
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+  this.albedoTarget.bind(gl.TEXTURE0);
   gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
-  gl.activeTexture(gl.TEXTURE0+1);
-  gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+  this.normalTarget.bind(gl.TEXTURE0+1);
   gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
-  gl.activeTexture(gl.TEXTURE0+2);
-  gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+  this.specularTarget.bind(gl.TEXTURE0+2)
   gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-  gl.activeTexture(gl.TEXTURE0+3);
-  gl.bindTexture(gl.TEXTURE_2D, this.depthColorTarget);
+  this.depthColorTarget.bind(gl.TEXTURE0+3)
   gl.uniform1i(this.pointLightShader.uniforms['depthColorTarget'], 3);
 
   camera.uploadUniforms(this.pointLightShader)
@@ -291,17 +287,13 @@ p.directionalLighting = function(scene, camera){
     var light = scene.directionalLights[i];
 
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.albedoTarget);
+    this.albedoTarget.bind(gl.TEXTURE0);
     gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
-    gl.activeTexture(gl.TEXTURE0+1);
-    gl.bindTexture(gl.TEXTURE_2D, this.normalTarget);
+    this.normalTarget.bind(gl.TEXTURE0+1);
     gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
-    gl.activeTexture(gl.TEXTURE0+2);
-    gl.bindTexture(gl.TEXTURE_2D, this.specularTarget);
+    this.specularTarget.bind(gl.TEXTURE0+2)
     gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-    gl.activeTexture(gl.TEXTURE0+3);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthColorTarget);
+    this.depthColorTarget.bind(gl.TEXTURE0+3)
     gl.uniform1i(this.dirLightShader.uniforms['depthColorTarget'], 3);
 
     camera.uploadUniforms(this.dirLightShader);
@@ -329,8 +321,7 @@ p.screenPass = function(){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.compositionTexture);
+  this.compositionTexture.bind(gl.TEXTURE0)
   gl.uniform1i(this.screenShader.uniforms['texture'], 0);
 
   gl.bindVertexArrayOES(this.screenVAO);
@@ -431,25 +422,23 @@ p.createScreenBuffer = function(){
 }
 
 p._createColorTexture = function(w, h){
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  var texture = new Texture2D();
+  texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  texture.unbind();
 
   return texture;
 }
 
 p._createDepthTexture = function(w, h){
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  var texture = new Texture2D();
+  texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, w, h, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+  texture.unbind();
 
   return texture;
 }
@@ -458,26 +447,24 @@ p._createDepthTexture = function(w, h){
  * You should encode depth data into RGBA manually.
  */
 p._createColorDepthTexture = function(w, h){
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  var texture = new Texture2D();
+  texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  texture.unbind();
 
   return texture;
 }
 
 p._createDepthStencilTexture = function(w, h){
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  var texture = new Texture2D();
+  texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   // this requires WEBKIT_WEBGL_depth_texture extension, notice the type of the data must be: UNSIGNED_INT_24_8_WEBGL
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_STENCIL, w, h, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8_WEBGL, null);
+  texture.unbind();
 
   return texture;
 }

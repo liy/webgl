@@ -13,8 +13,8 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
 scene.add(camera);
-camera.z = 2;
-camera.x = -2;
+camera.z = 0.4;
+camera.y = -0.05;
 camera.lookTarget = vec3.fromValues(0, camera.y, -1);
 
 
@@ -23,12 +23,14 @@ p3.z = 1;
 p3.x = 1;
 scene.add(p3);
 
-var p1 = new PointLight();
-p1.z = 0.6;
+var p1 = new PointLight(2);
+p1.x = 0.2;
+p1.z = 0.2;
 p1.color = vec3.fromValues(1.0, 0.2, 0.0);
 
-var p2 = new PointLight();
-p2.z = 0.7;
+var p2 = new PointLight(2);
+p2.x = -0.2;
+p2.z = 0.2;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
 scene.add(p1);
@@ -36,14 +38,9 @@ scene.add(p2);
 
 
 var loader = new ObjectFile();
-loader.load("../webgl-meshes/cube/cube.obj");
+loader.load("../webgl-meshes/head/head.obj");
 var obj = loader.object;
 scene.add(obj);
-
-
-/**
- * 
- */
 
 var skyBox = new SkyBox([
   {url: "../webgl-meshes/sphere_map/pos-x.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
@@ -53,12 +50,13 @@ var skyBox = new SkyBox([
   {url: "../webgl-meshes/sphere_map/pos-z.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
   {url: "../webgl-meshes/sphere_map/neg-z.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
 ]);
-scene.add(skyBox);
+// scene.add(skyBox);
 
 function render(){
   stats.begin();
 
   obj.rotationY += 0.003;
+
 
   renderer.render(scene, camera);
 

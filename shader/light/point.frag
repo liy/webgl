@@ -168,7 +168,7 @@ void main(){
   gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 
   // float t = distance(u_Light.position, eyeSpacePosition)/u_Light.radius;
-  // gl_FragColor = vec4(u_Light.color, 1.0);
+  // gl_FragColor = vec4(texture2D(normalTarget, texCoord).xyz, 1.0);
 
   // gl_FragColor = vec4(u_Light.radius, 0, 0, 1.0);
 }

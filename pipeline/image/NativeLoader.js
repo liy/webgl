@@ -1,4 +1,4 @@
-function ImageLoader(url){
+function NativeLoader(url){
   EventDispatcher.call(this);
 
   this.url = url;
@@ -6,7 +6,7 @@ function ImageLoader(url){
   this.width = NaN;
   this.height = NaN;
 }
-var p = ImageLoader.prototype = Object.create(EventDispatcher.prototype);
+var p = NativeLoader.prototype = Object.create(EventDispatcher.prototype);
 
 p.load = function(callback){
   var image = new Image();
