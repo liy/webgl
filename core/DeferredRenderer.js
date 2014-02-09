@@ -153,6 +153,7 @@ p.update = function(){
     var skyBox = scene.skyBoxes[i];
     // update model view matrix, normal matrix
     mat4.mul(skyBox.modelViewMatrix, camera.viewMatrix, skyBox.worldMatrix);
+    // no normal matrix needed.
     // mat3.normalFromMat4(skyBox.normalMatrix, skyBox.modelViewMatrix);
   }
 
@@ -221,7 +222,7 @@ p.stencil = function(light, camera){
   light.lit(this.stencilShader, camera);
 }
 
-p.lighting = function(light, camera){
+p.pointLighting = function(light, camera){
    // use point light program
   gl.useProgram(this.pointLightProgram);
 
@@ -271,7 +272,7 @@ p.compositePass = function(scene, camera){
     var light = scene.positionalLights[i];
     // Every light requires a clean stencil test.
     this.stencil(light, camera);
-    this.lighting(light, camera);
+    this.pointLighting(light, camera);
   }
 
   // disable stencil test for directional lighting
@@ -282,8 +283,8 @@ p.compositePass = function(scene, camera){
   // directional light
   this.directionalLighting(scene, camera);
 
-  // sky box
-  this.skyBox(scene, camera);
+  // draw sky box
+  this.drawSkyBox(scene, camera);
 }
 
 p.directionalLighting = function(scene, camera){
@@ -307,7 +308,7 @@ p.directionalLighting = function(scene, camera){
   }
 }
 
-p.skyBox = function(scene, camera){
+p.drawSkyBox = function(scene, camera){
   gl.useProgram(this.skyBoxProgram);
 
   // gl.disable(gl.BLEND);
