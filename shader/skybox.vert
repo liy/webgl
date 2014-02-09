@@ -12,7 +12,9 @@ varying vec3 v_TexCoord;
 varying vec3 v_Color;
 
 void main(){
-  vec4 position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(a_Vertex, 1.0);
+  // when rendering sky box, translation must not be applied, I simply dropped last column of ModelView matrix.
+  // TODO: Might be better to this process in JavaScript, like this: skyBox.modelViewMatrix[12] = skyBox.modelViewMatrix[13] = skyBox.modelViewMatrix[14] = 0;
+  vec4 position = u_ProjectionMatrix * mat4(mat3(u_ModelViewMatrix)) * vec4(a_Vertex, 1.0);
   gl_Position = position.xyww;
   v_TexCoord = a_Vertex;
 

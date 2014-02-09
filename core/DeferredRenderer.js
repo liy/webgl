@@ -152,6 +152,7 @@ p.update = function(){
   for(var i=0; i<len; ++i){
     var skyBox = scene.skyBoxes[i];
     // update model view matrix, normal matrix
+    // TODO: Where to drop the translation part? Here or in sky box's vertex shader.
     mat4.mul(skyBox.modelViewMatrix, camera.viewMatrix, skyBox.worldMatrix);
     // no normal matrix needed.
     // mat3.normalFromMat4(skyBox.normalMatrix, skyBox.modelViewMatrix);

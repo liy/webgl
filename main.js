@@ -18,9 +18,9 @@ camera.y = -0.05;
 camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 
 var cameraRadian = 0;
-var rotationRadius = 0.4;
+var rotationRadius = 2.4;
 function rotateCamera(){
-  cameraRadian += 0.002;
+  cameraRadian += 0.001;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
