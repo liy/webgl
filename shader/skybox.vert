@@ -12,7 +12,7 @@ varying vec3 v_TexCoord;
 varying vec3 v_Color;
 
 void main(){
-  vec4 position = u_ProjectionMatrix * u_ModelMatrix * vec4(a_Vertex, 1.0);
+  vec4 position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(a_Vertex, 1.0);
   gl_Position = position.xyww;
   v_TexCoord = a_Vertex;
 

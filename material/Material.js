@@ -1,3 +1,4 @@
+// TODO: FIXME: Match the uniform names? So I can easily traverse the object to expose uniform entry points?(Later for auto detect uniforms in GUI application)
 function Material(){
   this.id = Material.id++;
 
@@ -16,6 +17,7 @@ function Material(){
 }
 var p = Material.prototype;
 
+// TODO: Find a better way to setup textures
 p.setTextureMap = function(map){
   for(var name in map){
     if(map[name]){
@@ -44,6 +46,7 @@ p.setCubeMap = function(faces){
   uniform sampler2D roughnessTexture;
   uniform sampler2D depthTexture;
  */
+// TODO: FIXME: find a better way to set the uniforms and bind the textures!!!
 p.uploadUniforms = function(shader){
   // albedo
   if(this.textureMap.albedo){

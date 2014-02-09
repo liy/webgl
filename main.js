@@ -13,9 +13,17 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
 scene.add(camera);
-camera.z = 0.4;
+camera.z = rotationRadius;
 camera.y = -0.05;
-camera.lookTarget = vec3.fromValues(0, camera.y, -1);
+camera.lookTarget = vec3.fromValues(0, camera.y, 0);
+
+var cameraRadian = 0;
+var rotationRadius = 0.4;
+function rotateCamera(){
+  cameraRadian += 0.002;
+  camera.x = Math.cos(cameraRadian) * rotationRadius;
+  camera.z = Math.sin(cameraRadian) * rotationRadius;
+}
 
 
 var p3 = new DirectionalLight();
@@ -43,19 +51,19 @@ var obj = loader.object;
 scene.add(obj);
 
 var skyBox = new SkyBox([
-  {url: "../webgl-meshes/sphere_map/pos-x.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
-  {url: "../webgl-meshes/sphere_map/neg-x.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
-  {url: "../webgl-meshes/sphere_map/pos-y.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
-  {url: "../webgl-meshes/sphere_map/neg-y.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
-  {url: "../webgl-meshes/sphere_map/pos-z.png", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
-  {url: "../webgl-meshes/sphere_map/neg-z.png", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
+  {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
+  {url: "../webgl-meshes/cube_map/negx.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
+  {url: "../webgl-meshes/cube_map/posy.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
+  {url: "../webgl-meshes/cube_map/negy.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+  {url: "../webgl-meshes/cube_map/posz.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
+  {url: "../webgl-meshes/cube_map/negz.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
 ]);
 scene.add(skyBox);
 
 function render(){
   stats.begin();
 
-  // obj.rotationY += 0.003;
+  rotateCamera();
 
 
   renderer.render(scene, camera);

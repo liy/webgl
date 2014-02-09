@@ -2,9 +2,9 @@ function TextureCube(faces){
   Texture.call(this, gl.TEXTURE_CUBE_MAP);
 
   this.bind();
+  // The edge must be clamp. Otherwise there will be artifact on face joint edges.
   gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(this.target, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
   gl.texParameterf(this.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameterf(this.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   this.unbind();

@@ -132,7 +132,7 @@ p.render = function(scene, camera){
 }
 
 p.update = function(){
-  // update all object's matrix, which are not dependent the view matrix
+  // update all object's matrix, which are not dependent on the view matrix
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
     scene.children[i].update();
@@ -145,6 +145,15 @@ p.update = function(){
     // update model view matrix, normal matrix
     mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
     mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
+  }
+
+  // update skybox view dependent matrix
+  len = scene.skyBoxes.length;
+  for(var i=0; i<len; ++i){
+    var skyBox = scene.skyBoxes[i];
+    // update model view matrix, normal matrix
+    mat4.mul(skyBox.modelViewMatrix, camera.viewMatrix, skyBox.worldMatrix);
+    // mat3.normalFromMat4(skyBox.normalMatrix, skyBox.modelViewMatrix);
   }
 
   // update the lights' view dependent matrix
@@ -216,8 +225,6 @@ p.lighting = function(light, camera){
    // use point light program
   gl.useProgram(this.pointLightProgram);
 
-    // console.log(light.x, light.y, light.z)
-
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
   // alway cull front face and leave the back face of light volume for lighting.
@@ -286,7 +293,6 @@ p.directionalLighting = function(scene, camera){
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
 
-
     this.albedoTarget.bind(gl.TEXTURE0);
     gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
     this.normalTarget.bind(gl.TEXTURE0+1);
@@ -304,8 +310,10 @@ p.directionalLighting = function(scene, camera){
 p.skyBox = function(scene, camera){
   gl.useProgram(this.skyBoxProgram);
 
-  gl.disable(gl.BLEND);
+  // gl.disable(gl.BLEND);
   gl.enable(gl.DEPTH_TEST);
+  // sky box NDC.z is always 1, since w is always -e.z. Clip space z sign will be flipped: go into the screen will points to 1,
+  // come out from the screen points to -1. So it is LEQUAL. 
   gl.depthFunc(gl.LEQUAL);
 
   var len = scene.skyBoxes.length;
