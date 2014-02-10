@@ -1,5 +1,6 @@
 function RenderPass(){
   this.framebuffer = null;
+  
 }
 var p = RenderPass.prototype;
 
