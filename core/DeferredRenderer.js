@@ -36,11 +36,13 @@ function DeferredRenderer(){
     }
   }
 
+  
   this.geometryPass = new GeometryPass(this, this.GBufferWidth, this.GBufferHeight);
   this.lightPass = new LightPass(this, this.GBufferWidth, this.GBufferHeight);
   this.synthesisPass = new SynthesisPass(this, this.GBufferWidth, this.GBufferHeight);
   this.screenPass = new ScreenPass(this, this.GBufferWidth, this.GBufferHeight);
 
+  
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
@@ -48,26 +50,23 @@ var p = DeferredRenderer.prototype;
 
 p.render = function(scene, camera){
   // update the matrix
-  this.updateWorldSpace();
-  this.updateViewSpace();
-
+  this.update();
+  
   this.geometryPass.render(scene, camera);
   this.lightPass.render(scene, camera);
   this.synthesisPass.render(scene, camera);
   this.screenPass.render(scene, camera);
 }
 
-p.updateWorldSpace = function(){
+p.update = function(){
   // update all object's matrix, which are not dependent on the view matrix
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
     scene.children[i].update();
   }
-}
 
-p.updateViewSpace = function(){
   // update meshes' view dependent matrix
-  var len = scene.meshes.length;
+  len = scene.meshes.length;
   for(var i=0; i<len; ++i){
     var mesh = scene.meshes[i];
     // update model view matrix, normal matrix
@@ -95,6 +94,7 @@ p.updateViewSpace = function(){
     vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
   }
 }
+
 
 function sort(camera){
   return function(a, b){
@@ -138,8 +138,4 @@ function sort(camera){
     else
       return 0;
   }
-}
-
-p.onResize = function(e){
-
 }

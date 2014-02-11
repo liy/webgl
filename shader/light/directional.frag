@@ -10,7 +10,7 @@ const vec4 bitShifts = vec4(1.0,
 uniform sampler2D albedoTarget;
 uniform sampler2D normalTarget;
 uniform sampler2D specularTarget;
-uniform sampler2D depthColorTarget;
+uniform sampler2D depthTarget;
 
 // scene projection matrix
 uniform mat4 u_ProjectionMatrix;
@@ -49,7 +49,7 @@ float unpack (vec4 colour)
 
 float linearEyeSpaceDepth(){
   // depth texture value is [0, 1], convert to [-1, 1], normalized device coordinate
-  float zn = unpack(texture2D(depthColorTarget, v_TexCoord)) * 2.0 - 1.0;
+  float zn = unpack(texture2D(depthTarget, v_TexCoord)) * 2.0 - 1.0;
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
   // http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
@@ -106,8 +106,14 @@ void main(){
   float vdoth = dot(v, h);
 
 
-  vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
+  // vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
 
-  vec4 color = albedo*max(ndotl, 0.0);
-  gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
+  // vec4 color = albedo*max(ndotl, 0.0);
+  // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
+
+  vec4 specularTerm = vec4(materialSpecular, 1.0) * pow(max(ndoth, 0.0), 8.0);
+  vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
+
+  gl_FragData[0] = diffuseTerm;
+  gl_FragData[1] = specularTerm;
 }

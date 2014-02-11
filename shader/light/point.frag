@@ -1,3 +1,9 @@
+// needs to specify this line in order to use multiple render targets: gl_FragData[]
+// #extension GL_EXT_draw_buffers : require
+#ifdef GL_EXT_draw_buffers
+  #extension GL_EXT_draw_buffers : require
+#endif
+
 precision mediump float;
 
 const float pi = 3.1415926;
@@ -11,7 +17,7 @@ const vec4 bitShifts = vec4(1.0,
 uniform sampler2D albedoTarget;
 uniform sampler2D normalTarget;
 uniform sampler2D specularTarget;
-uniform sampler2D depthColorTarget;
+uniform sampler2D depthTarget;
 
 // point light attributes
 struct Light {
@@ -59,7 +65,7 @@ vec2 getTexCoord(){
 
 float linearEyeSpaceDepth(vec2 texCoord){
   // depth texture value is [0, 1], convert to [-1, 1], normalized device coordinate
-  float zn = unpack(texture2D(depthColorTarget, texCoord)) * 2.0 - 1.0;
+  float zn = unpack(texture2D(depthTarget, texCoord)) * 2.0 - 1.0;
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
   // http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
@@ -97,7 +103,7 @@ vec3 getEyeSpacePosition(vec3 viewRay, vec2 texCoord){
 
 vec4 getEyeSpacePosition2(vec2 texCoord){
   // depth texture value is [0, 1], convert to [-1, 1]
-  float zn = texture2D(depthColorTarget, texCoord).x*2.0 - 1.0;
+  float zn = texture2D(depthTarget, texCoord).x*2.0 - 1.0;
   vec3 ndc = vec3(v_ClipSpacePosition.xy/v_ClipSpacePosition.w, zn);
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
@@ -160,15 +166,12 @@ void main(){
   float ndotv = dot(n, v);
   float vdoth = dot(v, h);
 
-  vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
+  vec4 specularTerm = vec4(u_Light.color, 1.0) * pow(max(ndoth, 0.0), 8.0);
+  vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
 
-  vec4 color = albedo*max(ndotl, 0.0)*attenuation + specularTerm*attenuation;
+  // vec4 color = albedo*max(ndotl, 0.0)*attenuation + specularTerm*attenuation;
+  // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 
-  // gl_FragColor = toLinear(vec4(color.rgb * u_Light.color, color.a));
-  gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
-
-  // float t = distance(u_Light.position, eyeSpacePosition)/u_Light.radius;
-  // gl_FragColor = vec4(texture2D(normalTarget, texCoord).xyz, 1.0);
-
-  // gl_FragColor = vec4(u_Light.radius, 0, 0, 1.0);
+  gl_FragData[0] = diffuseTerm * attenuation;
+  gl_FragData[1] = specularTerm * attenuation;
 }
