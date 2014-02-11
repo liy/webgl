@@ -1,4 +1,5 @@
-function RenderPass(w, h){
+function RenderPass(renderer, w, h){
+  this.renderer = renderer;
   this.width = w;
   this.height = h;
 
