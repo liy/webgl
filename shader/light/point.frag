@@ -157,7 +157,7 @@ void main(){
   vec3 n = texture2D(normalTarget, texCoord).xyz * 2.0 - 1.0;
   vec3 h = normalize(l + v);
 
-  // squared fall off, physically correct?
+  // TODO: squared fall off, physically correct? distance calculation seems wrong!!??!?
   float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/radius, 0.0, 1.0);
   attenuation *= attenuation;
 
@@ -166,12 +166,12 @@ void main(){
   float ndotv = dot(n, v);
   float vdoth = dot(v, h);
 
-  vec4 specularTerm = vec4(u_Light.color, 1.0) * pow(max(ndoth, 0.0), 8.0);
+  vec4 specularTerm = vec4(materialSpecular, 1.0) * pow(max(ndoth, 0.0), 8.0);
   vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
 
   // vec4 color = albedo*max(ndotl, 0.0)*attenuation + specularTerm*attenuation;
   // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 
-  gl_FragData[0] = diffuseTerm * attenuation;
-  gl_FragData[1] = specularTerm * attenuation;
+  gl_FragData[0] = diffuseTerm;
+  gl_FragData[1] = specularTerm;
 }

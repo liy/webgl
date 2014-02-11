@@ -44,7 +44,7 @@ p.uploadUniforms = function(shader){
   gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
   gl.uniform1i(shader.uniforms['u_Light.enabled'], this.enabled);
 
-  // console.log(this._viewSpacePosition);
+  // console.log(this.direction);
 }
 
 // draw the light volume

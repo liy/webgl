@@ -116,4 +116,5 @@ void main(){
 
   gl_FragData[0] = diffuseTerm;
   gl_FragData[1] = specularTerm;
+
 }
