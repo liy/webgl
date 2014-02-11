@@ -11,7 +11,7 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 30)
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 100)
 scene.add(camera);
 camera.z = rotationRadius;
 camera.y = -0.05;
@@ -29,11 +29,11 @@ function rotateCamera(){
 var p3 = new DirectionalLight();
 p3.z = 1;
 // p3.x = 1;
-// scene.add(p3);
+scene.add(p3);
 
-var p1 = new PointLight(3.5);
-// p1.x = 0.2;
-p1.z = 1.6;
+var p1 = new PointLight(0.5);
+p1.x = 0.2;
+p1.z = 0.2;
 p1.color = vec3.fromValues(1.0, 0.2, 0.0);
 
 var p2 = new PointLight(0.5);
@@ -41,7 +41,7 @@ p2.x = -0.2;
 p2.z = 0.2;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
-scene.add(p1);
+// scene.add(p1);
 // scene.add(p2);
 
 
@@ -49,6 +49,7 @@ var loader = new ObjectFile();
 loader.load("../webgl-meshes/cube/cube.obj");
 var obj = loader.object;
 scene.add(obj);
+// obj.scaleZ = 300;
 
 var skyBox = new SkyBox([
   {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},

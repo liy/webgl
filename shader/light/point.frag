@@ -172,6 +172,6 @@ void main(){
   // vec4 color = albedo*max(ndotl, 0.0)*attenuation + specularTerm*attenuation;
   // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
 
-  gl_FragData[0] = diffuseTerm;
-  gl_FragData[1] = specularTerm;
+  gl_FragData[0] = diffuseTerm * attenuation;
+  gl_FragData[1] = specularTerm * attenuation;
 }

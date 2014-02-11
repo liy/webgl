@@ -117,4 +117,11 @@ void main(){
   gl_FragData[0] = diffuseTerm;
   gl_FragData[1] = specularTerm;
 
+  // gl_FragData[0] = diffuseTerm;
+  float a = u_ProjectionMatrix[2][2];
+  float b = u_ProjectionMatrix[3][2];
+  float zNear = - b / (1.0 - a);
+  float zFar = b/(1.0 + a);
+  float z = linearEyeSpaceDepth()/(zFar-zNear);
+  gl_FragData[1] = vec4(z,z,z, 1.0);
 }
