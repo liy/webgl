@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 const float pi = 3.1415926;
 const float gamma = 2.2;
@@ -87,7 +87,39 @@ float linearEyeSpaceDepth(){
 vec3 getEyeSpacePosition(){
   // http://www.opengl.org/wiki/Compute_eye_space_from_window_space#Optimized_method_from_XYZ_of_gl_FragCoord
   // return normalize(v_EyeRay) * linearEyeSpaceDepth();
-  return v_EyeRay * linearEyeSpaceDepth();
+  return (v_EyeRay) * linearEyeSpaceDepth();
+}
+
+vec4 getEyeSpacePosition2(){
+  // depth texture value is [0, 1], convert to [-1, 1]
+  float zn = unpack(texture2D(depthTarget, v_TexCoord))*2.0 - 1.0;
+  vec3 ndc = vec3(v_Position.xy, zn);
+
+  // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
+  //
+  // |  -   -   -   - |     | Xe |       | Xc |       | Xc/-Ze|   | Xn |
+  // |  -   -   -   - |  *  | Ye |   =   | Yc |  ==>  | Yc/-Ze| = | Yn |
+  // |  0   0   a   b |     | Ze |       | Zc |       | Zc/-Ze|   | Zn |
+  // |  0   0  -1   0 |     |  1 |       |-Ze |
+  //
+  // Zn = Zc/-Ze = (a*Ze + b)/-Ze
+  // Zn = (a*Ze + b)/-Ze
+  //
+  // Therefore:
+  // Ze = -b/(Zn + a)
+  //
+  // clip-space coordinate will be:
+  // | Xc | = | Xn * -Ze |
+  // | Yc | = | Yn * -Ze |
+  // | Zc | = | Zn * -Ze |
+  // | Wc | = | -Ze      |
+  float a = u_ProjectionMatrix[2][2];
+  float b = u_ProjectionMatrix[3][2];
+  float ze = -b/(ndc.z + a);
+  vec4 clipSpace = vec4(ndc * -ze, -ze);
+
+  // apply inverse of the projection matrix to the clip space coordinate yields final eye space coordinate
+  return u_InvProjectionMatrix * clipSpace;
 }
 
 void main(){
@@ -95,6 +127,7 @@ void main(){
   vec4 albedo = texture2D(albedoTarget, v_TexCoord);
 
   vec3 eyeSpacePosition = getEyeSpacePosition();
+  // vec3 eyeSpacePosition = getEyeSpacePosition2().xyz;
 
   vec3 v = -normalize(eyeSpacePosition);
   vec3 l = normalize(u_Light.direction);
@@ -116,7 +149,9 @@ void main(){
   vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
 
   gl_FragData[0] = diffuseTerm;
-  // gl_FragData[1] = specularTerm;
+  gl_FragData[1] = specularTerm;
 
-  gl_FragData[1] = vec4(1,1,1,1.0) * pow(max(ndoth, 0.0), 8.0);
+  // float zn = unpack(texture2D(depthTarget, v_TexCoord))*2.0 - 1.0;
+  // vec3 ndc = vec3(v_Position.xy, zn);
+  // gl_FragData[1] = vec4(v_Position.xy, 0, 1);
 }

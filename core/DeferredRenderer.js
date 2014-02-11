@@ -1,10 +1,8 @@
 function DeferredRenderer(){
   this.canvas = document.createElement('canvas');
   document.body.appendChild(this.canvas);
-  // this.canvas.width = window.innerWidth;
-  // this.canvas.height = window.innerHeight;
-  this.canvas.width = 600;
-  this.canvas.height = 600;
+  this.canvas.width = window.innerWidth;
+  this.canvas.height = window.innerHeight;
   window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
   this.GBufferWidth = 1280;

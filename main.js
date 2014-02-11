@@ -27,8 +27,8 @@ function rotateCamera(){
 
 
 var p3 = new DirectionalLight();
-p3.z = 1;
-// p3.x = 1;
+p3.z = 1.0;
+p3.x = 1;
 scene.add(p3);
 
 var p1 = new PointLight(0.5);
