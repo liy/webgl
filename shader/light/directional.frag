@@ -86,7 +86,8 @@ float linearEyeSpaceDepth(){
  */
 vec3 getEyeSpacePosition(){
   // http://www.opengl.org/wiki/Compute_eye_space_from_window_space#Optimized_method_from_XYZ_of_gl_FragCoord
-  return normalize(v_EyeRay) * linearEyeSpaceDepth();
+  // return normalize(v_EyeRay) * linearEyeSpaceDepth();
+  return v_EyeRay * linearEyeSpaceDepth();
 }
 
 void main(){
@@ -115,13 +116,7 @@ void main(){
   vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
 
   gl_FragData[0] = diffuseTerm;
-  gl_FragData[1] = specularTerm;
+  // gl_FragData[1] = specularTerm;
 
-  // gl_FragData[0] = diffuseTerm;
-  float a = u_ProjectionMatrix[2][2];
-  float b = u_ProjectionMatrix[3][2];
-  float zNear = - b / (1.0 - a);
-  float zFar = b/(1.0 + a);
-  float z = linearEyeSpaceDepth()/(zFar-zNear);
-  gl_FragData[1] = vec4(z,z,z, 1.0);
+  gl_FragData[1] = vec4(1,1,1,1.0) * pow(max(ndoth, 0.0), 8.0);
 }
