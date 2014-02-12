@@ -2,28 +2,55 @@ precision highp float;
 
 const float pi = 3.1415926;
 
+// vertex position is in NDC space.
 attribute vec2 a_Vertex;
 attribute vec2 a_TexCoord;
 
-varying vec2 v_TexCoord;
-varying vec2 v_Position;
+uniform float u_FieldOfView;
+uniform float u_Near;
+uniform float u_AspectRatio;
 
-// For restore eye space position.
-// The idea is having the ray from the eye position(origin), point towards fragments.
-// Once we get the eye position z in fragment shader, simply multiply the v_EyeRay by
-// the amount recovers the original eye space position x, y z.
+varying vec2 v_TexCoord;
+
+// This is used for reconstruct the real eye space position of the fragment.
 varying vec3 v_EyeRay;
+
+
+/*
+var hh = Math.tan(radian/2) * near;
+var hw = aspectRatio * hh;
+
+var data = [
+  -hw, -hh, -near,
+   hw, -hh, -near,
+   hw,  hh, -near,
+   hw,  hh, -near,
+  -hw,  hh, -near,
+  -hw, -hh, -near
+  ]
+ */
+
+
+
+/*
+-1.0, -1.0, 0, 0,
+ 1.0, -1.0, 1, 0,
+ 1.0,  1.0, 1, 1,
+ 1.0,  1.0, 1, 1,
+-1.0,  1.0, 0, 1,
+-1.0, -1.0, 0, 0
+ */
 
 /**
  * final composition
  */
 void main(){
-  gl_Position = vec4(a_Vertex, -1.0, 1.0);
+  gl_Position = vec4(a_Vertex, 0.0, 1.0);
   v_TexCoord = a_TexCoord;
-  v_Position = a_Vertex;
 
-  // the v_TexCoord in the range of [0, 1].
-  // We need to make the ray's x and y to be in the range of [-1, 1], so it covers the
-  // // whole screen.
-  v_EyeRay = vec3(2.0*a_TexCoord - 1.0, -1.0);
+  // Imagine a plane always sits at the near plane, and covers the whole field of view.
+  float hh = tan(u_FieldOfView/2.0) * u_Near;
+  vec2 scale = vec2(u_AspectRatio * hh, hh);
+  // v_EyeRay = vec3(a_Vertex * scale, -u_Near);
+  v_EyeRay = vec3(a_Vertex * scale, -1.0);
 }

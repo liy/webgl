@@ -59,6 +59,8 @@ p.lit = function(shader, camera){
   vec3.transformMat4(this._viewSpacePosition, this._position, camera.viewMatrix);
   vec3.sub(this.direction, this._viewSpacePosition, origin);
 
+  // console.log(this.direction);
+
 
   this.uploadUniforms(shader);
 
