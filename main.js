@@ -11,11 +11,9 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 1, 100)
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 5)
 scene.add(camera);
 camera.z = rotationRadius;
-// camera.y = -0.05;
-camera.lookTarget = vec3.fromValues(0, 0, 0);
 
 var cameraRadian = 0;
 var rotationRadius = 3;
@@ -27,7 +25,7 @@ function rotateCamera(){
 
 
 var p3 = new DirectionalLight();
-p3.z = 1.0;
+p3.z = 1;
 // p3.x = 1;
 scene.add(p3);
 

@@ -82,11 +82,14 @@ float linearEyeSpaceDepth(){
 }
 
 /**
- * Using eye ray to recover the eye space position, avoid inverse projection matrix computation, and transformation.
+ * Using eye ray to recover the eye space position, avoiding inverse projection matrix computation, and transformation.
  */
 vec3 getEyeSpacePosition(){
-  // http://www.opengl.org/wiki/Compute_eye_space_from_window_space#Optimized_method_from_XYZ_of_gl_FragCoord
-  return v_EyeRay * -linearEyeSpaceDepth();
+  // scale all the components of eye ray by its -z, its direction is not changed, still points to
+  // correct eye space position. If now we scale eye ray will give you the correct eye space position.
+  // (You can start from 1.0*linearEyeSpaceDepth(), of course it will produce correct depth, then x and y components will 
+  // also be correct eye space coordinate, since eye ray direction is always pointed to the right location, never changed).
+  return vec3(v_EyeRay.xy/-v_EyeRay.z, 1.0) * linearEyeSpaceDepth();
 }
 
 void main(){
@@ -106,19 +109,13 @@ void main(){
   float ndotv = dot(n, v);
   float vdoth = dot(v, h);
 
-
-  // vec4 specularTerm = pow(max(ndoth, 0.0), 8.0) * vec4(materialSpecular, 1.0);
-
-  // vec4 color = albedo*max(ndotl, 0.0);
-  // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
-
   vec4 specularTerm = vec4(materialSpecular, 1.0) * pow(max(ndoth, 0.0), 8.0);
   vec4 diffuseTerm = vec4(u_Light.color, 1.0) * max(ndotl, 0.0);
 
   gl_FragData[0] = diffuseTerm;
+  // You might see some weird specular hight light on cube model, even the face's normal is perpendicular to light direction.
+  // I think it is related to floating point error, especially I was use RGB color texture to encode depth value.
+  // I assume that if in the future I can use floating point depth texture, this problem will go away.
+  // (Using rdotv is better, but not going to solve the problem)
   gl_FragData[1] = specularTerm;
-
-  // float zn = unpack(texture2D(depthTarget, v_TexCoord))*2.0 - 1.0;
-  // vec3 ndc = vec3(v_Position.xy, zn);
-  // gl_FragData[1] = vec4(v_Position.xy, 0, 1);
 }
