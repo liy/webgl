@@ -60,6 +60,7 @@ p.lit = function(shader, camera){
   vec3.sub(this.direction, this._viewSpacePosition, origin);
 
   // console.log(this.direction);
+  // vec3.normalize(this.direction, this.direction);
 
 
   this.uploadUniforms(shader);

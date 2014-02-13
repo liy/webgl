@@ -17,8 +17,9 @@ camera.z = rotationRadius;
 
 var cameraRadian = 0;
 var rotationRadius = 0.3;
+cameraRadian = 3 * Math.PI/2 - 0.8
 function rotateCamera(){
-  cameraRadian += 0.004;
+  cameraRadian += 0.001;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
@@ -26,7 +27,7 @@ function rotateCamera(){
 
 var p3 = new DirectionalLight();
 p3.z = 1;
-p3.x = 1;
+// p3.x = 1;
 scene.add(p3);
 
 var p1 = new PointLight(0.5);
