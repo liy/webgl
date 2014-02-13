@@ -23,6 +23,7 @@ p.uploadUniforms = function(shader){
   gl.uniform1f(shader.uniforms['u_FieldOfView'], this.fieldOfView);
   gl.uniform1f(shader.uniforms['u_AspectRatio'], this.aspectRatio);
   gl.uniform1f(shader.uniforms['u_Near'], this.near);
+  gl.uniform1f(shader.uniforms['u_Far'], this.far);
 
   // console.log(this.near);
 }

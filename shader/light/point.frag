@@ -166,12 +166,9 @@ void main(){
   float ndotv = dot(n, v);
   float vdoth = dot(v, h);
 
-  vec3 specularTerm = vec3(1,1,1) * pow(max(ndoth, 0.0), 8.0);
+  vec3 specularTerm = materialSpecular * pow(max(ndoth, 0.0), 8.0) * ndotl;
   vec3 diffuseTerm = u_Light.color * max(ndotl, 0.0);
 
-  // vec4 color = albedo*max(ndotl, 0.0)*attenuation + specularTerm*attenuation;
-  // gl_FragColor = vec4(color.rgb * u_Light.color, color.a);
-
-  gl_FragData[0] = vec4(diffuseTerm , 1.0);
-  gl_FragData[1] = vec4(specularTerm , 1.0);
+  gl_FragData[0] = vec4(diffuseTerm * attenuation, 1.0);
+  gl_FragData[1] = vec4(specularTerm * attenuation, 1.0);
 }

@@ -17,9 +17,8 @@ camera.z = rotationRadius;
 
 var cameraRadian = 0;
 var rotationRadius = 0.3;
-cameraRadian = 3 * Math.PI/2 - 0.8
 function rotateCamera(){
-  cameraRadian += 0.001;
+  cameraRadian += 0.004;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
@@ -27,21 +26,22 @@ function rotateCamera(){
 
 var p3 = new DirectionalLight();
 p3.z = 1;
-// p3.x = 1;
+p3.x = 1;
+p3.y = 1;
 scene.add(p3);
 
-var p1 = new PointLight(0.5);
+var p1 = new PointLight();
 p1.x = 0.2;
 p1.z = 0.2;
 p1.color = vec3.fromValues(1.0, 0.2, 0.0);
 
-var p2 = new PointLight(0.5);
+var p2 = new PointLight();
 p2.x = -0.2;
 p2.z = 0.2;
 p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
-// scene.add(p1);
-// scene.add(p2);
+scene.add(p1);
+scene.add(p2);
 
 
 var loader = new ObjectFile();

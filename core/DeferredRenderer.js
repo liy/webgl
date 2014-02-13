@@ -43,6 +43,7 @@ function DeferredRenderer(){
   this.screenPass = new ScreenPass(this, this.GBufferWidth, this.GBufferHeight);
 
   
+  gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
