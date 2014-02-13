@@ -16,7 +16,7 @@ scene.add(camera);
 camera.z = rotationRadius;
 
 var cameraRadian = 0;
-var rotationRadius = 3;
+var rotationRadius = 0.3;
 function rotateCamera(){
   cameraRadian += 0.004;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
@@ -26,7 +26,7 @@ function rotateCamera(){
 
 var p3 = new DirectionalLight();
 p3.z = 1;
-// p3.x = 1;
+p3.x = 1;
 scene.add(p3);
 
 var p1 = new PointLight(0.5);
@@ -44,7 +44,7 @@ p2.color = vec3.fromValues(0.0, 0.8, 1.0);
 
 
 var loader = new ObjectFile();
-loader.load("../webgl-meshes/cube/cube.obj");
+loader.load("../webgl-meshes/head/head.obj");
 var obj = loader.object;
 scene.add(obj);
 // obj.scaleZ = 300;
