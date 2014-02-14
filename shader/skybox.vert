@@ -18,7 +18,7 @@ void main(){
   // gl_Position is clip space, it will be divided by its w automatically after vertex shader and before rastering.
   // After the w division, the vertex z will be always 1, which means it is always projected onto the farthest point in NDC.
   gl_Position = position.xyww;
-  v_TexCoord = a_Vertex;
 
+  v_TexCoord = a_Vertex;
   v_Color = a_Color;
 }

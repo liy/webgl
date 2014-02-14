@@ -25,7 +25,6 @@ p.render = function(scene, camera){
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   gl.bindVertexArrayOES(null);
-
 }
 
 p.createScreenBuffer = function(){

@@ -70,7 +70,6 @@ p.render = function(scene, camera){
 }
 
 p.stencil = function(light, camera){
-  // TODO: use stencil shader program
   gl.useProgram(this.stencilProgram);
 
   // needs depth test to correctly increase stencil buffer
@@ -124,6 +123,8 @@ p.pointLighting = function(light, camera){
 p.directionalLighting = function(scene, camera){
   gl.useProgram(this.dirLightProgram);
 
+  camera.uploadUniforms(this.dirLightShader);
+
   len = scene.directionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
@@ -137,7 +138,6 @@ p.directionalLighting = function(scene, camera){
     renderer.depthTarget.bind(gl.TEXTURE0+3)
     gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
 
-    camera.uploadUniforms(this.dirLightShader);
     light.lit(this.dirLightShader, camera);
   }
 }
