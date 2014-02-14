@@ -12,7 +12,7 @@ function GeometryPass(renderer, w, h){
   renderer.normalTarget = this.createColorTexture(this.width, this.height);
   renderer.specularTarget = this.createColorTexture(this.width, this.height);
 
-  // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL) 
+  // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
   renderer.depthTarget = this.createColorDepthTexture(this.width, this.height);
@@ -58,6 +58,6 @@ p.render = function(scene, camera){
   }
 
   // now you have finished filling the G-Buffers, the depth information is recorded.
-  // Lighting pass should only read the depth information.
+  // Other passes, such as lighting pass should only read the depth information.
   gl.depthMask(false);
 }

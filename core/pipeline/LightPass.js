@@ -22,7 +22,7 @@ function LightPass(renderer, w, h){
   this.stencilShader.locateAttributes(this.stencilProgram);
   this.stencilShader.locateUniforms(this.stencilProgram);
 
-  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping. 
+  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
   renderer.diffuseLightTarget = this.createColorTexture(this.width, this.height);
   renderer.specularLightTarget = this.createColorTexture(this.width, this.height);
 

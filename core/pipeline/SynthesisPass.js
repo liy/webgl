@@ -1,17 +1,18 @@
+// do light and albedo synthesis and draw sky box.
 function SynthesisPass(renderer, w, h){
   RenderPass.call(this, renderer, w, h);
 
-  this.program = gl.createProgram();
-  this.shader = new Shader(this.program, 'shader/synthesis.vert', 'shader/synthesis.frag');
-  gl.useProgram(this.program);
-  this.shader.locateAttributes(this.program);
-  this.shader.locateUniforms(this.program);
+  this.synthesisProgram = gl.createProgram();
+  this.synthesisShader = new Shader(this.synthesisProgram, 'shader/synthesis.vert', 'shader/synthesis.frag');
+  gl.useProgram(this.synthesisProgram);
+  this.synthesisShader.locateAttributes(this.synthesisProgram);
+  this.synthesisShader.locateUniforms(this.synthesisProgram);
 
-  // this.skyBoxProgram = gl.createProgram();
-  // this.skyBoxShader = new Shader(this.skyBoxProgram, 'shader/skybox.vert', 'shader/skybox.frag');
-  // gl.useProgram(this.skyBoxProgram);
-  // this.skyBoxShader.locateAttributes(this.skyBoxProgram);
-  // this.skyBoxShader.locateUniforms(this.skyBoxProgram);
+  this.skyBoxProgram = gl.createProgram();
+  this.skyBoxShader = new Shader(this.skyBoxProgram, 'shader/skybox.vert', 'shader/skybox.frag');
+  gl.useProgram(this.skyBoxProgram);
+  this.skyBoxShader.locateAttributes(this.skyBoxProgram);
+  this.skyBoxShader.locateUniforms(this.skyBoxProgram);
 
   renderer.compositeTarget = this.createColorTexture(this.width, this.height);
 
@@ -31,30 +32,55 @@ p.render = function(scene, camera){
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.useProgram(this.program);
+  gl.useProgram(this.synthesisProgram);
 
   // geometry targets
   renderer.albedoTarget.bind(gl.TEXTURE0);
-  gl.uniform1i(this.shader.uniforms['albedoTarget'], 0);
+  gl.uniform1i(this.synthesisShader.uniforms['albedoTarget'], 0);
   // renderer.normalTarget.bind(gl.TEXTURE0+1);
-  // gl.uniform1i(this.shader.uniforms['normalTarget'], 1);
+  // gl.uniform1i(this.synthesisShader.uniforms['normalTarget'], 1);
   // renderer.specularTarget.bind(gl.TEXTURE0+2)
-  // gl.uniform1i(this.shader.uniforms['specularTarget'], 2);
+  // gl.uniform1i(this.synthesisShader.uniforms['specularTarget'], 2);
   // renderer.depthTarget.bind(gl.TEXTURE0+3)
-  // gl.uniform1i(this.shader.uniforms['depthTarget'], 3);
+  // gl.uniform1i(this.synthesisShader.uniforms['depthTarget'], 3);
 
   // light targets
   renderer.diffuseLightTarget.bind(gl.TEXTURE0+4)
-  gl.uniform1i(this.shader.uniforms['diffuseLightTarget'], 4);
+  gl.uniform1i(this.synthesisShader.uniforms['diffuseLightTarget'], 4);
   renderer.specularLightTarget.bind(gl.TEXTURE0+5)
-  gl.uniform1i(this.shader.uniforms['specularLightTarget'], 5);
+  gl.uniform1i(this.synthesisShader.uniforms['specularLightTarget'], 5);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   gl.bindVertexArrayOES(null);
 
   // draw sky box
-  // this.drawSkyBox(scene, camera);
+  this.drawSkyBox(scene, camera);
+}
+
+p.drawSkyBox = function(scene, camera){
+  gl.useProgram(this.skyBoxProgram);
+
+  // I think no need to disable blend, since depth test will discard any overlapping fragments
+  // gl.disable(gl.BLEND);
+
+  // The depth render buffer is untouched after geometry pass, we can use it to discard any sky box fragments behind the meshes.
+  gl.enable(gl.DEPTH_TEST);
+  // By default, depth buffer is cleared with value 1, which means the farthest position. Only the fragment depth less than 1 needs to be
+  // drawn. However, in this case, sky box vertex depth will be mapped to 1(check vertex shader for detail). In order to draw the sky box, we have to allow
+  // "equal" to pass the depth test.
+  gl.depthFunc(gl.LEQUAL);
+
+  var len = scene.skyBoxes.length;
+  for(var i=0; i<len; ++i){
+    var skyBox = scene.skyBoxes[i];
+
+    camera.uploadUniforms(this.skyBoxShader);
+    skyBox.draw(this.skyBoxShader, camera);
+  }
+
+  // back to default depth test function, only draw the fragment's depth less than value in the depth buffer.
+  gl.depthFunc(gl.LESS);
 }
 
 p.createSynthesisBuffer = function(){
@@ -70,8 +96,8 @@ p.createSynthesisBuffer = function(){
                                                      1.0,  1.0,
                                                     -1.0,  1.0,
                                                     -1.0, -1.0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.shader.attributes.a_Vertex);
-  gl.vertexAttribPointer(this.shader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.synthesisShader.attributes.a_Vertex);
+  gl.vertexAttribPointer(this.synthesisShader.attributes.a_Vertex, 2, gl.FLOAT, false, 0, 0);
   // texture coordinate buffer
   var tb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, tb);
@@ -81,29 +107,8 @@ p.createSynthesisBuffer = function(){
                                                    1, 1,
                                                    0, 1,
                                                    0, 0]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(this.shader.attributes.a_TexCoord);
-  gl.vertexAttribPointer(this.shader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(this.synthesisShader.attributes.a_TexCoord);
+  gl.vertexAttribPointer(this.synthesisShader.attributes.a_TexCoord, 2, gl.FLOAT, false, 0, 0);
 
   gl.bindVertexArrayOES(null);
 }
-
-
-// TODO: find a better way to do the skybox
-// p.drawSkyBox = function(scene, camera){
-//   gl.useProgram(this.skyBoxProgram);
-
-//   // gl.disable(gl.BLEND);
-//   gl.enable(gl.DEPTH_TEST);
-//   // sky box NDC.z is always 1, since w is always -e.z. Clip space z sign will be flipped: go into the screen will points to 1,
-//   // come out from the screen points to -1. So it is LEQUAL. 
-//   gl.depthFunc(gl.LEQUAL);
-
-//   var len = scene.skyBoxes.length;
-//   for(var i=0; i<len; ++i){
-//     var skyBox = scene.skyBoxes[i];
-
-//     camera.uploadUniforms(this.skyBoxShader);
-//     skyBox.draw(this.skyBoxShader, camera);
-//   }
-//   gl.depthFunc(gl.LESS);
-// }
