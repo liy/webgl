@@ -17,14 +17,17 @@ p.update = function(){
     mat4.rotateY(this._matrix, this._matrix, this._rotationY);
     mat4.rotateZ(this._matrix, this._matrix, this._rotationZ);
   }
-
   // update the world matrix apply to this object
   this._updateWorldMatrix();
 
-  // invert the translation, since this is the view matrix, move camera left means move object right
-  mat4.invert(this.viewMatrix, this.worldMatrix);
-  if(this.lookTarget)
+  if(this.lookTarget){
+    // Use look at target to control camera's view matrix
     mat4.lookAt(this.viewMatrix, this._position, this.lookTarget, [0, 1, 0]);
+  }
+  else{
+    // Normal camera control, invert the translation, since this is the view matrix, move camera left means move object right
+    mat4.invert(this.viewMatrix, this.worldMatrix);
+  }
 
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();
