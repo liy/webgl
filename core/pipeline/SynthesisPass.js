@@ -1,6 +1,8 @@
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(renderer, w, h){
+function SynthesisPass(renderer, w, h, textureTarget){
   RenderPass.call(this, renderer, w, h);
+
+  this.textureTarget = textureTarget || gl.TEXTURE_2D;
 
   this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
   this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
@@ -9,7 +11,7 @@ function SynthesisPass(renderer, w, h){
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, renderer.compositeTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, renderer.compositeTarget.glTexture, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderer.depthStencilRenderBuffer);
 
   this.createSynthesisBuffer();

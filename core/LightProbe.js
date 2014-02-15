@@ -6,6 +6,10 @@ function LightProbe(radius, size){
 
   this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5 || radius);
 
+  this.cubeTexture = new TextureCube();
+
+  
+
   // 6 face texture
   this.geometryPasses = new Array(6);
   this.lightPasses = new Array(6);
@@ -14,22 +18,26 @@ function LightProbe(radius, size){
     this.geometryPasses[i] = new GeometryPass(this, new Shader('shader/geometry.vert', 'shader/geometry.frag'), this.size, this.size);
     this.lightPasses[i] = new LightPass(this, this.size, this.size);
     this.synthesisPasses[i] = new SynthesisPass(this, this.size, this.size);
+
+    // get ready for drawing to each face of the cube map texture
+    this.cubeTexture.bind();
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, gl.RGBA, this.size, this.size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   }
 
-  // look at targets
-  this.directions = [
+  // camera rotations for 6 sides
+  this.rotations = [
     // front
-    vec3.fromValues(), 
+    { x:0, y:0, z:0 },
     // back
-    vec3.fromValues(),
+    { x:0, y:-Math.PI, z:0 },
     // left
-    vec3.fromValues(),
+    { x:0, y:Math.PI/2, z:0 },
     // right
-    vec3.fromValues(),
-    // up
-    vec3.fromValues(),
+    { x:0, y:-Math.PI/2, z:0 },
+    // top
+    { x:Math.PI/2, y:0, z:0 },
     // bottom
-    vec3.fromValues()
+    { x:-Math.PI/2, y:0, z:0 }
   ];
 
   // TODO: create cube texture
@@ -43,14 +51,15 @@ p.capture = function(scene){
 
   // draw 6 faces
   for(var i=0; i<6; ++i){
-    // TODO: update camera direction
+    // update camera direction
+    this.camera.rotationX = this.rotations[i].x;
+    this.camera.rotationY = this.rotations[i].y;
+    this.camera.rotationZ = this.rotations[i].z;
 
     this.geometryPasses[i].render(scene, camera);
     this.lightPasses[i].render(scene, camera);
     this.synthesisPasses[i].render(scene, camera);
   }
-
-  // TODO: update cube texture
 }
 
 p.generateCoefficients = function(){

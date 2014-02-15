@@ -3,6 +3,9 @@ function RenderPass(renderer, w, h){
   this.width = w;
   this.height = h;
 
+  this.input = {};
+  this.output = {};
+
   this.framebuffer = null;
 }
 var p = RenderPass.prototype;

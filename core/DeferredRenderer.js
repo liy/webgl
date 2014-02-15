@@ -14,6 +14,8 @@ function DeferredRenderer(){
   this.dtExt = gl.getExtension("WEBGL_depth_texture");
   this.vaoExt = gl.getExtension("OES_vertex_array_object");
 
+  var supportedNames = gl.getSupportedExtensions();
+
   // include extensions' properties into gl, for convenience reason.
   var exts = [this.dbExt, this.dtExt, this.vaoExt];
   ExtensionCheck.check(exts);

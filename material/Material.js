@@ -36,7 +36,8 @@ p.setTextureMap = function(map){
 }
 
 p.setCubeMap = function(faces){
-  this.textureMap['cubeMap'] = new TextureCube(faces);
+  this.textureMap['cubeMap'] = new TextureCube();
+  this.textureMap['cubeMap'].load(faces);
 }
 
 /**
