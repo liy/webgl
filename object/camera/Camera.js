@@ -3,7 +3,7 @@ function Camera(){
 
   this.projectionMatrix = mat4.create();
   this.invertProjectionMatrix = mat4.create();
-  this.lookTarget = vec3.fromValues(0, 0, 0);
+  this.lookTarget = null;
   this.viewMatrix = mat4.create();
 }
 var p = Camera.prototype = Object.create(Node.prototype);
@@ -23,7 +23,8 @@ p.update = function(){
 
   // invert the translation, since this is the view matrix, move camera left means move object right
   mat4.invert(this.viewMatrix, this.worldMatrix);
-  mat4.lookAt(this.viewMatrix, this._position, this.lookTarget, [0, 1, 0]);
+  if(this.lookTarget)
+    mat4.lookAt(this.viewMatrix, this._position, this.lookTarget, [0, 1, 0]);
 
   // update the matrix of its children, deep first traversing.
   this._updateChildrenMatrix();

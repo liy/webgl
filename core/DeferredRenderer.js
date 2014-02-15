@@ -5,8 +5,8 @@ function DeferredRenderer(){
   this.canvas.height = window.innerHeight;
   window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
-  this.GBufferWidth = 1280;
-  this.GBufferHeight = 1280;
+  this.geometryBufferWidth = 1280;
+  this.geometryBufferHeight = 1280;
 
   window.addEventListener('resize', this.onResize);
 
@@ -37,10 +37,10 @@ function DeferredRenderer(){
   }
 
   
-  this.geometryPass = new GeometryPass(this, this.GBufferWidth, this.GBufferHeight);
-  this.lightPass = new LightPass(this, this.GBufferWidth, this.GBufferHeight);
-  this.synthesisPass = new SynthesisPass(this, this.GBufferWidth, this.GBufferHeight);
-  this.screenPass = new ScreenPass(this, this.GBufferWidth, this.GBufferHeight);
+  this.geometryPass = new GeometryPass(this, null, this.geometryBufferWidth, this.geometryBufferHeight);
+  this.lightPass = new LightPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
+  this.synthesisPass = new SynthesisPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
+  this.screenPass = new ScreenPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
 
   
   gl.enable(gl.CULL_FACE);

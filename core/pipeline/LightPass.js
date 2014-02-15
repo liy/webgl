@@ -2,25 +2,13 @@ function LightPass(renderer, w, h){
   RenderPass.call(this, renderer, w, h);
 
   // point light calculation
-  this.pointLightProgram = gl.createProgram();
-  this.pointLightShader = new Shader(this.pointLightProgram, 'shader/light/point.vert', 'shader/light/point.frag');
-  gl.useProgram(this.pointLightProgram);
-  this.pointLightShader.locateAttributes(this.pointLightProgram);
-  this.pointLightShader.locateUniforms(this.pointLightProgram);
+  this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
 
   // directional light calculation
-  this.dirLightProgram = gl.createProgram();
-  this.dirLightShader = new Shader(this.dirLightProgram, 'shader/light/directional.vert', 'shader/light/directional.frag');
-  gl.useProgram(this.dirLightProgram);
-  this.dirLightShader.locateAttributes(this.dirLightProgram);
-  this.dirLightShader.locateUniforms(this.dirLightProgram);
+  this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
 
   // null shader for stencil update
-  this.stencilProgram = gl.createProgram();
-  this.stencilShader = new Shader(this.stencilProgram, 'shader/stencil.vert', 'shader/stencil.frag');
-  gl.useProgram(this.stencilProgram);
-  this.stencilShader.locateAttributes(this.stencilProgram);
-  this.stencilShader.locateUniforms(this.stencilProgram);
+  this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
   renderer.diffuseLightTarget = this.createColorTexture(this.width, this.height);
@@ -70,7 +58,7 @@ p.render = function(scene, camera){
 }
 
 p.stencil = function(light, camera){
-  gl.useProgram(this.stencilProgram);
+  gl.useProgram(this.stencilShader.program);
 
   // needs depth test to correctly increase stencil buffer
   gl.enable(gl.DEPTH_TEST);
@@ -93,7 +81,7 @@ p.stencil = function(light, camera){
 
 p.pointLighting = function(light, camera){
    // use point light program
-  gl.useProgram(this.pointLightProgram);
+  gl.useProgram(this.pointLightShader.program);
 
   // all light volumes need to be drawn
   gl.disable(gl.DEPTH_TEST);
@@ -121,7 +109,7 @@ p.pointLighting = function(light, camera){
 }
 
 p.directionalLighting = function(scene, camera){
-  gl.useProgram(this.dirLightProgram);
+  gl.useProgram(this.dirLightShader.program);
 
   camera.uploadUniforms(this.dirLightShader);
 

@@ -11,18 +11,18 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 5)
-scene.add(camera);
-camera.z = rotationRadius;
-
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 5);
 var cameraRadian = 0;
-var rotationRadius = 0.3;
+var rotationRadius = 0.35;
+camera.y = -0.07;
+camera.z = rotationRadius;
 function rotateCamera(){
-  cameraRadian += 0.004;
+  cameraRadian += 0.002;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
-
+camera.lookTarget = vec3.fromValues(0, camera.y, 0);
+scene.add(camera);
 
 var p3 = new DirectionalLight();
 p3.z = 1;

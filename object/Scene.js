@@ -19,6 +19,8 @@ function Scene(){
   this.objects = [];
   // sky box
   this.skyBoxes = [];
+  // light probes
+  this.lightProbes = [];
 
   // if it is dirty, the buffer will be updated
   this.dirty = true;
@@ -52,6 +54,8 @@ p.track = function(node){
       else
         this.positionalLights.push(node);
     }
+    else if(node instanceof LightProbe)
+      this.lightProbes.push(node);
     else
       this.cameras.push(node);
 
@@ -96,6 +100,10 @@ p.untrack = function(node){
         index = this.positionalLights.indexOf(node);
         this.positionalLights.splice(index, 1);
       }
+    }
+    else if(node instanceof LightProbe){
+      index = this.lightProbes.indexOf(node);
+      this.lightProbes.splice(index, 1);
     }
     else{
       index = this.cameras.indexOf(node);

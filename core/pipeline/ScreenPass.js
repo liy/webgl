@@ -1,18 +1,14 @@
 function ScreenPass(renderer, w, h){
   RenderPass.call(this, renderer, w, h);
 
-  this.program = gl.createProgram();
-  this.shader = new Shader(this.program, 'shader/screen.vert', 'shader/screen.frag');
-  gl.useProgram(this.program);
-  this.shader.locateAttributes(this.program);
-  this.shader.locateUniforms(this.program);
+  this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
 
   this.createScreenBuffer();
 }
 var p = ScreenPass.prototype = Object.create(RenderPass.prototype)
 
 p.render = function(scene, camera){
-  gl.useProgram(this.program);
+  gl.useProgram(this.shader.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, renderer.canvas.width, renderer.canvas.height);

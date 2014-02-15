@@ -1,11 +1,7 @@
-function GeometryPass(renderer, w, h){
+function GeometryPass(renderer, shader, w, h){
   RenderPass.call(this, renderer, w, h);
 
-  this.program = gl.createProgram();
-  this.shader = new Shader(this.program, 'shader/geometry.vert', 'shader/geometry.frag');
-  gl.useProgram(this.program);
-  this.shader.locateAttributes(this.program);
-  this.shader.locateUniforms(this.program);
+  this.shader = shader || new Shader('shader/geometry.vert', 'shader/geometry.frag');
 
   // Geometry pass render targets
   renderer.albedoTarget = this.createColorTexture(this.width, this.height);
@@ -35,7 +31,7 @@ p.render = function(scene, camera){
   // enable depth buffer
   gl.depthMask(true);
 
-  gl.useProgram(this.program);
+  gl.useProgram(this.shader.program)
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.viewport(0, 0, this.width, this.height);

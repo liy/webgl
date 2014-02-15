@@ -2,17 +2,8 @@
 function SynthesisPass(renderer, w, h){
   RenderPass.call(this, renderer, w, h);
 
-  this.synthesisProgram = gl.createProgram();
-  this.synthesisShader = new Shader(this.synthesisProgram, 'shader/synthesis.vert', 'shader/synthesis.frag');
-  gl.useProgram(this.synthesisProgram);
-  this.synthesisShader.locateAttributes(this.synthesisProgram);
-  this.synthesisShader.locateUniforms(this.synthesisProgram);
-
-  this.skyBoxProgram = gl.createProgram();
-  this.skyBoxShader = new Shader(this.skyBoxProgram, 'shader/skybox.vert', 'shader/skybox.frag');
-  gl.useProgram(this.skyBoxProgram);
-  this.skyBoxShader.locateAttributes(this.skyBoxProgram);
-  this.skyBoxShader.locateUniforms(this.skyBoxProgram);
+  this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
+  this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
   renderer.compositeTarget = this.createColorTexture(this.width, this.height);
 
@@ -32,7 +23,7 @@ p.render = function(scene, camera){
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.useProgram(this.synthesisProgram);
+  gl.useProgram(this.synthesisShader.program);
 
   // geometry targets
   renderer.albedoTarget.bind(gl.TEXTURE0);
@@ -59,7 +50,7 @@ p.render = function(scene, camera){
 }
 
 p.drawSkyBox = function(scene, camera){
-  gl.useProgram(this.skyBoxProgram);
+  gl.useProgram(this.skyBoxShader.program);
 
   // I think no need to disable blend, since depth test will discard any overlapping fragments
   // gl.disable(gl.BLEND);
