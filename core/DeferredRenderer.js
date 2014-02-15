@@ -38,16 +38,35 @@ function DeferredRenderer(){
     }
   }
 
-  
-  this.geometryPass = new GeometryPass(this, null, this.geometryBufferWidth, this.geometryBufferHeight);
-  this.lightPass = new LightPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
-  this.synthesisPass = new SynthesisPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
-  this.screenPass = new ScreenPass(this, this.geometryBufferWidth, this.geometryBufferHeight);
 
+  // Both depth target and depth stencil render buffer will be shared across all the render passes!
+  // 
+  // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
+  // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
+  // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
+  var depthTarget = RenderPass.createColorDepthTexture(this.width, this.height);
+  // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
+  var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.width, this.height);
+  
+  this.geometryPass = new GeometryPass(null, this.geometryBufferWidth, this.geometryBufferHeight);
+  this.lightPass = new LightPass(this.geometryBufferWidth, this.geometryBufferHeight);
+  this.synthesisPass = new SynthesisPass(this.geometryBufferWidth, this.geometryBufferHeight);
+  this.screenPass = new ScreenPass(this.geometryBufferWidth, this.geometryBufferHeight);
+
+  this.lightPass.share.depthTarget = this.geometryPass.share.depthTarget = depthTarget;
+  this.lightPass.share.depthStencilRenderBuffer = this.geometryPass.share.depthStencilRenderBuffer = depthStencilRenderBuffer;
+
+  this.lightPass.input([this.geometryPass]);
+  this.synthesisPass.input([this.geometryPass, this.lightPass]);
+  this.screenPass.input([this.synthesisPass]);
+
+  this.geometryPass.init();
+  this.lightPass.init();
+  this.synthesisPass.init();
+  this.screenPass.init(this.canvas.width, this.canvas.height);
   
   gl.enable(gl.CULL_FACE);
-  gl.clearColor(0.2, 0.2, 0.2, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
 }
 var p = DeferredRenderer.prototype;
 

@@ -1,31 +1,27 @@
-function GeometryPass(renderer, shader, w, h){
-  RenderPass.call(this, renderer, w, h);
+function GeometryPass(shader, w, h){
+  RenderPass.call(this, w, h);
 
   this.shader = shader || new Shader('shader/geometry.vert', 'shader/geometry.frag');
 
   // Geometry pass render targets
-  renderer.albedoTarget = this.createColorTexture(this.width, this.height);
-  renderer.normalTarget = this.createColorTexture(this.width, this.height);
-  renderer.specularTarget = this.createColorTexture(this.width, this.height);
+  this.export.albedoTarget = RenderPass.createColorTexture(this.width, this.height);
+  this.export.normalTarget = RenderPass.createColorTexture(this.width, this.height);
+  this.export.specularTarget = RenderPass.createColorTexture(this.width, this.height);
+}
+var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
 
-  // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
-  // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
-  // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
-  renderer.depthTarget = this.createColorDepthTexture(this.width, this.height);
-  // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  renderer.depthStencilRenderBuffer = this.createDepthStencilRenderBuffer(this.width, this.height);
-
+p.init = function(){
   this.framebuffer = gl.createFramebuffer();
+  console.log(this.export.albedoTarget.glTexture);
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, renderer.albedoTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, renderer.normalTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, renderer.specularTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, renderer.depthTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderer.depthStencilRenderBuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.share.depthTarget.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
   // multiple render targets requires specifies a list of color buffers to be drawn into.
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
 }
-var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   // enable depth buffer

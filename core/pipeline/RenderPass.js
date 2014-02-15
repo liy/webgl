@@ -1,20 +1,39 @@
-function RenderPass(renderer, w, h){
-  this.renderer = renderer;
+function RenderPass(w, h){
   this.width = w;
   this.height = h;
 
-  this.input = {};
-  this.output = {};
+  // render targets, textures imported from parent passes
+  this.import = Object.create(null);
+  // The render targets which the current RenderPass expose to other RenderPasses, downstream.
+  this.export = Object.create(null);
+  // The texture, or render buffer shared between RenderPasses.
+  this.share = Object.create(null);
 
   this.framebuffer = null;
 }
 var p = RenderPass.prototype;
 
+p.input = function(passes){
+  for(var i=0; i<passes.length; ++i){
+    var renderPass = passes[i];
+
+    // assign parent pass's exporting textures
+    for(var name in renderPass.export){
+      this.import[name] = renderPass.export[name];
+    }
+
+    // assign shared texture and render buffers
+    for(var name in renderPass.share){
+      this.share[name] = renderPass.share[name]; 
+    }
+  }
+}
+
 p.render = function(){
 
 }
 
-p.createColorTexture = function(w, h){
+RenderPass.createColorTexture = function(w, h){
   var texture = new Texture2D();
   texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -25,7 +44,7 @@ p.createColorTexture = function(w, h){
   return texture;
 }
 
-p.createDepthTexture = function(w, h){
+RenderPass.createDepthTexture = function(w, h){
   var texture = new Texture2D();
   texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -39,7 +58,7 @@ p.createDepthTexture = function(w, h){
 /**
  * You should encode depth data into RGBA manually.
  */
-p.createColorDepthTexture = function(w, h){
+RenderPass.createColorDepthTexture = function(w, h){
   var texture = new Texture2D();
   texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -50,7 +69,7 @@ p.createColorDepthTexture = function(w, h){
   return texture;
 }
 
-p.createDepthStencilTexture = function(w, h){
+RenderPass.createDepthStencilTexture = function(w, h){
   var texture = new Texture2D();
   texture.bind();
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -62,7 +81,7 @@ p.createDepthStencilTexture = function(w, h){
   return texture;
 }
 
-p.createDepthStencilRenderBuffer = function(w, h){
+RenderPass.createDepthStencilRenderBuffer = function(w, h){
   var renderbuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h);

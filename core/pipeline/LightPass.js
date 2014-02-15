@@ -1,5 +1,5 @@
-function LightPass(renderer, w, h){
-  RenderPass.call(this, renderer, w, h);
+function LightPass(w, h){
+  RenderPass.call(this, w, h);
 
   // point light calculation
   this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
@@ -11,18 +11,22 @@ function LightPass(renderer, w, h){
   this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-  renderer.diffuseLightTarget = this.createColorTexture(this.width, this.height);
-  renderer.specularLightTarget = this.createColorTexture(this.width, this.height);
+  this.export.diffuseLightTarget = RenderPass.createColorTexture(this.width, this.height);
+  this.export.specularLightTarget = RenderPass.createColorTexture(this.width, this.height);
+}
+var p = LightPass.prototype = Object.create(RenderPass.prototype);
 
+p.init = function(){
+  
+  
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, renderer.diffuseLightTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, renderer.specularLightTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderer.depthStencilRenderBuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightTarget.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
   // multiple render targets requires specifies a list of color buffers to be drawn into.
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
 }
-var p = LightPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
@@ -95,13 +99,13 @@ p.pointLighting = function(light, camera){
   gl.colorMask(true, true, true, true);
 
   // bind the geometry targets
-  renderer.albedoTarget.bind(gl.TEXTURE0);
+  this.import.albedoTarget.bind(gl.TEXTURE0);
   gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
-  renderer.normalTarget.bind(gl.TEXTURE0+1);
+  this.import.normalTarget.bind(gl.TEXTURE0+1);
   gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
-  renderer.specularTarget.bind(gl.TEXTURE0+2)
+  this.import.specularTarget.bind(gl.TEXTURE0+2)
   gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-  renderer.depthTarget.bind(gl.TEXTURE0+3)
+  this.share.depthTarget.bind(gl.TEXTURE0+3)
   gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
 
   camera.uploadUniforms(this.pointLightShader)
@@ -117,13 +121,13 @@ p.directionalLighting = function(scene, camera){
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
 
-    renderer.albedoTarget.bind(gl.TEXTURE0);
+    this.import.albedoTarget.bind(gl.TEXTURE0);
     gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
-    renderer.normalTarget.bind(gl.TEXTURE0+1);
+    this.import.normalTarget.bind(gl.TEXTURE0+1);
     gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
-    renderer.specularTarget.bind(gl.TEXTURE0+2)
+    this.import.specularTarget.bind(gl.TEXTURE0+2)
     gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-    renderer.depthTarget.bind(gl.TEXTURE0+3)
+    this.share.depthTarget.bind(gl.TEXTURE0+3)
     gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
 
     light.lit(this.dirLightShader, camera);

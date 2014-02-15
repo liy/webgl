@@ -1,22 +1,27 @@
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(renderer, w, h, textureTarget){
-  RenderPass.call(this, renderer, w, h);
+function SynthesisPass(w, h, textureTarget){
+  RenderPass.call(this, w, h);
 
   this.textureTarget = textureTarget || gl.TEXTURE_2D;
 
   this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
   this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
-  renderer.compositeTarget = this.createColorTexture(this.width, this.height);
-
-  this.framebuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, renderer.compositeTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderer.depthStencilRenderBuffer);
+  this.export.compositeTarget = RenderPass.createColorTexture(this.width, this.height);
 
   this.createSynthesisBuffer();
 }
 var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
+
+p.init = function(){
+  
+  
+  // TODO: FIXME: find a better way to do input, output and sharing the targets
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, this.export.compositeTarget.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
+}
 
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
@@ -28,19 +33,19 @@ p.render = function(scene, camera){
   gl.useProgram(this.synthesisShader.program);
 
   // geometry targets
-  renderer.albedoTarget.bind(gl.TEXTURE0);
+  this.import.albedoTarget.bind(gl.TEXTURE0);
   gl.uniform1i(this.synthesisShader.uniforms['albedoTarget'], 0);
-  // renderer.normalTarget.bind(gl.TEXTURE0+1);
+  // this.import.normalTarget.bind(gl.TEXTURE0+1);
   // gl.uniform1i(this.synthesisShader.uniforms['normalTarget'], 1);
-  // renderer.specularTarget.bind(gl.TEXTURE0+2)
+  // this.import.specularTarget.bind(gl.TEXTURE0+2)
   // gl.uniform1i(this.synthesisShader.uniforms['specularTarget'], 2);
-  // renderer.depthTarget.bind(gl.TEXTURE0+3)
+  // this.share.depthTarget.bind(gl.TEXTURE0+3)
   // gl.uniform1i(this.synthesisShader.uniforms['depthTarget'], 3);
 
   // light targets
-  renderer.diffuseLightTarget.bind(gl.TEXTURE0+4)
+  this.import.diffuseLightTarget.bind(gl.TEXTURE0+4)
   gl.uniform1i(this.synthesisShader.uniforms['diffuseLightTarget'], 4);
-  renderer.specularLightTarget.bind(gl.TEXTURE0+5)
+  this.import.specularLightTarget.bind(gl.TEXTURE0+5)
   gl.uniform1i(this.synthesisShader.uniforms['specularLightTarget'], 5);
 
   gl.bindVertexArrayOES(this.vao);

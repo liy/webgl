@@ -1,21 +1,26 @@
-function ScreenPass(renderer, w, h){
-  RenderPass.call(this, renderer, w, h);
+function ScreenPass(w, h){
+  RenderPass.call(this, w, h);
 
   this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
 
   this.createScreenBuffer();
 }
-var p = ScreenPass.prototype = Object.create(RenderPass.prototype)
+var p = ScreenPass.prototype = Object.create(RenderPass.prototype);
+
+p.init = function(viewportWidth, viewportHeight){
+  this.viewportWidth = viewportWidth;
+  this.viewportHeight = viewportHeight;
+}
 
 p.render = function(scene, camera){
   gl.useProgram(this.shader.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, renderer.canvas.width, renderer.canvas.height);
+  gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  renderer.compositeTarget.bind(gl.TEXTURE0)
+  this.import.compositeTarget.bind(gl.TEXTURE0);
   gl.uniform1i(this.shader.uniforms['compositeTarget'], 0);
 
   gl.bindVertexArrayOES(this.vao);
