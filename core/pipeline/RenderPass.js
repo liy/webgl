@@ -1,30 +1,22 @@
-function RenderPass(w, h){
-  this.width = w;
-  this.height = h;
+function RenderPass(renderer){
+  this.renderer = renderer;
 
   // render targets, textures imported from parent passes
   this.import = Object.create(null);
   // The render targets which the current RenderPass expose to other RenderPasses, downstream.
   this.export = Object.create(null);
-  // The texture, or render buffer shared between RenderPasses.
-  this.share = Object.create(null);
 
   this.framebuffer = null;
 }
 var p = RenderPass.prototype;
 
-p.input = function(passes){
-  for(var i=0; i<passes.length; ++i){
-    var renderPass = passes[i];
+p.input = function(inputPasses){
+  for(var i=0; i<inputPasses.length; ++i){
+    var renderPass = inputPasses[i];
 
     // assign parent pass's exporting textures
     for(var name in renderPass.export){
       this.import[name] = renderPass.export[name];
-    }
-
-    // assign shared texture and render buffers
-    for(var name in renderPass.share){
-      this.share[name] = renderPass.share[name]; 
     }
   }
 }

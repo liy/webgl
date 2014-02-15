@@ -1,27 +1,25 @@
-function GeometryPass(shader, w, h){
-  RenderPass.call(this, w, h);
+function GeometryPass(renderer, shader){
+  RenderPass.call(this, renderer);
 
   this.shader = shader || new Shader('shader/geometry.vert', 'shader/geometry.frag');
 
   // Geometry pass render targets
-  this.export.albedoTarget = RenderPass.createColorTexture(this.width, this.height);
-  this.export.normalTarget = RenderPass.createColorTexture(this.width, this.height);
-  this.export.specularTarget = RenderPass.createColorTexture(this.width, this.height);
-}
-var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
+  this.export.albedoTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  this.export.normalTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  this.export.specularTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
 
-p.init = function(){
   this.framebuffer = gl.createFramebuffer();
-  console.log(this.export.albedoTarget.glTexture);
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoTarget.glTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalTarget.glTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.share.depthTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.renderer.depthTarget.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
   // multiple render targets requires specifies a list of color buffers to be drawn into.
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
 }
+var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
+
 
 p.render = function(scene, camera){
   // enable depth buffer
@@ -30,7 +28,7 @@ p.render = function(scene, camera){
   gl.useProgram(this.shader.program)
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.renderer.gbufferWidth, this.renderer.gbufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 

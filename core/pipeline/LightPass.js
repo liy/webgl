@@ -1,5 +1,5 @@
-function LightPass(w, h){
-  RenderPass.call(this, w, h);
+function LightPass(renderer){
+  RenderPass.call(this, renderer);
 
   // point light calculation
   this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
@@ -11,28 +11,24 @@ function LightPass(w, h){
   this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-  this.export.diffuseLightTarget = RenderPass.createColorTexture(this.width, this.height);
-  this.export.specularLightTarget = RenderPass.createColorTexture(this.width, this.height);
-}
-var p = LightPass.prototype = Object.create(RenderPass.prototype);
+  this.export.diffuseLightTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  this.export.specularLightTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
 
-p.init = function(){
-  
-  
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightTarget.glTexture, 0);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
   // multiple render targets requires specifies a list of color buffers to be drawn into.
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
 }
+var p = LightPass.prototype = Object.create(RenderPass.prototype);
 
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.renderer.gbufferWidth, this.renderer.gbufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -105,7 +101,7 @@ p.pointLighting = function(light, camera){
   gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
   this.import.specularTarget.bind(gl.TEXTURE0+2)
   gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-  this.share.depthTarget.bind(gl.TEXTURE0+3)
+  this.renderer.depthTarget.bind(gl.TEXTURE0+3)
   gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
 
   camera.uploadUniforms(this.pointLightShader)
@@ -127,7 +123,7 @@ p.directionalLighting = function(scene, camera){
     gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
     this.import.specularTarget.bind(gl.TEXTURE0+2)
     gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-    this.share.depthTarget.bind(gl.TEXTURE0+3)
+    this.renderer.depthTarget.bind(gl.TEXTURE0+3)
     gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
 
     light.lit(this.dirLightShader, camera);

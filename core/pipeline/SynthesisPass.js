@@ -1,32 +1,29 @@
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(w, h, textureTarget){
-  RenderPass.call(this, w, h);
-
-  this.textureTarget = textureTarget || gl.TEXTURE_2D;
+function SynthesisPass(renderer, textureTarget){
+  RenderPass.call(this, renderer);
 
   this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
   this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
-  this.export.compositeTarget = RenderPass.createColorTexture(this.width, this.height);
+  this.export.compositeTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+
+  this.textureTarget = textureTarget || gl.TEXTURE_2D;
+
+  // TODO: FIXME: find a better way to do input, output and sharing the targets
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, this.export.compositeTarget.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
 
   this.createSynthesisBuffer();
 }
 var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
 
-p.init = function(){
-  
-  
-  // TODO: FIXME: find a better way to do input, output and sharing the targets
-  this.framebuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, this.export.compositeTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.share.depthStencilRenderBuffer);
-}
 
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.renderer.gbufferWidth, this.renderer.gbufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 

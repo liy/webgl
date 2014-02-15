@@ -5,8 +5,8 @@ function DeferredRenderer(){
   this.canvas.height = window.innerHeight;
   window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
-  this.geometryBufferWidth = 1280;
-  this.geometryBufferHeight = 1280;
+  this.gbufferWidth = 1280;
+  this.gbufferHeight = 1280;
 
   window.addEventListener('resize', this.onResize);
 
@@ -44,26 +44,19 @@ function DeferredRenderer(){
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
-  var depthTarget = RenderPass.createColorDepthTexture(this.width, this.height);
+  this.depthTarget = RenderPass.createColorDepthTexture(this.gbufferWidth, this.gbufferHeight);
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.width, this.height);
+  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.gbufferWidth, this.gbufferHeight);
   
-  this.geometryPass = new GeometryPass(null, this.geometryBufferWidth, this.geometryBufferHeight);
-  this.lightPass = new LightPass(this.geometryBufferWidth, this.geometryBufferHeight);
-  this.synthesisPass = new SynthesisPass(this.geometryBufferWidth, this.geometryBufferHeight);
-  this.screenPass = new ScreenPass(this.geometryBufferWidth, this.geometryBufferHeight);
+  this.geometryPass = new GeometryPass(this, null);
+  this.lightPass = new LightPass(this);
+  this.synthesisPass = new SynthesisPass(this);
+  this.screenPass = new ScreenPass(this);
 
-  this.lightPass.share.depthTarget = this.geometryPass.share.depthTarget = depthTarget;
-  this.lightPass.share.depthStencilRenderBuffer = this.geometryPass.share.depthStencilRenderBuffer = depthStencilRenderBuffer;
-
+  // setup input and export relationship
   this.lightPass.input([this.geometryPass]);
   this.synthesisPass.input([this.geometryPass, this.lightPass]);
   this.screenPass.input([this.synthesisPass]);
-
-  this.geometryPass.init();
-  this.lightPass.init();
-  this.synthesisPass.init();
-  this.screenPass.init(this.canvas.width, this.canvas.height);
   
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);

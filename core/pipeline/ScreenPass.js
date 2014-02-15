@@ -1,5 +1,5 @@
-function ScreenPass(w, h){
-  RenderPass.call(this, w, h);
+function ScreenPass(renderer){
+  RenderPass.call(this, renderer);
 
   this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
 
@@ -7,16 +7,11 @@ function ScreenPass(w, h){
 }
 var p = ScreenPass.prototype = Object.create(RenderPass.prototype);
 
-p.init = function(viewportWidth, viewportHeight){
-  this.viewportWidth = viewportWidth;
-  this.viewportHeight = viewportHeight;
-}
-
 p.render = function(scene, camera){
   gl.useProgram(this.shader.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
+  gl.viewport(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
