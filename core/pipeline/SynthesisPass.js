@@ -1,20 +1,21 @@
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(renderer, textureTarget){
+function SynthesisPass(renderer, framebuffer, texture){
   RenderPass.call(this, renderer);
 
   this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
   this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
-  this.export.compositeTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
-
-  this.textureTarget = textureTarget || gl.TEXTURE_2D;
+  this.export.compositeBuffer = texture || RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);
 
   // TODO: FIXME: find a better way to do input, output and sharing the targets
-  this.framebuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.textureTarget, this.export.compositeTarget.glTexture, 0);
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
-
+  this.framebuffer = framebuffer;
+  if(!this.framebuffer){
+    this.framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
+  }
+  
   this.createSynthesisBuffer();
 }
 var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
@@ -23,15 +24,15 @@ var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  gl.viewport(0, 0, this.renderer.bufferWidth, this.renderer.bufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.useProgram(this.synthesisShader.program);
 
   // geometry targets
-  this.import.albedoTarget.bind(gl.TEXTURE0);
-  gl.uniform1i(this.synthesisShader.uniforms['albedoTarget'], 0);
+  this.import.albedoBuffer.bind(gl.TEXTURE0);
+  gl.uniform1i(this.synthesisShader.uniforms['albedoBuffer'], 0);
   // this.import.normalTarget.bind(gl.TEXTURE0+1);
   // gl.uniform1i(this.synthesisShader.uniforms['normalTarget'], 1);
   // this.import.specularTarget.bind(gl.TEXTURE0+2)
@@ -40,10 +41,10 @@ p.render = function(scene, camera){
   // gl.uniform1i(this.synthesisShader.uniforms['depthTarget'], 3);
 
   // light targets
-  this.import.diffuseLightTarget.bind(gl.TEXTURE0+4)
-  gl.uniform1i(this.synthesisShader.uniforms['diffuseLightTarget'], 4);
-  this.import.specularLightTarget.bind(gl.TEXTURE0+5)
-  gl.uniform1i(this.synthesisShader.uniforms['specularLightTarget'], 5);
+  this.import.diffuseLightBuffer.bind(gl.TEXTURE0+4)
+  gl.uniform1i(this.synthesisShader.uniforms['diffuseLightBuffer'], 4);
+  this.import.specularLightBuffer.bind(gl.TEXTURE0+5)
+  gl.uniform1i(this.synthesisShader.uniforms['specularLightBuffer'], 5);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);

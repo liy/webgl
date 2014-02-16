@@ -11,13 +11,13 @@ function LightPass(renderer){
   this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-  this.export.diffuseLightTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
-  this.export.specularLightTarget = RenderPass.createColorTexture(this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);
+  this.export.specularLightBuffer = RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightTarget.glTexture, 0);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightTarget.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
   // multiple render targets requires specifies a list of color buffers to be drawn into.
   gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
@@ -28,7 +28,7 @@ p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
-  gl.viewport(0, 0, this.renderer.gbufferWidth, this.renderer.gbufferHeight);
+  gl.viewport(0, 0, this.renderer.bufferWidth, this.renderer.bufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -95,14 +95,14 @@ p.pointLighting = function(light, camera){
   gl.colorMask(true, true, true, true);
 
   // bind the geometry targets
-  this.import.albedoTarget.bind(gl.TEXTURE0);
-  gl.uniform1i(this.pointLightShader.uniforms['albedoTarget'], 0);
-  this.import.normalTarget.bind(gl.TEXTURE0+1);
-  gl.uniform1i(this.pointLightShader.uniforms['normalTarget'], 1);
-  this.import.specularTarget.bind(gl.TEXTURE0+2)
-  gl.uniform1i(this.pointLightShader.uniforms['specularTarget'], 2);
-  this.renderer.depthTarget.bind(gl.TEXTURE0+3)
-  gl.uniform1i(this.pointLightShader.uniforms['depthTarget'], 3);
+  this.import.albedoBuffer.bind(gl.TEXTURE0);
+  gl.uniform1i(this.pointLightShader.uniforms['albedoBuffer'], 0);
+  this.import.normalBuffer.bind(gl.TEXTURE0+1);
+  gl.uniform1i(this.pointLightShader.uniforms['normalBuffer'], 1);
+  this.import.specularBuffer.bind(gl.TEXTURE0+2)
+  gl.uniform1i(this.pointLightShader.uniforms['specularBuffer'], 2);
+  this.renderer.depthBuffer.bind(gl.TEXTURE0+3)
+  gl.uniform1i(this.pointLightShader.uniforms['depthBuffer'], 3);
 
   camera.uploadUniforms(this.pointLightShader)
   light.lit(this.pointLightShader, camera);
@@ -117,14 +117,14 @@ p.directionalLighting = function(scene, camera){
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
 
-    this.import.albedoTarget.bind(gl.TEXTURE0);
-    gl.uniform1i(this.dirLightShader.uniforms['albedoTarget'], 0);
-    this.import.normalTarget.bind(gl.TEXTURE0+1);
-    gl.uniform1i(this.dirLightShader.uniforms['normalTarget'], 1);
-    this.import.specularTarget.bind(gl.TEXTURE0+2)
-    gl.uniform1i(this.dirLightShader.uniforms['specularTarget'], 2);
-    this.renderer.depthTarget.bind(gl.TEXTURE0+3)
-    gl.uniform1i(this.dirLightShader.uniforms['depthTarget'], 3);
+    this.import.albedoBuffer.bind(gl.TEXTURE0);
+    gl.uniform1i(this.dirLightShader.uniforms['albedoBuffer'], 0);
+    this.import.normalBuffer.bind(gl.TEXTURE0+1);
+    gl.uniform1i(this.dirLightShader.uniforms['normalBuffer'], 1);
+    this.import.specularBuffer.bind(gl.TEXTURE0+2)
+    gl.uniform1i(this.dirLightShader.uniforms['specularBuffer'], 2);
+    this.renderer.depthBuffer.bind(gl.TEXTURE0+3)
+    gl.uniform1i(this.dirLightShader.uniforms['depthBuffer'], 3);
 
     light.lit(this.dirLightShader, camera);
   }

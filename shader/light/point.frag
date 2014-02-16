@@ -14,10 +14,10 @@ const vec4 bitShifts = vec4(1.0,
           1.0 / (255.0 * 255.0),
           1.0 / (255.0 * 255.0 * 255.0));
 
-uniform sampler2D albedoTarget;
-uniform sampler2D normalTarget;
-uniform sampler2D specularTarget;
-uniform sampler2D depthTarget;
+uniform sampler2D albedoBuffer;
+uniform sampler2D normalBuffer;
+uniform sampler2D specularBuffer;
+uniform sampler2D depthBuffer;
 
 // point light attributes
 struct Light {
@@ -65,7 +65,7 @@ vec2 getTexCoord(){
 
 float linearEyeSpaceDepth(vec2 texCoord){
   // depth texture value is [0, 1], convert to [-1, 1], normalized device coordinate
-  float zn = unpack(texture2D(depthTarget, texCoord)) * 2.0 - 1.0;
+  float zn = unpack(texture2D(depthBuffer, texCoord)) * 2.0 - 1.0;
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
   // http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
@@ -103,7 +103,7 @@ vec3 getEyeSpacePosition(vec3 viewRay, vec2 texCoord){
 
 vec4 getEyeSpacePosition2(vec2 texCoord){
   // depth texture value is [0, 1], convert to [-1, 1]
-  float zn = texture2D(depthTarget, texCoord).x*2.0 - 1.0;
+  float zn = texture2D(depthBuffer, texCoord).x*2.0 - 1.0;
   vec3 ndc = vec3(v_ClipSpacePosition.xy/v_ClipSpacePosition.w, zn);
 
   // calculate clip-space coordinate: http://stackoverflow.com/questions/14523588/calculate-clipspace-w-from-clipspace-xyz-and-inv-projection-matrix
@@ -138,8 +138,8 @@ vec4 getEyeSpacePosition2(vec2 texCoord){
 void main(){
   vec2 texCoord = getTexCoord();
 
-  vec3 materialSpecular = texture2D(specularTarget, texCoord).rgb;
-  vec4 albedo = texture2D(albedoTarget, texCoord);
+  vec3 materialSpecular = texture2D(specularBuffer, texCoord).rgb;
+  vec4 albedo = texture2D(albedoBuffer, texCoord);
 
   // Imagine view space position is a ray, by dividing all its components by z.
   // Its direction is still unchanged. But we later can multiply it by eye space z position calculated from depth
@@ -154,7 +154,7 @@ void main(){
   vec3 l = normalize(u_Light.position - eyeSpacePosition);
   // !!!!!!!!!!!!!!!!!!!!!!! never ever normalize the normal value sampled from texture, it is already normalized!!!!!!!!!
   // You will get strange artifacts
-  vec3 n = texture2D(normalTarget, texCoord).xyz * 2.0 - 1.0;
+  vec3 n = texture2D(normalBuffer, texCoord).xyz * 2.0 - 1.0;
   vec3 h = normalize(l + v);
 
   // TODO: squared fall off, physically correct? distance calculation seems wrong!!??!?

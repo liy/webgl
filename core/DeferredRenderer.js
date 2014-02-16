@@ -5,8 +5,8 @@ function DeferredRenderer(){
   this.canvas.height = window.innerHeight;
   window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
-  this.gbufferWidth = 1280;
-  this.gbufferHeight = 1280;
+  this.bufferWidth = 1280;
+  this.bufferHeight = 1280;
 
   window.addEventListener('resize', this.onResize);
 
@@ -44,9 +44,9 @@ function DeferredRenderer(){
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
-  this.depthTarget = RenderPass.createColorDepthTexture(this.gbufferWidth, this.gbufferHeight);
+  this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.gbufferWidth, this.gbufferHeight);
+  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
   
   this.geometryPass = new GeometryPass(this, null);
   this.lightPass = new LightPass(this);
@@ -59,13 +59,19 @@ function DeferredRenderer(){
   this.screenPass.input([this.synthesisPass]);
   
   gl.enable(gl.CULL_FACE);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.2, 0.2, 0.2, 1.0);
 }
 var p = DeferredRenderer.prototype;
 
 p.render = function(scene, camera){
   // update the matrix
   this.update();
+
+  // light probe capturing the scene
+  // var len = scene.lightProbes.length;
+  // for(var i=0; i<len; ++i){
+  //   scene.lightProbes[i].render(scene);
+  // }
   
   this.geometryPass.render(scene, camera);
   this.lightPass.render(scene, camera);

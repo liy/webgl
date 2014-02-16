@@ -1,7 +1,7 @@
 function RenderPass(renderer){
   this.renderer = renderer;
 
-  // render targets, textures imported from parent passes
+  // render targets, textures imported from parent passes, upstream.
   this.import = Object.create(null);
   // The render targets which the current RenderPass expose to other RenderPasses, downstream.
   this.export = Object.create(null);

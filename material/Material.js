@@ -105,7 +105,7 @@ p.uploadUniforms = function(shader){
   if(this.textureMap.cubeMap){
     if(this.textureMap.cubeMap.ready){
       this.textureMap.cubeMap.bind(gl.TEXTURE0+5);
-      gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);  
+      gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);
     }
     else
       this.textureMap.cubeMap.unbind();

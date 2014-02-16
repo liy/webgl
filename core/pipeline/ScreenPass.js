@@ -15,8 +15,8 @@ p.render = function(scene, camera){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  this.import.compositeTarget.bind(gl.TEXTURE0);
-  gl.uniform1i(this.shader.uniforms['compositeTarget'], 0);
+  this.import.compositeBuffer.bind(gl.TEXTURE0);
+  gl.uniform1i(this.shader.uniforms['compositeBuffer'], 0);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);

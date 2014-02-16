@@ -7,10 +7,10 @@ const vec4 bitShifts = vec4(1.0,
           1.0 / (255.0 * 255.0),
           1.0 / (255.0 * 255.0 * 255.0));
 
-uniform sampler2D albedoTarget;
-uniform sampler2D normalTarget;
-uniform sampler2D specularTarget;
-uniform sampler2D depthTarget;
+uniform sampler2D albedoBuffer;
+uniform sampler2D normalBuffer;
+uniform sampler2D specularBuffer;
+uniform sampler2D depthBuffer;
 
 // scene projection matrix
 uniform mat4 u_ProjectionMatrix;
@@ -52,19 +52,19 @@ float unpack (vec4 colour)
 vec3 getEyeSpacePosition(){
   // depth texture value is [0, 1], the ray's z is at far plane. Think depth texture value as a ratio for eye ray's z component. 
   // So just need to directly scale eye ray by the normalized(in range of [0, 1]) depth value.
-  return v_EyeRay * unpack(texture2D(depthTarget, v_TexCoord));
+  return v_EyeRay * unpack(texture2D(depthBuffer, v_TexCoord));
 }
 
 void main(){
-  vec3 materialSpecular = texture2D(specularTarget, v_TexCoord).rgb;
-  vec4 albedo = texture2D(albedoTarget, v_TexCoord);
+  vec3 materialSpecular = texture2D(specularBuffer, v_TexCoord).rgb;
+  vec4 albedo = texture2D(albedoBuffer, v_TexCoord);
 
   // get the eye space position of the fragment
   vec3 eyeSpacePosition = getEyeSpacePosition();
 
   vec3 v = -normalize(eyeSpacePosition);
   vec3 l = normalize(u_Light.direction);
-  vec3 n = texture2D(normalTarget, v_TexCoord).xyz * 2.0 - 1.0;
+  vec3 n = texture2D(normalBuffer, v_TexCoord).xyz * 2.0 - 1.0;
   vec3 h = normalize(l + v);
   vec3 r = normalize(reflect(-l, n));
 
