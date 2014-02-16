@@ -33,18 +33,11 @@ p.render = function(scene, camera){
   // geometry targets
   this.import.albedoBuffer.bind(gl.TEXTURE0);
   gl.uniform1i(this.synthesisShader.uniforms['albedoBuffer'], 0);
-  // this.import.normalTarget.bind(gl.TEXTURE0+1);
-  // gl.uniform1i(this.synthesisShader.uniforms['normalTarget'], 1);
-  // this.import.specularTarget.bind(gl.TEXTURE0+2)
-  // gl.uniform1i(this.synthesisShader.uniforms['specularTarget'], 2);
-  // this.share.depthTarget.bind(gl.TEXTURE0+3)
-  // gl.uniform1i(this.synthesisShader.uniforms['depthTarget'], 3);
-
   // light targets
-  this.import.diffuseLightBuffer.bind(gl.TEXTURE0+4)
-  gl.uniform1i(this.synthesisShader.uniforms['diffuseLightBuffer'], 4);
-  this.import.specularLightBuffer.bind(gl.TEXTURE0+5)
-  gl.uniform1i(this.synthesisShader.uniforms['specularLightBuffer'], 5);
+  this.import.diffuseLightBuffer.bind(gl.TEXTURE0+1)
+  gl.uniform1i(this.synthesisShader.uniforms['diffuseLightBuffer'], 1);
+  this.import.specularLightBuffer.bind(gl.TEXTURE0+2)
+  gl.uniform1i(this.synthesisShader.uniforms['specularLightBuffer'], 2);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);

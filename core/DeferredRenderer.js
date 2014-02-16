@@ -48,7 +48,7 @@ function DeferredRenderer(){
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
   
-  this.geometryPass = new GeometryPass(this, null);
+  this.geometryPass = new GeometryPass(this);
   this.lightPass = new LightPass(this);
   this.synthesisPass = new SynthesisPass(this);
   this.screenPass = new ScreenPass(this);
@@ -63,31 +63,17 @@ function DeferredRenderer(){
 }
 var p = DeferredRenderer.prototype;
 
-p.render = function(scene, camera){
-  // update the matrix
-  this.update();
-
-  // light probe capturing the scene
-  var len = scene.lightProbes.length;
-  for(var i=0; i<len; ++i){
-    scene.lightProbes[i].render(scene);
-  }
-  
-  this.geometryPass.render(scene, camera);
-  this.lightPass.render(scene, camera);
-  this.synthesisPass.render(scene, camera);
-  this.screenPass.render(scene, camera);
-}
-
-p.update = function(){
+p.update = function(scene){
   // update all object's matrix, which are not dependent on the view matrix
   var len = scene.children.length;
   for(var i=0; i<len; ++i){
     scene.children[i].update();
   }
+}
 
+p.updateViewDependent = function(scene, camera){
   // update meshes' view dependent matrix
-  len = scene.meshes.length;
+  var len = scene.meshes.length;
   for(var i=0; i<len; ++i){
     var mesh = scene.meshes[i];
     // update model view matrix, normal matrix
@@ -116,6 +102,23 @@ p.update = function(){
   }
 }
 
+p.render = function(scene, camera){
+  // update model, world matrix
+  this.update(scene);
+
+  // // light probe capturing the scene
+  var len = scene.lightProbes.length;
+  for(var i=0; i<len; ++i){
+    scene.lightProbes[i].render(scene);
+  }
+
+  // update the matrix
+  this.updateViewDependent(scene, camera);
+  this.geometryPass.render(scene, camera);
+  this.lightPass.render(scene, camera);
+  this.synthesisPass.render(scene, camera);
+  this.screenPass.render(scene, camera);
+}
 
 function sort(camera){
   return function(a, b){
