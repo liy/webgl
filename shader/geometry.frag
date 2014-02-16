@@ -135,7 +135,7 @@ void main() {
   // // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   // gl_FragData[2] = toLinear(texture2D(specularTexture, v_TexCoord));
 
-  vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
+  vec3 r = normalize(reflect(-v_Position.xyz, v_Normal));
 
 
   // gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r);

@@ -7,7 +7,7 @@ function LightProbe(camera, size){
   this.captured = false;
 
   // width and height value
-  this.bufferWidth = this.bufferHeight = 128 || size;
+  this.bufferWidth = this.bufferHeight = 512 || size;
 
   this.camera = camera;
 
