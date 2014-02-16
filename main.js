@@ -12,7 +12,7 @@ var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 5);
 var cameraRadian = 0;
-var rotationRadius = 1.55;
+var rotationRadius = 1.75;
 camera.y = -0.07;
 camera.z = rotationRadius;
 function rotateCamera(){
@@ -43,10 +43,11 @@ scene.add(camera);
 // scene.add(p2);
 
 
-// var loader = new ObjectFile();
-// loader.load("../webgl-meshes/head/head.obj");
-// var obj = loader.object;
-// scene.add(obj);
+var loader = new ObjectFile();
+loader.load("../webgl-meshes/head/head.obj");
+var obj = loader.object;
+obj.x = 1;
+scene.add(obj);
 
 
 var probeCamera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5)

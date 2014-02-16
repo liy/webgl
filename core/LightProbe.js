@@ -69,7 +69,7 @@ function LightProbe(camera, size){
   var material = new Material();
   material.textureMap['cubeMap'] = this.cubeTexture;
   this.cubeTexture.ready = true;
-  this.mesh = new Mesh(new CubeGeometry(), material);
+  this.mesh = new Mesh(new SphereGeometry(), material);
   this.add(this.mesh);
 
   gl.enable(gl.CULL_FACE);

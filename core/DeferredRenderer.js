@@ -68,10 +68,10 @@ p.render = function(scene, camera){
   this.update();
 
   // light probe capturing the scene
-  // var len = scene.lightProbes.length;
-  // for(var i=0; i<len; ++i){
-  //   scene.lightProbes[i].render(scene);
-  // }
+  var len = scene.lightProbes.length;
+  for(var i=0; i<len; ++i){
+    scene.lightProbes[i].render(scene);
+  }
   
   this.geometryPass.render(scene, camera);
   this.lightPass.render(scene, camera);

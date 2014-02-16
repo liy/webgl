@@ -135,11 +135,10 @@ void main() {
   // // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   // gl_FragData[2] = toLinear(texture2D(specularTexture, v_TexCoord));
 
-  vec3 normal = getNormal();
 
-  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord);
+  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, v_Normal);
   // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
-  gl_FragData[1] = vec4(normal, 1.0);
+  gl_FragData[1] = vec4(getNormal(), 1.0);
   // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
   // pack eye depth
