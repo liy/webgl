@@ -5,6 +5,7 @@ function Camera(){
   this.invertProjectionMatrix = mat4.create();
   this.lookTarget = null;
   this.viewMatrix = mat4.create();
+  this.invertViewMatrix = mat4.create();
 }
 var p = Camera.prototype = Object.create(Node.prototype);
 
@@ -23,10 +24,14 @@ p.update = function(){
   if(this.lookTarget){
     // Use look at target to control camera's view matrix
     mat4.lookAt(this.viewMatrix, this._position, this.lookTarget, [0, 1, 0]);
+
+    mat4.invert(this.invertViewMatrix, this.viewMatrix);
   }
   else{
     // Normal camera control, invert the translation, since this is the view matrix, move camera left means move object right
     mat4.invert(this.viewMatrix, this.worldMatrix);
+
+    mat4.copy(this.invertViewMatrix, this.viewMatrix);
   }
 
   // update the matrix of its children, deep first traversing.
@@ -37,4 +42,5 @@ p.uploadUniforms = function(shader){
   gl.uniformMatrix4fv(shader.uniforms['u_ProjectionMatrix'], false, this.projectionMatrix);
   gl.uniformMatrix4fv(shader.uniforms['u_InvProjectionMatrix'], false, this.invertProjectionMatrix);
   gl.uniformMatrix4fv(shader.uniforms['u_ViewMatrix'], false, this.viewMatrix);
+  gl.uniformMatrix4fv(shader.uniforms['u_InvViewMatrix'], false, this.invertViewMatrix);
 }

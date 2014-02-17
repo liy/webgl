@@ -28,6 +28,8 @@ uniform vec4 emissionColor;
 uniform float roughness;
 uniform float delta;
 
+uniform mat4 u_InvViewMatrix;
+
 /**
  albedo    0
  normal    1
@@ -143,6 +145,8 @@ void main() {
   // note that, the first parameter of reflect function is incoming direction, which is from SOURCE TOWARDS SURFACE!
   vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
   // r = 2.0*vdotn*n - v;
+
+  r = vec3(u_InvViewMatrix * vec4(r, 0.0));
 
 
   gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r);
