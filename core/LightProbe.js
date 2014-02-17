@@ -83,12 +83,11 @@ function LightProbe(camera, size){
   material.textureMap['cubeMap'] = this.cubeTexture;
   this.mesh = new Mesh(new SphereGeometry(0.5, 50, 50), material);
   this.add(this.mesh);
-
-  gl.enable(gl.CULL_FACE);
 }
 var p = LightProbe.prototype = Object.create(Node.prototype);
 
 p.capture = function(scene){
+    this.cubeTexture.bind();
   // draw 6 faces
   for(var i=0; i<6; ++i){
     // update camera direction
@@ -103,12 +102,11 @@ p.capture = function(scene){
     this.geometryPass.render(scene, this.camera);
     this.lightPass.render(scene, this.camera);
 
-    this.cubeTexture.bind();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, this.cubeTexture.glTexture, 0);
     this.synthesisPass.render(scene, this.camera);
-    this.cubeTexture.unbind();
   }
+    this.cubeTexture.unbind();
 
   this.captured = true;
 }

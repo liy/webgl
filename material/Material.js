@@ -63,17 +63,17 @@ p.uploadUniforms = function(shader){
   if(this.textureMap.specular){
     if(this.textureMap.specular.ready){
       gl.uniform1i(shader.uniforms['specularTexture'], 1);
-      this.textureMap.specular.bind(gl.TEXTURE0+1);  
+      this.textureMap.specular.bind(gl.TEXTURE0+1);
     }
     else
-      this.textureMap.specular.unbind(); 
+      this.textureMap.specular.unbind();
   }
 
   // normal
   if(this.textureMap.normal){
     if(this.textureMap.normal.ready){
       gl.uniform1i(shader.uniforms['normalTexture'], 2);
-      this.textureMap.normal.bind(gl.TEXTURE0+2);  
+      this.textureMap.normal.bind(gl.TEXTURE0+2);
     }
     else
       this.textureMap.normal.unbind();
@@ -83,7 +83,7 @@ p.uploadUniforms = function(shader){
   if(this.textureMap.roughness){
     if(this.textureMap.roughness.ready){
       gl.uniform1i(shader.uniforms['roughnessTexture'], 3);
-      this.textureMap.roughness.bind(gl.TEXTURE0+3);  
+      this.textureMap.roughness.bind(gl.TEXTURE0+3);
     }
     else
       this.textureMap.roughness.unbind();
@@ -95,7 +95,7 @@ p.uploadUniforms = function(shader){
       gl.uniform1f(shader.uniforms['textureDeltaX'], 1/this.textureMap.bump.width);
       gl.uniform1f(shader.uniforms['textureDeltaY'], 1/this.textureMap.bump.height);
       gl.uniform1i(shader.uniforms['bumpTexture'], 4);
-      this.textureMap.bump.bind(gl.TEXTURE0+4);  
+      this.textureMap.bump.bind(gl.TEXTURE0+4);
     }
     else
       this.textureMap.bump.unbind();

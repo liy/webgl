@@ -20,7 +20,7 @@ function rotateCamera(){
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
-// camera.lookTarget = vec3.fromValues(0, camera.y, 0);
+camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 scene.add(camera);
 
 // var p3 = new DirectionalLight();
@@ -43,11 +43,11 @@ scene.add(camera);
 // scene.add(p2);
 
 
-// var loader = new ObjectFile();
-// loader.load("../webgl-meshes/head/head.obj");
-// var obj = loader.object;
-// obj.x = 1;
-// scene.add(obj);
+var loader = new ObjectFile();
+loader.load("../webgl-meshes/head/head.obj");
+var obj = loader.object;
+obj.x = 1;
+scene.add(obj);
 
 
 var probeCamera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5)
