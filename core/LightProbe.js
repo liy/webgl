@@ -17,7 +17,7 @@ function LightProbe(camera, size){
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
   this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
-  
+
   // geometry and light pass to render each side
   this.geometryPass = new GeometryPass(this, new Shader('shader/geometry.vert', 'shader/geometry.frag'));
   this.lightPass = new LightPass(this);
@@ -37,7 +37,7 @@ function LightProbe(camera, size){
   // setup input and export relationship
   this.lightPass.input([this.geometryPass]);
   this.synthesisPass.input([this.geometryPass, this.lightPass]);
-  
+
 
 
   // 0 GL_TEXTURE_CUBE_MAP_POSITIVE_X
@@ -47,19 +47,33 @@ function LightProbe(camera, size){
   // 4 GL_TEXTURE_CUBE_MAP_POSITIVE_Z
   // 5 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
   // camera rotations for 6 sides
+  // this.rotations = [
+  //   // right, GL_TEXTURE_CUBE_MAP_POSITIVE_X
+  //   { x:0, y:-Math.PI/2, z:0 },
+  //   // left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+  //   { x:0, y:Math.PI/2, z:0 },
+  //   // top, GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+  //   { x:Math.PI/2, y:0, z:0 },
+  //   // bottom, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+  //   { x:-Math.PI/2, y:0, z:0 },
+  //   // back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+  //   { x:0, y:-Math.PI, z:0 },
+  //   // front, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+  //   { x:0, y:0, z:0 }
+  // ];
   this.rotations = [
     // right, GL_TEXTURE_CUBE_MAP_POSITIVE_X
-    { x:0, y:-Math.PI/2, z:0 },
+    { x:0, y:-Math.PI/2, z:Math.PI },
     // left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X
-    { x:0, y:Math.PI/2, z:0 },
+    { x:0, y:Math.PI/2, z:Math.PI },
     // top, GL_TEXTURE_CUBE_MAP_POSITIVE_Y
     { x:Math.PI/2, y:0, z:0 },
     // bottom, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
     { x:-Math.PI/2, y:0, z:0 },
     // back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-    { x:0, y:-Math.PI, z:0 },
+    { x:0, y:-Math.PI, z:Math.PI },
     // front, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-    { x:0, y:0, z:0 }
+    { x:0, y:0, z:Math.PI }
   ];
 
   // TODO: create coefficient texture
@@ -67,7 +81,7 @@ function LightProbe(camera, size){
   // mesh to display light probe, for testing
   var material = new Material();
   material.textureMap['cubeMap'] = this.cubeTexture;
-  this.mesh = new Mesh(new SphereGeometry(), material);
+  this.mesh = new Mesh(new SphereGeometry(0.5, 50, 50), material);
   this.add(this.mesh);
 
   gl.enable(gl.CULL_FACE);

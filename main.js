@@ -16,9 +16,9 @@ var rotationRadius = 1.75;
 camera.y = -0.07;
 camera.z = rotationRadius;
 function rotateCamera(){
-  cameraRadian += 0.002;
-  camera.x = Math.cos(cameraRadian) * rotationRadius;
-  camera.z = Math.sin(cameraRadian) * rotationRadius;
+  // cameraRadian += 0.002;
+  // camera.x = Math.cos(cameraRadian) * rotationRadius;
+  // camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
 camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 scene.add(camera);
@@ -54,7 +54,6 @@ var probeCamera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5)
 scene.add(probeCamera);
 var probe = new LightProbe(probeCamera, 5);
 scene.add(probe);
-
 
 var skyBox = new SkyBox([
   {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},

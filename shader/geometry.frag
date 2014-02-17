@@ -135,12 +135,19 @@ void main() {
   // // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   // gl_FragData[2] = toLinear(texture2D(specularTexture, v_TexCoord));
 
-  vec3 r = normalize(reflect(-v_Position.xyz, v_Normal));
+
+  vec3 n = normalize(v_Normal);
+  vec3 v = -normalize(v_Position.xyz);
+  float vdotn = dot(v, n);
+
+  // note that, the first parameter of reflect function is incoming direction, which is from SOURCE TOWARDS SURFACE!
+  vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
+  // r = 2.0*vdotn*n - v;
 
 
-  // gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r);
+  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r);
   // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
-  gl_FragData[0] = textureCube(cubeMapTexture, r);
+  // gl_FragData[0] = textureCube(cubeMapTexture, r);
   gl_FragData[1] = vec4(getNormal(), 1.0);
   // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
   gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
