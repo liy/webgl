@@ -44,6 +44,7 @@ uniform sampler2D bumpTexture;
 uniform sampler2D roughnessTexture;
 
 uniform samplerCube cubeMapTexture;
+uniform float u_CubeMapEnabled;
 
 uniform mat4 u_ProjectionMatrix;
 
@@ -149,7 +150,7 @@ void main() {
   r = vec3(u_InvViewMatrix * vec4(r, 0.0));
 
 
-  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r);
+  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + textureCube(cubeMapTexture, r)*u_CubeMapEnabled;
   // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
   // gl_FragData[0] = textureCube(cubeMapTexture, r);
   gl_FragData[1] = vec4(getNormal(), 1.0);

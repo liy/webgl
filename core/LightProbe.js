@@ -80,8 +80,8 @@ function LightProbe(camera, size){
 
   // mesh to display light probe, for testing
   var material = new Material();
-  material.textureMap['cubeMap'] = this.cubeTexture;
-  this.mesh = new Mesh(new SphereGeometry(0.5, 50, 50), material);
+  material.setCubeTexture(this.cubeTexture);
+  this.mesh = new Mesh(new CubeGeometry(), material);
   this.add(this.mesh);
 }
 var p = LightProbe.prototype = Object.create(Node.prototype);

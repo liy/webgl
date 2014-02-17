@@ -1,3 +1,5 @@
+'use strict'
+
 // TODO: FIXME: Match the uniform names? So I can easily traverse the object to expose uniform entry points?(Later for auto detect uniforms in GUI application)
 function Material(){
   this.id = Material.id++;
@@ -11,6 +13,8 @@ function Material(){
   this.emissionColor = vec3.fromValues(0.0, 0.0, 0.0);
   // float
   this.roughness = 65;
+
+  this.u_CubeMapEnabled = 0;
 
   // stores the actual webgl texture object.
   this.textureMap = {};
@@ -38,6 +42,12 @@ p.setTextureMap = function(map){
 p.setCubeMap = function(faces){
   this.textureMap['cubeMap'] = new TextureCube();
   this.textureMap['cubeMap'].load(faces);
+  this.u_CubeMapEnabled = 1;
+}
+
+p.setCubeTexture = function(cubeTexture){
+  this.textureMap['cubeMap'] = cubeTexture;
+  this.u_CubeMapEnabled = cubeTexture ? 1 : 0;
 }
 
 /**
@@ -110,6 +120,8 @@ p.uploadUniforms = function(shader){
     else
       this.textureMap.cubeMap.unbind();
   }
+
+  gl.uniform1f(shader.uniforms['u_CubeMapEnabled'], this.u_CubeMapEnabled);
 
   gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);
   gl.uniform4fv(shader.uniforms['albedoColor'], this.albedoColor);
