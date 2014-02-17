@@ -31,7 +31,7 @@ p.update = function(){
     // Normal camera control, invert the translation, since this is the view matrix, move camera left means move object right
     mat4.invert(this.viewMatrix, this.worldMatrix);
 
-    mat4.copy(this.invertViewMatrix, this.viewMatrix);
+    mat4.copy(this.invertViewMatrix, this.worldMatrix);
   }
 
   // update the matrix of its children, deep first traversing.

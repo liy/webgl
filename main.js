@@ -20,7 +20,7 @@ function rotateCamera(){
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
-camera.lookTarget = vec3.fromValues(0, camera.y, 0);
+// camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 scene.add(camera);
 
 // var p3 = new DirectionalLight();
