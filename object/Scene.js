@@ -1,3 +1,4 @@
+"use strict"
 function Scene(){
   Node.call(this);
 
@@ -44,7 +45,7 @@ p.track = function(node){
       if(node instanceof SkyBox)
         this.skyBoxes.push(node);
       else
-        this.meshes.push(node);  
+        this.meshes.push(node);
     }
     else if(node instanceof Light){
       this.lights.push(node);
@@ -111,5 +112,44 @@ p.untrack = function(node){
     }
 
     this.dirty = true;
+  }
+}
+
+p.updateModelMatrix = function(){
+  // update all object's matrix, which are not dependent on the view matrix
+  var len = this.children.length;
+  for(var i=0; i<len; ++i){
+    this.children[i].update();
+  }
+}
+
+p.updateViewMatrix = function(camera){
+  // update meshes' view dependent matrix
+  var len = this.meshes.length;
+  for(var i=0; i<len; ++i){
+    var mesh = this.meshes[i];
+    // update model view matrix, normal matrix
+    mat4.mul(mesh.modelViewMatrix, camera.viewMatrix, mesh.worldMatrix);
+    mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
+  }
+
+  // update skybox view dependent matrix
+  len = this.skyBoxes.length;
+  for(var i=0; i<len; ++i){
+    var skyBox = this.skyBoxes[i];
+    // update model view matrix, normal matrix
+    // TODO: Where to drop the translation part? Here or in sky box's vertex shader.
+    mat4.mul(skyBox.modelViewMatrix, camera.viewMatrix, skyBox.worldMatrix);
+    // no normal matrix needed.
+    // mat3.normalFromMat4(skyBox.normalMatrix, skyBox.modelViewMatrix);
+  }
+
+  // update the lights' view dependent matrix
+  len = this.lights.length;
+  for(var i=0; i<len; ++i){
+    var light = this.lights[i];
+    // update light's view dependent matrix, and related position, etc.
+    mat4.mul(light.modelViewMatrix, camera.viewMatrix, light.worldMatrix);
+    vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
   }
 }
