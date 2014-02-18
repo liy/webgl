@@ -54,10 +54,6 @@ scene.add(obj);
 var probe = new LightProbe();
 scene.add(probe);
 
-var probe2 = new LightProbe(10);
-probe2.x = -1.5;
-scene.add(probe2);
-
 var skyBox = new SkyBox([
   {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
   {url: "../webgl-meshes/cube_map/negx.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},

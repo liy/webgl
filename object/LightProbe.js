@@ -1,4 +1,5 @@
 "use strict"
+
 function LightProbe(size){
   Node.call(this);
 
@@ -22,8 +23,7 @@ function LightProbe(size){
   this.geometryPass = LightProbePass.instance.geometryPass;
   this.lightPass = LightProbePass.instance.lightPass;
 
-  if(this.width !== LightProbePass.instance.width || this.height !== LightProbePass.instance.height){
-    console.warn('not same');
+  if(this.width !== LightProbePass.instance.defaultProbeWidth || this.height !== LightProbePass.instance.defaultProbeHeight){
     // Both depth target and depth stencil render buffer will be shared across all the render passes!
     this.depthBuffer = RenderPass.createColorDepthTexture(this.width, this.height);
     this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.width, this.height);
@@ -79,6 +79,7 @@ function LightProbe(size){
       })(this.depthBuffer)
     });
   }
+
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
@@ -149,12 +150,21 @@ function LightProbe(size){
   // TODO: create coefficient texture
 
   // mesh to display light probe, for testing
-  var material = new Material();
-  material.setCubeTexture(this.cubeTexture);
-  this.mesh = new Mesh(new SphereGeometry(0.5,30,30), material);
-  this.add(this.mesh);
+  // var material = new Material();
+  // material.setCubeTexture(this.cubeTexture);
+  // this.mesh = new Mesh(new SphereGeometry(0.5,30,30), material);
+  // this.add(this.mesh);
 
-  // this.geometry = new SphereGeometry(0.5, 30, 30);
+  // model view matrix
+  this.modelViewMatrix = mat4.create();
+  // for normal transformation and tangent transformation
+  this.normalMatrix = mat3.create();
+
+  this.geometry = new SphereGeometry(0.5, 30, 30);
+  this.material = new Material();
+  this.material.setCubeTexture(this.cubeTexture);
+
+  this.createBuffer();
 }
 var p = LightProbe.prototype = Object.create(Node.prototype);
 
@@ -167,8 +177,9 @@ p.capture = function(scene){
       this.camera.rotationX = this.rotations[i].x;
       this.camera.rotationY = this.rotations[i].y;
       this.camera.rotationZ = this.rotations[i].z;
-      // since the camera rotation is changed, we need to update its matrix
+      // since the camera rotation is changed after DeferredRender perform model matrix update, we need to update its matrix manually.
       this.camera.update();
+      // update scene object's view dependent matrix using current light probe's camera setup.
       scene.updateViewMatrix(this.camera);
 
       // draw side
@@ -185,16 +196,9 @@ p.capture = function(scene){
   }
 }
 
-
-
 p.generateCoefficients = function(){
 
 }
-
-
-
-
-
 
 
 
@@ -235,13 +239,6 @@ p.createBuffer = function(){
       data.push(t[0]);
       data.push(t[1]);
     }
-
-    // tint color, RGBA
-    if(this.material.color.length !== 0){
-      data.push(this.material.color[0]);
-      data.push(this.material.color[1]);
-      data.push(this.material.color[2]);
-    }
   }
 
   // create the buffer contains all the data
@@ -270,8 +267,6 @@ p.createVertexArray = function(shader){
     strideBytes += 12;
   if(this.geometry.texCoords.length !== 0)
     strideBytes += 8;
-  if(this.material.color.length !== 0)
-    strideBytes += 12;
 
   // starting point of each attribute data
   var pointerOffset = 0;
@@ -289,12 +284,6 @@ p.createVertexArray = function(shader){
   if(this.geometry.texCoords.length !== 0){
     gl.enableVertexAttribArray(shader.attributes.a_TexCoord);
     gl.vertexAttribPointer(shader.attributes.a_TexCoord, 2, gl.FLOAT, false, strideBytes, pointerOffset+=12);
-  }
-
-  // tint color
-  if(this.material.color.length !== 0){
-    gl.enableVertexAttribArray(shader.attributes.a_Color);
-    gl.vertexAttribPointer(shader.attributes.a_Color, 3, gl.FLOAT, false, strideBytes, pointerOffset+=8);
   }
 
   // index information

@@ -101,8 +101,14 @@ function DeferredRenderer(){
     })(depthBuffer)
   });
 
+  LightProbePass.instance = new LightProbePass({
+    width: this.bufferWidth,
+    height: this.bufferHeight,
+    passDepthStencilRenderBuffer: depthStencilRenderBuffer
+  });
+
   this.synthesisPass = new SynthesisPass({ 
-    inputs: [this.geometryPass, this.lightPass],
+    inputs: [this.geometryPass, this.lightPass, LightProbePass.instance],
     width: this.bufferWidth,
     height: this.bufferHeight,
 
@@ -131,8 +137,6 @@ function DeferredRenderer(){
     }
   });
 
-  LightProbePass.instance = new LightProbePass();
-
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
 }
@@ -149,6 +153,8 @@ p.render = function(scene, camera){
   scene.updateViewMatrix(camera);
 
   this.geometryPass.render(scene, camera);
+  // debug draw light probe
+  LightProbePass.instance.render(scene, camera);
   this.lightPass.render(scene, camera);
   this.synthesisPass.render(scene, camera);
   this.screenPass.render(scene, camera);

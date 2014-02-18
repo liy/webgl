@@ -20,10 +20,17 @@ p.render = function(scene, camera){
   this.import.albedoBuffer.bind(gl.TEXTURE0);
   gl.uniform1i(this.synthesisShader.uniforms['albedoBuffer'], 0);
   // light targets
-  this.import.diffuseLightBuffer.bind(gl.TEXTURE0+1)
+  this.import.diffuseLightBuffer.bind(gl.TEXTURE0+1);
   gl.uniform1i(this.synthesisShader.uniforms['diffuseLightBuffer'], 1);
-  this.import.specularLightBuffer.bind(gl.TEXTURE0+2)
+  this.import.specularLightBuffer.bind(gl.TEXTURE0+2);
   gl.uniform1i(this.synthesisShader.uniforms['specularLightBuffer'], 2);
+
+  // light probe debug
+  if(this.import.lightProbeDebugBuffer)
+    this.import.lightProbeDebugBuffer.bind(gl.TEXTURE0+3);
+  else
+    Texture.unbind(gl.TEXTURE0+3);
+  gl.uniform1i(this.synthesisShader.uniforms['lightProbeDebugBuffer'], 3);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
