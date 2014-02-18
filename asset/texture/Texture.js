@@ -26,7 +26,7 @@ p.bind = function(unit){
   }
   else{
     // console.log('bound: ', this);
-  }  
+  }
 }
 
 p.unbind = function(){
@@ -42,6 +42,14 @@ p.unbind = function(){
 
 p.isBound = function(){
   return isNaN(this.unit);
+}
+
+Texture.unbind = function(unit){
+  if(!isNaN(unit)){
+    var texture = Texture.boundTextures[unit];
+    if(texture)
+      texture.unbind();
+  }
 }
 
 // id

@@ -7,7 +7,7 @@ function LightProbe(camera, size){
   this.captured = false;
 
   // width and height value
-  this.bufferWidth = this.bufferHeight = 512 || size;
+  this.bufferWidth = this.bufferHeight = 128 || size;
 
   this.camera = camera;
 
@@ -81,7 +81,7 @@ function LightProbe(camera, size){
   // mesh to display light probe, for testing
   var material = new Material();
   material.setCubeTexture(this.cubeTexture);
-  this.mesh = new Mesh(new CubeGeometry(), material);
+  this.mesh = new Mesh(new SphereGeometry(0.5,30,30), material);
   this.add(this.mesh);
 }
 var p = LightProbe.prototype = Object.create(Node.prototype);

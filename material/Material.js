@@ -47,7 +47,6 @@ p.setCubeMap = function(faces){
 
 p.setCubeTexture = function(cubeTexture){
   this.textureMap['cubeMap'] = cubeTexture;
-  this.u_CubeMapEnabled = cubeTexture ? 1 : 0;
 }
 
 /**
@@ -62,64 +61,77 @@ p.uploadUniforms = function(shader){
   // albedo
   if(this.textureMap.albedo){
     if(this.textureMap.albedo.ready){
-      gl.uniform1i(shader.uniforms['albedoTexture'], 0);
       this.textureMap.albedo.bind(gl.TEXTURE0);
     }
     else
       this.textureMap.albedo.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+0);
 
   // specular
   if(this.textureMap.specular){
     if(this.textureMap.specular.ready){
-      gl.uniform1i(shader.uniforms['specularTexture'], 1);
       this.textureMap.specular.bind(gl.TEXTURE0+1);
     }
     else
       this.textureMap.specular.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+1);
 
   // normal
   if(this.textureMap.normal){
     if(this.textureMap.normal.ready){
-      gl.uniform1i(shader.uniforms['normalTexture'], 2);
       this.textureMap.normal.bind(gl.TEXTURE0+2);
     }
     else
       this.textureMap.normal.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+2);
 
   // roughness
   if(this.textureMap.roughness){
     if(this.textureMap.roughness.ready){
-      gl.uniform1i(shader.uniforms['roughnessTexture'], 3);
       this.textureMap.roughness.bind(gl.TEXTURE0+3);
     }
     else
       this.textureMap.roughness.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+3);
 
   // bump
   if(this.textureMap.bump){
     if(this.textureMap.bump.ready){
       gl.uniform1f(shader.uniforms['textureDeltaX'], 1/this.textureMap.bump.width);
       gl.uniform1f(shader.uniforms['textureDeltaY'], 1/this.textureMap.bump.height);
-      gl.uniform1i(shader.uniforms['bumpTexture'], 4);
       this.textureMap.bump.bind(gl.TEXTURE0+4);
     }
     else
       this.textureMap.bump.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+4);
 
   // cube map
   if(this.textureMap.cubeMap){
     if(this.textureMap.cubeMap.ready){
       this.textureMap.cubeMap.bind(gl.TEXTURE0+5);
-      gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);
     }
     else
       this.textureMap.cubeMap.unbind();
   }
+  else
+    Texture.unbind(gl.TEXTURE0+5);
+
+  gl.uniform1i(shader.uniforms['albedoTexture'], 0);
+  gl.uniform1i(shader.uniforms['specularTexture'], 1);
+  gl.uniform1i(shader.uniforms['normalTexture'], 2);
+  gl.uniform1i(shader.uniforms['roughnessTexture'], 3);
+  gl.uniform1i(shader.uniforms['bumpTexture'], 4);
+  gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);
 
   gl.uniform1f(shader.uniforms['u_CubeMapEnabled'], this.u_CubeMapEnabled);
 

@@ -11,6 +11,6 @@ void main(){
   vec4 diffuseLight = texture2D(diffuseLightBuffer, v_TexCoord);
   vec4 specularLight = texture2D(specularLightBuffer, v_TexCoord);
 
-  // gl_FragColor = albedo*diffuseLight + specularLight;
-  gl_FragColor = albedo;
+  gl_FragColor = albedo*diffuseLight + specularLight;
+  // gl_FragColor = albedo;
 }
