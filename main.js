@@ -51,10 +51,8 @@ obj.x = 1;
 scene.add(obj);
 
 
-var probeCamera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5)
-scene.add(probeCamera);
-var probe = new LightProbe(probeCamera, 5);
-scene.add(probe);
+// var probe = new LightProbe();
+// scene.add(probe);
 
 var skyBox = new SkyBox([
   {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},

@@ -1,21 +1,20 @@
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(renderer, framebuffer, texture){
-  RenderPass.call(this, renderer);
+function SynthesisPass(params, renderer){
+  RenderPass.call(this, params);
+
+  this.renderer = renderer;
 
   this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
   this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
-  this.export.compositeBuffer = texture || RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);
+  this.export.compositeBuffer = RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);
 
   // TODO: FIXME: find a better way to do input, output and sharing the targets
-  this.framebuffer = framebuffer;
-  if(!this.framebuffer){
-    this.framebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
-  }
-  
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.renderer.depthStencilRenderBuffer);
+
   this.createSynthesisBuffer();
 }
 var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);

@@ -39,8 +39,6 @@ function DeferredRenderer(){
     }
   }
 
-  this.lightProbeRenderer = new LightProbeRenderer();
-
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
@@ -50,15 +48,10 @@ function DeferredRenderer(){
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
 
-  this.geometryPass = new GeometryPass(this);
-  this.lightPass = new LightPass(this);
-  this.synthesisPass = new SynthesisPass(this);
-  this.screenPass = new ScreenPass(this);
-
-  // setup input and export relationship
-  this.lightPass.input([this.geometryPass]);
-  this.synthesisPass.input([this.geometryPass, this.lightPass]);
-  this.screenPass.input([this.synthesisPass]);
+  this.geometryPass = new GeometryPass(null, this);
+  this.lightPass = new LightPass({ inputs: [this.geometryPass] }, this);
+  this.synthesisPass = new SynthesisPass({ inputs: [this.geometryPass, this.lightPass] }, this);
+  this.screenPass = new ScreenPass({ inputs: [this.synthesisPass] }, this);
 
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
@@ -70,7 +63,10 @@ p.render = function(scene, camera){
   scene.updateModelMatrix();
 
   // light probe capturing the scene
-  this.lightProbeRenderer.render(scene);
+  var len = scene.lightProbes.length;
+  for(var i=0; i<len; ++i){
+    scene.lightProbes[i].capture(scene);
+  }
 
   // update the view dependent matrix
   scene.updateViewMatrix(camera);

@@ -1,5 +1,5 @@
 "use strict"
-function LightProbe(camera, size){
+function LightProbe(size){
   Node.call(this);
 
   // keep capturing every frame
@@ -10,7 +10,8 @@ function LightProbe(camera, size){
   // width and height value
   this.bufferWidth = this.bufferHeight = 128 || size;
 
-  this.camera = camera;
+  this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5);
+  this.add(this.camera);
 
   this.cubeTexture = new TextureCube();
   this.cubeTexture.ready = true;
@@ -98,9 +99,9 @@ p.capture = function(scene){
       this.camera.rotationX = this.rotations[i].x;
       this.camera.rotationY = this.rotations[i].y;
       this.camera.rotationZ = this.rotations[i].z;
+      // since the camera rotation is changed, we need to update its matrix
       this.camera.update();
       scene.updateViewMatrix(this.camera);
-
 
       // draw side
       this.geometryPass.render(scene, this.camera);
@@ -115,6 +116,7 @@ p.capture = function(scene){
     this.captured = true;
   }
 }
+
 
 
 p.generateCoefficients = function(){

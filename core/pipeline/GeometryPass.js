@@ -1,7 +1,9 @@
-function GeometryPass(renderer, shader){
-  RenderPass.call(this, renderer);
+function GeometryPass(params, renderer){
+  RenderPass.call(this, params);
 
-  this.shader = shader || new Shader('shader/geometry.vert', 'shader/geometry.frag');
+  this.renderer = renderer;
+
+  this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
 
   // Geometry pass render targets
   this.export.albedoBuffer = RenderPass.createColorTexture(this.renderer.bufferWidth, this.renderer.bufferHeight);

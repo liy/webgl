@@ -1,5 +1,7 @@
-function ScreenPass(renderer){
-  RenderPass.call(this, renderer);
+function ScreenPass(params, renderer){
+  RenderPass.call(this, params);
+
+  this.renderer = renderer;
 
   this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
 

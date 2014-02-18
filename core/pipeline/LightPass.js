@@ -1,5 +1,7 @@
-function LightPass(renderer){
-  RenderPass.call(this, renderer);
+function LightPass(params, renderer){
+  RenderPass.call(this, params);
+
+  this.renderer = renderer;
 
   // point light calculation
   this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
