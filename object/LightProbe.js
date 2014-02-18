@@ -17,8 +17,8 @@ function LightProbe(size){
   this.cubeTexture.ready = true;
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
-  this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
-  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
+  LightProbePass.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
+  LightProbePass.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
 
   // geometry and light pass to render each side
   this.geometryPass = new GeometryPass(this, new Shader('shader/geometry.vert', 'shader/geometry.frag'));

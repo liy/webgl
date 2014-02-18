@@ -69,8 +69,6 @@ function render(){
 
   rotateCamera();
 
-  obj.rotationY += 0.005;
-
   renderer.render(scene, camera);
 
   stats.end();

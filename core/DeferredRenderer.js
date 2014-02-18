@@ -44,14 +44,96 @@ function DeferredRenderer(){
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
-  this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
+  var depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
+  var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
 
-  this.geometryPass = new GeometryPass(null, this);
-  this.lightPass = new LightPass({ inputs: [this.geometryPass] }, this);
-  this.synthesisPass = new SynthesisPass({ inputs: [this.geometryPass, this.lightPass] }, this);
-  this.screenPass = new ScreenPass({ inputs: [this.synthesisPass] }, this);
+  this.geometryPass = new GeometryPass({
+    width: this.bufferWidth,
+    height: this.bufferHeight,
+
+    init: (function(depthBuffer, depthStencilRenderBuffer){
+      return function(){
+        this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
+
+        // Geometry pass render targets
+        this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
+        this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
+        this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+        this.framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoBuffer.glTexture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalBuffer.glTexture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularBuffer.glTexture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, depthBuffer.glTexture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
+        // multiple render targets requires specifies a list of color buffers to be drawn into.
+        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
+      }
+    })(depthBuffer, depthStencilRenderBuffer)
+  });
+
+  this.lightPass = new LightPass({
+    inputs: [this.geometryPass],
+    width: this.bufferWidth,
+    height: this.bufferHeight,
+
+    init: (function(depthBuffer){
+      return function(){
+        // point light calculation
+        this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
+        // directional light calculation
+        this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
+        // null shader for stencil update
+        this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
+
+        // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
+        this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+        this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+        this.depthBuffer = depthBuffer;
+
+        this.framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
+        // multiple render targets requires specifies a list of color buffers to be drawn into.
+        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
+      }
+    })(depthBuffer)
+  });
+
+  this.synthesisPass = new SynthesisPass({ 
+    inputs: [this.geometryPass, this.lightPass],
+    width: this.bufferWidth,
+    height: this.bufferHeight,
+
+    init: (function(depthStencilRenderBuffer){
+      return function(){
+        this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
+        this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
+
+        this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+        // TODO: FIXME: find a better way to do input, output and sharing the targets
+        this.framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
+      }
+    })(depthStencilRenderBuffer)
+  });
+
+  this.screenPass = new ScreenPass({ 
+    inputs: [this.synthesisPass],
+    width: this.canvas.width,
+    height: this.canvas.height,
+    init: function(){
+      this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
+    }
+  });
 
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
@@ -63,10 +145,7 @@ p.render = function(scene, camera){
   scene.updateModelMatrix();
 
   // light probe capturing the scene
-  var len = scene.lightProbes.length;
-  for(var i=0; i<len; ++i){
-    scene.lightProbes[i].capture(scene);
-  }
+  
 
   // update the view dependent matrix
   scene.updateViewMatrix(camera);

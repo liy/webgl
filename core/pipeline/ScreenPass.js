@@ -1,9 +1,5 @@
-function ScreenPass(params, renderer){
+function ScreenPass(params){
   RenderPass.call(this, params);
-
-  this.renderer = renderer;
-
-  this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
 
   this.createScreenBuffer();
 }
@@ -13,7 +9,7 @@ p.render = function(scene, camera){
   gl.useProgram(this.shader.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, this.renderer.canvas.width, this.renderer.canvas.height);
+  gl.viewport(0, 0, this.width, this.height);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 

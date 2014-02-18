@@ -17,11 +17,16 @@ function RenderPass(params){
       }
     }
 
-    this.width = params.width || 128;
-    this.height = params.height || 128;
+    for(var name in params){
+      this[name] = params[name];
+    }
 
-    if(params.init)
-      params.init();
+    // handle invalid buffer width and height
+    this.width = this.width || 128;
+    this.height = this.height || 128;
+
+    if(this.init)
+      this.init();
   }
 }
 var p = RenderPass.prototype;
