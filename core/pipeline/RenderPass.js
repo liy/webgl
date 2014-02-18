@@ -17,6 +17,9 @@ function RenderPass(params){
       }
     }
 
+    this.width = params.width || 128;
+    this.height = params.height || 128;
+
     if(params.init)
       params.init();
   }
