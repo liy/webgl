@@ -8,7 +8,7 @@ function LightProbe(size){
   this.captured = false;
 
   // width and height value
-  this.bufferWidth = this.bufferHeight = 128 || size;
+  this.width = this.height = size || 128;
 
   this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5);
   this.add(this.camera);
@@ -16,29 +16,97 @@ function LightProbe(size){
   this.cubeTexture = new TextureCube();
   this.cubeTexture.ready = true;
 
-  // Both depth target and depth stencil render buffer will be shared across all the render passes!
-  LightProbePass.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
-  LightProbePass.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
+  // in order to save memory, light probe will share depth and stencil buffer
+  this.depthBuffer = LightProbePass.instance.depthBuffer;
+  this.depthStencilBuffer = LightProbePass.instance.depthStencilBuffer;
+  this.geometryPass = LightProbePass.instance.geometryPass;
+  this.lightPass = LightProbePass.instance.lightPass;
 
-  // geometry and light pass to render each side
-  this.geometryPass = new GeometryPass(this, new Shader('shader/geometry.vert', 'shader/geometry.frag'));
-  this.lightPass = new LightPass(this);
+  if(this.width !== LightProbePass.instance.width || this.height !== LightProbePass.instance.height){
+    console.warn('not same');
+    // Both depth target and depth stencil render buffer will be shared across all the render passes!
+    this.depthBuffer = RenderPass.createColorDepthTexture(this.width, this.height);
+    this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.width, this.height);
 
-  // framebuffer to hold cube texture
+    // geometry and light pass to render each side
+    this.geometryPass = new GeometryPass({
+      width: this.width,
+      height: this.height,
+
+      init: (function(depthBuffer, depthStencilRenderBuffer){
+        return function(){
+          this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
+
+          this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
+          this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
+          this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+          this.framebuffer = gl.createFramebuffer();
+          gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoBuffer.glTexture, 0);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalBuffer.glTexture, 0);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularBuffer.glTexture, 0);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, depthBuffer.glTexture, 0);
+          gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
+          gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
+        }
+      })(this.depthBuffer, this.depthStencilRenderBuffer)
+    });
+
+    this.lightPass = new LightPass({
+      inputs: [this.geometryPass],
+      width: this.width,
+      height: this.height,
+
+      init: (function(depthBuffer){
+        return function(){
+          this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
+          this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
+          this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
+
+          this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+          this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+          this.depthBuffer = depthBuffer;
+
+          this.framebuffer = gl.createFramebuffer();
+          gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
+          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
+          gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
+          gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
+        }
+      })(this.depthBuffer)
+    });
+  }
+
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-  // create texture for each face of cubemap
-  this.cubeTexture.bind();
-  for(var i=0; i<6; ++i){
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, gl.RGBA, this.bufferWidth, this.bufferHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  }
-  this.synthesisPass = new SynthesisPass(this, this.framebuffer, this.cubeTexture);
-  this.cubeTexture.unbind();
+  // LightProbes does not share the finial texture!
+  this.synthesisPass = new SynthesisPass({ 
+    inputs: [this.geometryPass, this.lightPass],
+    width: this.width,
+    height: this.height,
 
-  // setup input and export relationship
-  this.lightPass.input([this.geometryPass]);
-  this.synthesisPass.input([this.geometryPass, this.lightPass]);
+    init: (function(depthStencilRenderBuffer, cubeTexture, framebuffer){
+      return function(){
+        this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
+        this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
+
+        this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+        this.framebuffer = framebuffer;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        // create texture for each face of cubemap
+        cubeTexture.bind();
+        for(var i=0; i<6; ++i){
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        }
+        cubeTexture.unbind();
+      }
+    })(this.depthStencilRenderBuffer, this.cubeTexture, this.framebuffer)
+  });
 
 
 
@@ -122,10 +190,6 @@ p.capture = function(scene){
 p.generateCoefficients = function(){
 
 }
-
-
-
-
 
 
 

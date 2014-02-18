@@ -56,7 +56,6 @@ function DeferredRenderer(){
       return function(){
         this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
 
-        // Geometry pass render targets
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -68,7 +67,6 @@ function DeferredRenderer(){
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularBuffer.glTexture, 0);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, depthBuffer.glTexture, 0);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
-        // multiple render targets requires specifies a list of color buffers to be drawn into.
         gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
       }
     })(depthBuffer, depthStencilRenderBuffer)
@@ -81,17 +79,16 @@ function DeferredRenderer(){
 
     init: (function(depthBuffer){
       return function(){
-        // point light calculation
         this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
-        // directional light calculation
         this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
-        // null shader for stencil update
+        // a null shader for stencil update
         this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
 
         // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
         this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
 
+        // light pass needs to bind and sample depth texture to reconstruct eye space position for lighting calculation
         this.depthBuffer = depthBuffer;
 
         this.framebuffer = gl.createFramebuffer();
@@ -99,7 +96,6 @@ function DeferredRenderer(){
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-        // multiple render targets requires specifies a list of color buffers to be drawn into.
         gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
       }
     })(depthBuffer)
@@ -135,6 +131,8 @@ function DeferredRenderer(){
     }
   });
 
+  LightProbePass.instance = new LightProbePass();
+
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
 }
@@ -145,7 +143,7 @@ p.render = function(scene, camera){
   scene.updateModelMatrix();
 
   // light probe capturing the scene
-  
+  LightProbePass.instance.capture(scene);
 
   // update the view dependent matrix
   scene.updateViewMatrix(camera);
