@@ -1,3 +1,4 @@
+"use strict"
 function ObjectFile(){
   //
 }
@@ -20,7 +21,7 @@ p.load = function(url, callback){
   // material file loader
   this.matFile = new ObjectMatFile();
 
-  // it contains the 
+  // it contains the
   this.object = new Node();
 
   console.log('loading: ' + this.url);
@@ -62,7 +63,7 @@ p.onload = function(e){
 
   // current pointer of meshInfo, so we can push model data into vertex, normal and uv array.
   var currentMeshInfo = {
-    geometry: geometry, 
+    geometry: geometry,
     material: new Material()
   };
 

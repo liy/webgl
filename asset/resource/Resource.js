@@ -1,3 +1,4 @@
+"use strict"
 function Resource(url){
   this.url = url;
   this.loader = this.createLoader(url);

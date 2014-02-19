@@ -1,3 +1,4 @@
+"use strict"
 function GeometryPass(params){
   RenderPass.call(this, params);
 }
@@ -25,7 +26,7 @@ p.render = function(scene, camera){
   // upload camera uniforms for geometry shader
   camera.uploadUniforms(this.shader);
 
-  len = scene.meshes.length;
+  var len = scene.meshes.length;
   for(var i=0; i<len; ++i){
     scene.meshes[i].draw(this.shader);
   }

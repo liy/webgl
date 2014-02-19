@@ -1,3 +1,4 @@
+"use strict"
 function SkyBoxGeometry(width, height, depth){
   Geometry.call(this);
 
@@ -34,7 +35,7 @@ function SkyBoxGeometry(width, height, depth){
     vec3.fromValues( 1,  1, -1),
     vec3.fromValues( 1,  1,  1),
   ];
-  
+
   // revert the ordering
   this.indexData = [
     0,  2,  1,   0,  3,  2,  // front

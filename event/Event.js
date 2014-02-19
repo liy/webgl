@@ -1,3 +1,4 @@
+"use strict"
 function Event(type, bubbles){
   this.type = type;
   this.bubbles = bubbles || false;

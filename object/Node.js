@@ -1,3 +1,4 @@
+"use strict"
 function Node(){
   this._position = vec3.create();
   // eye space position, used by sorting function in renderer only.

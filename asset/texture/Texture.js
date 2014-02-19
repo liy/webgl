@@ -1,3 +1,4 @@
+"use strict"
 function Texture(target){
   this.glTexture = gl.createTexture();
 

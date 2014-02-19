@@ -1,4 +1,5 @@
+"use strict"
 function RenderTarget(w, h){
-  this.attachPoint = 
+  this.attachPoint =
 }
 var p = RenderTarget.prototype;

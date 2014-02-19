@@ -1,3 +1,4 @@
+"use strict"
 function ModelResource(url){
   Resource.call(this, url);
 }

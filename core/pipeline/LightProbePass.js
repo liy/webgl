@@ -1,11 +1,30 @@
 "use strict"
-
 function LightProbePass(params){
   RenderPass.call(this, params);
 
   // note that, this.width and this.height are buffer size, not probe size.
   this.defaultProbeWidth = this.defaultProbeHeight = 128;
 
+
+  // the buffer used by light probe
+  this.createSharedPasses();
+
+
+  // debugger shader
+  this.shader = new Shader('shader/probe/probe_debug.vert', 'shader/probe/probe_debug.frag');
+  // debugger buffer
+  this.export.lightProbeDebugBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+  // TODO: FIXME: find a better way to do input, output and sharing the targets
+  this.debuggerFramebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.debuggerFramebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.lightProbeDebugBuffer.glTexture, 0);
+  // !!! FIXME: find a better name for passDepthStencilRenderBuffer
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.passDepthStencilRenderBuffer);
+}
+var p = LightProbePass.prototype;
+
+p.createSharedPasses = function(){
   // default depth buffer and depth stencil buffer used by light probe.
   // If the light probe's width and height is different from default value, they will use their own depth and depth stencil buffer
   // FIXME: TODO: find a better name!!!!
@@ -60,25 +79,11 @@ function LightProbePass(params){
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
+        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
       }
     })(this.depthBuffer)
   });
-
-  
-  this.export.lightProbeDebugBuffer = RenderPass.createColorTexture(this.width, this.height);
-
-  // de
-  this.shader = new Shader('shader/light/light_probe_debug.vert', 'shader/light/light_probe_debug.frag');
-
-  // TODO: FIXME: find a better way to do input, output and sharing the targets
-  this.framebuffer = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.lightProbeDebugBuffer.glTexture, 0);
-  // !!! FIXME: find a better name for passDepthStencilRenderBuffer
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.passDepthStencilRenderBuffer);
 }
-var p = LightProbePass.prototype;
 
 p.capture = function(scene){
   var len = scene.lightProbes.length;
@@ -93,9 +98,9 @@ p.render = function(scene, camera){
 
   gl.useProgram(this.shader.program)
   // g-buffers render
-  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.debuggerFramebuffer);
   gl.viewport(0, 0, this.width, this.height);
-  gl.clearColor(0.0, 0.3, 0.0, 1.0);
+  gl.clearColor(0.0, 0.1, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
   // cull face needs to be enabled during G-buffer filling
@@ -111,7 +116,7 @@ p.render = function(scene, camera){
   var len = scene.lightProbes.length;
   for(var i=0; i<len; ++i){
     scene.lightProbes[i].draw(this.shader);
-  } 
+  }
 
   gl.depthMask(false);
 }

@@ -1,3 +1,4 @@
+"use strict"
 function RenderPass(params){
   // render targets, textures imported from parent passes, upstream.
   this.import = Object.create(null);

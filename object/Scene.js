@@ -133,6 +133,15 @@ p.updateViewMatrix = function(camera){
     mat3.normalFromMat4(mesh.normalMatrix, mesh.modelViewMatrix);
   }
 
+  // light probe
+  len = this.lightProbes.length;
+  for(var i=0; i<len; ++i){
+    var probe = this.lightProbes[i];
+    // update light's view dependent matrix, and related position, etc.
+    mat4.mul(probe.modelViewMatrix, camera.viewMatrix, probe.worldMatrix);
+    mat3.normalFromMat4(probe.normalMatrix, probe.modelViewMatrix);
+  }
+
   // update skybox view dependent matrix
   len = this.skyBoxes.length;
   for(var i=0; i<len; ++i){

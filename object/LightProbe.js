@@ -9,7 +9,7 @@ function LightProbe(size){
   this.captured = false;
 
   // width and height value
-  this.width = this.height = size || 128;
+  this.width = this.height = size || LightProbePass.instance.defaultProbeWidth;
 
   this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5);
   this.add(this.camera);
@@ -74,7 +74,7 @@ function LightProbe(size){
           gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
           gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
           gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-          gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
+          gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
         }
       })(this.depthBuffer)
     });
@@ -85,7 +85,7 @@ function LightProbe(size){
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
   // LightProbes does not share the finial texture!
-  this.synthesisPass = new SynthesisPass({ 
+  this.synthesisPass = new SynthesisPass({
     inputs: [this.geometryPass, this.lightPass],
     width: this.width,
     height: this.height,
@@ -110,28 +110,6 @@ function LightProbe(size){
   });
 
 
-
-  // 0 GL_TEXTURE_CUBE_MAP_POSITIVE_X
-  // 1 GL_TEXTURE_CUBE_MAP_NEGATIVE_X
-  // 2 GL_TEXTURE_CUBE_MAP_POSITIVE_Y
-  // 3 GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
-  // 4 GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-  // 5 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-  // camera rotations for 6 sides
-  // this.rotations = [
-  //   // right, GL_TEXTURE_CUBE_MAP_POSITIVE_X
-  //   { x:0, y:-Math.PI/2, z:0 },
-  //   // left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X
-  //   { x:0, y:Math.PI/2, z:0 },
-  //   // top, GL_TEXTURE_CUBE_MAP_POSITIVE_Y
-  //   { x:Math.PI/2, y:0, z:0 },
-  //   // bottom, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
-  //   { x:-Math.PI/2, y:0, z:0 },
-  //   // back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-  //   { x:0, y:-Math.PI, z:0 },
-  //   // front, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-  //   { x:0, y:0, z:0 }
-  // ];
   this.rotations = [
     // right, GL_TEXTURE_CUBE_MAP_POSITIVE_X
     { x:0, y:-Math.PI/2, z:Math.PI },

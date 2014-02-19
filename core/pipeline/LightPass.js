@@ -1,3 +1,4 @@
+"use strict"
 function LightPass(params){
   RenderPass.call(this, params);
 }
@@ -19,7 +20,7 @@ p.render = function(scene, camera){
   // enable stencil for stencil pass
   gl.enable(gl.STENCIL_TEST);
 
-  len = scene.positionalLights.length;
+  var len = scene.positionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.positionalLights[i];
     // Every light requires a clean stencil test.
@@ -92,7 +93,7 @@ p.directionalLighting = function(scene, camera){
 
   camera.uploadUniforms(this.dirLightShader);
 
-  len = scene.directionalLights.length;
+  var len = scene.directionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
 

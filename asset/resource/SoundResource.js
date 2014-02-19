@@ -1,3 +1,4 @@
+"use strict"
 function SoundResource(url){
   Resource.call(this, url);
 }

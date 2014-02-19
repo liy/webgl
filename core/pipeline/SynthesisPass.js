@@ -1,3 +1,4 @@
+"use strict"
 // do light and albedo synthesis and draw sky box.
 function SynthesisPass(params){
   RenderPass.call(this, params);

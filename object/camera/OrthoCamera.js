@@ -1,3 +1,4 @@
+"use strict"
 function OrthoCamera(left, right, bottom, top){
   Camera.call(this);
 

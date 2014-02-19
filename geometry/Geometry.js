@@ -1,3 +1,4 @@
+"use strict"
 function Geometry(){
   // holding the vec3 objects
   this.vertices = [];
@@ -40,7 +41,7 @@ p.computeVertexNormal = function(useFaceNormal){
     for(i=0; i<len; ++i){
       // this.normals[i] = new Vec3(0,0,0);
       this.normals[i] = vec3.create();
-    }  
+    }
   }
 
   len = this.faces.length;

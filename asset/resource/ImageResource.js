@@ -1,3 +1,4 @@
+"use strict"
 function ImageResource(url){
   Resource.call(this, url);
 

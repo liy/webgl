@@ -1,3 +1,4 @@
+"use strict"
 function Camera(){
   Node.call(this);
 

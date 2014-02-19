@@ -1,3 +1,4 @@
+"use strict"
 function PointLight(radius){
   Light.call(this);
 

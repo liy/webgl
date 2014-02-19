@@ -1,3 +1,4 @@
+"use strict"
 /**
  * 3D face
  * @param {[type]} a 1st vertex index of the geometry

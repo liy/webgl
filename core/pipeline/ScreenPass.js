@@ -1,3 +1,4 @@
+"use strict"
 function ScreenPass(params){
   RenderPass.call(this, params);
 

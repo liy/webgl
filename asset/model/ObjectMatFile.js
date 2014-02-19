@@ -1,3 +1,4 @@
+"use strict"
 /**
  * http://www.sc.ehu.es/ccwgamoa/docencia/Material/FileFormats/wavefrontObj.htm
  */
@@ -108,7 +109,7 @@ p.onload = function(e){
   var currentMtl;
 
   var chunks, colour;
-  len = lines.length;
+  var len = lines.length;
   for(var i=0; i<len; ++i){
     var line = lines[i].trim();
 

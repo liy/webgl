@@ -1,3 +1,4 @@
+"use strict"
 function SkyBox(faces){
   Mesh.call(this, new SkyBoxGeometry(), new Material());
 

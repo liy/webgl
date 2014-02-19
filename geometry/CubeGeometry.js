@@ -1,3 +1,4 @@
+"use strict"
 function CubeGeometry(width, height, depth){
   Geometry.call(this);
 

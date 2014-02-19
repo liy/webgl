@@ -1,3 +1,4 @@
+"use strict"
 // TODO: make it base class of 2 types of camera, perspective and orthogonal
 function PerspectiveCamera(fieldOfView, aspectRatio, near, far){
   Camera.call(this);

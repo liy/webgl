@@ -1,3 +1,4 @@
+"use strict"
 function TextureManager(){
   this.loaders = new Array();
   this.boundTextures = Object.create(null);

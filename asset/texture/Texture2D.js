@@ -1,3 +1,4 @@
+"use strict"
 function Texture2D(){
   Texture.call(this, gl.TEXTURE_2D);
 

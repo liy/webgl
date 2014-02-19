@@ -1,3 +1,4 @@
+"use strict"
 // by default position directional light, from (1, 1, 1)
 function Light(){
   Node.call(this);

@@ -1,3 +1,4 @@
+"use strict"
 function PlaneGeometry(width, height, widthSegments, heightSegments){
   Geometry.call(this);
 

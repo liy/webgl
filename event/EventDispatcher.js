@@ -1,3 +1,4 @@
+"use strict"
 function EventDispatcher(){
   // Storing all the capture phase listeners.
   // Type as key, the actual listener function as the value.

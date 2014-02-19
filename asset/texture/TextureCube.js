@@ -1,3 +1,4 @@
+"use strict"
 function TextureCube(){
   Texture.call(this, gl.TEXTURE_CUBE_MAP);
 
@@ -54,6 +55,6 @@ p.setCubeMapData = function(data, face){
     gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
   else
     gl.texImage2D(face, 0, gl.RGBA, data.width, data.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
-  
+
   this.unbind();
 }

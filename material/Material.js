@@ -1,5 +1,4 @@
-'use strict'
-
+"use strict"
 // TODO: FIXME: Match the uniform names? So I can easily traverse the object to expose uniform entry points?(Later for auto detect uniforms in GUI application)
 function Material(){
   this.id = Material.id++;

@@ -1,3 +1,4 @@
+"use strict"
 function SphereGeometry(radius, latitudeBands, longitudeBands){
   Geometry.call(this);
 
@@ -12,8 +13,8 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
   var z = 0;
   for(var i=0; i<=this.latitudeBands; ++i){
     theta = Math.PI/2 - i * (Math.PI/this.latitudeBands);
-    cosTheta = Math.cos(theta);
-    sinTheta = Math.sin(theta);
+    var cosTheta = Math.cos(theta);
+    var sinTheta = Math.sin(theta);
     for(var j=0; j<=this.longitudeBands; ++j){
       phi = -j * (Math.PI*2 / this.longitudeBands);
 

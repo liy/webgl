@@ -1,3 +1,4 @@
+"use strict"
 function NativeLoader(url){
   EventDispatcher.call(this);
 
