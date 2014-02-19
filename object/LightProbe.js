@@ -11,7 +11,7 @@ function LightProbe(size){
   // width and height value
   this.width = this.height = size || LightProbePass.instance.defaultProbeWidth;
 
-  this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.01, 5);
+  this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.5, 5);
   this.add(this.camera);
 
   this.cubeTexture = new TextureCube();
@@ -138,7 +138,8 @@ function LightProbe(size){
   // for normal transformation and tangent transformation
   this.normalMatrix = mat3.create();
 
-  this.geometry = new SphereGeometry(0.5, 30, 30);
+  // this.geometry = new SphereGeometry(0.5, 30, 30);
+  this.geometry = new CubeGeometry();
   this.material = new Material();
   this.material.setCubeTexture(this.cubeTexture);
 

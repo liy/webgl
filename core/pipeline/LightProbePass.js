@@ -3,7 +3,7 @@ function LightProbePass(params){
   RenderPass.call(this, params);
 
   // note that, this.width and this.height are buffer size, not probe size.
-  this.defaultProbeWidth = this.defaultProbeHeight = 128;
+  this.defaultProbeWidth = this.defaultProbeHeight = 512;
 
 
   // the buffer used by light probe
@@ -37,7 +37,7 @@ p.createSharedPasses = function(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
+        this.shader = new Shader('shader/probe/probe_geometry.vert', 'shader/probe/probe_geometry.frag');
 
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -100,7 +100,7 @@ p.render = function(scene, camera){
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.debuggerFramebuffer);
   gl.viewport(0, 0, this.width, this.height);
-  gl.clearColor(0.0, 0.1, 0.0, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
   // cull face needs to be enabled during G-buffer filling

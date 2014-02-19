@@ -72,53 +72,6 @@ vec4 toRGB(vec4 color){
 }
 
 
-
-// vec3 getNormal2(){
-//   float hg = texture2D(bumpTexture, v_TexCoord).r;
-//   float hr = texture2D(bumpTexture, vec2(v_TexCoord.x+textureDeltaX, v_TexCoord.y)).r;
-//   float ha = texture2D(bumpTexture, vec2(v_TexCoord.x, v_TexCoord.y+textureDeltaY)).r;
-
-//   float dx = (hg-ha)*10.0;
-//   float dy = (hg-hr)*10.0;
-
-//   float scale = 1.0/sqrt(pow(dx, 2.0) + pow(dy, 2.0) + 1.0);
-
-//   vec3 normal = vec3(dx, dy, 1.0) * scale;
-
-//   vec3 N = normalize(v_Normal);
-//   vec3 T = normalize(v_Tangent);
-//   vec3 B = normalize(v_Bitangent);
-//   mat3 TBN = mat3(T, B, N);
-
-//   return (normalize(TBN*normal) + 1.0) * 0.5;
-// }
-
-vec3 getNormal(){
-  float hg = texture2D(bumpTexture, v_TexCoord).r;
-  float hr = texture2D(bumpTexture, vec2(v_TexCoord.x+textureDeltaX, v_TexCoord.y)).r;
-  float ha = texture2D(bumpTexture, vec2(v_TexCoord.x, v_TexCoord.y+textureDeltaY)).r;
-
-  vec3 vr = vec3(1.0, 0.0, (hr-hg)*20.0);
-  vec3 va = vec3(0.0, 1.0, (ha-hg)*20.0);
-  vec3 normal = cross(vr, va);
-
-  vec3 N = normalize(v_Normal);
-  vec3 T = normalize(v_Tangent);
-  vec3 B = normalize(v_Bitangent);
-  mat3 TBN = mat3(T, B, N);
-
-  return (normalize(TBN*normal) + 1.0) * 0.5;
-}
-
-float getLinearDepth(){
-  float a = u_ProjectionMatrix[2][2];
-  float b = u_ProjectionMatrix[3][2];
-  float zNear = - b / (1.0 - a);
-  float zFar = b/(1.0 + a);
-
-  return length(v_Position)/(zFar - zNear);
-}
-
 // http://devmaster.net/posts/3002/shader-effects-shadow-mapping#vertex-tabs-3
 vec4 pack(float depth){
   float r = depth;
@@ -131,32 +84,10 @@ vec4 pack(float depth){
 }
 
 void main() {
-  // gl_FragData[0] = toLinear(texture2D(albedoTexture, v_TexCoord));
-  // // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
-  // gl_FragData[1] = vec4(getNormal(), 1.0);
-  // // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
-  // gl_FragData[2] = toLinear(texture2D(specularTexture, v_TexCoord));
-
-
   vec3 n = normalize(v_Normal);
-  vec3 v = -normalize(v_Position.xyz);
-  float vdotn = dot(v, n);
 
-  // note that, the first parameter of reflect function is incoming direction, which is from SOURCE TOWARDS SURFACE!
-  vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
-  // r = 2.0*vdotn*n - v;
-
-  r = vec3(u_InvViewMatrix * vec4(r, 0.0));
-
-
-  gl_FragData[0] = texture2D(albedoTexture, v_TexCoord) + (textureCube(cubeMapTexture, r));
-  // gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0);
-  // gl_FragData[0] = textureCube(cubeMapTexture, r);
-  gl_FragData[1] = vec4(getNormal(), 1.0);
-  // gl_FragData[1] = vec4((normalize(v_Normal)+1.0)*0.5, 1.0);
+  gl_FragData[0] = vec4(1,0,0,1);//texture2D(albedoTexture, v_TexCoord);
+  gl_FragData[1] = vec4((n + 1.0) * 0.5, 1.0);
   gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
-  // pack eye depth
-  // just want to keep shader consistent with normal procedure, you can use linear depth as well
-  // gl_FragData[3] = pack(getLinearDepth());
   gl_FragData[3] = pack(gl_FragCoord.z);
 }

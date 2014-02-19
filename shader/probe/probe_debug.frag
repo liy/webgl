@@ -16,10 +16,10 @@ void main() {
   vec3 v = -normalize(v_Position.xyz);
   float vdotn = dot(v, n);
 
+  // vec3 r = 2.0*vdotn*n - v;
   // note that, the first parameter of reflect function is incoming direction, which is from SOURCE TOWARDS SURFACE!
-  // vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
-  vec3 r = 2.0*vdotn*n - v;
+  vec3 r = normalize(reflect(-v, n));
   r = vec3(u_InvViewMatrix * vec4(r, 0.0));
 
-  gl_FragColor = (textureCube(cubeMapTexture, r));
+  gl_FragColor = textureCube(cubeMapTexture, r);
 }

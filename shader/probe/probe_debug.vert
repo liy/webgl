@@ -15,8 +15,6 @@ uniform mat3 u_NormalMatrix;
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
-// varying vec3 v_Color;
-// encode eye space position
 varying vec4 v_Position;
 
 void main(){

@@ -12,12 +12,12 @@ var renderer = new DeferredRenderer();
 var scene = new Scene();
 
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 5);
-var cameraRadian = 0;
+var cameraRadian = 0.0;
 var rotationRadius = 1.75;
-camera.y = -0.07;
+// camera.y = -0.07;
 camera.z = rotationRadius;
 function rotateCamera(){
-  cameraRadian += 0.002;
+  cameraRadian += 0.003;
   camera.x = Math.cos(cameraRadian) * rotationRadius;
   camera.z = Math.sin(cameraRadian) * rotationRadius;
 }
@@ -25,9 +25,9 @@ camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 scene.add(camera);
 
 var p3 = new DirectionalLight();
-p3.z = 1;
-p3.x = 1;
-p3.y = 1;
+// p3.z = 1;
+p3.x = -1;
+// p3.y = 1;
 scene.add(p3);
 
 // var p1 = new PointLight();
@@ -47,7 +47,7 @@ scene.add(p3);
 var loader = new ObjectFile();
 loader.load("../webgl-meshes/head/head.obj");
 var obj = loader.object;
-obj.x = 1;
+obj.x = 0.6;
 scene.add(obj);
 
 
@@ -68,6 +68,8 @@ function render(){
   stats.begin();
 
   rotateCamera();
+
+  // obj.rotationY += 0.003;
 
   renderer.render(scene, camera);
 
