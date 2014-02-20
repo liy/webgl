@@ -28,7 +28,7 @@ struct Light {
   float radius;
 };
 
-uniform float radius;
+uniform float u_Radius;
 
 uniform Light u_Light;
 
@@ -158,7 +158,7 @@ void main(){
   vec3 h = normalize(l + v);
 
   // TODO: squared fall off, physically correct? distance calculation seems wrong!!??!?
-  float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/radius, 0.0, 1.0);
+  float attenuation = clamp(1.0 - distance(u_Light.position, eyeSpacePosition)/u_Radius, 0.0, 1.0);
   attenuation *= attenuation;
 
   float ndotl = dot(n, l);

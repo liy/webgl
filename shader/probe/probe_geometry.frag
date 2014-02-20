@@ -8,47 +8,26 @@ precision mediump float;
 
 const float gamma = 2.2;
 
-// struct Material {
-//   vec4 ambientColor;
-//   vec4 albedoColor;
-//   vec4 specularColor;
-//   vec4 emissionColor;
-//   float roughness;
 
-//   sampler2D ambientTexture;
-//   sampler2D albedoTexture;
-//   sampler2D specularTexture;
-//   sampler2D roughnessTexture;
-// };
-
-uniform vec4 ambientColor;
-uniform vec4 albedoColor;
-uniform vec4 specularColor;
-uniform vec4 emissionColor;
-uniform float roughness;
-uniform float delta;
+uniform vec4 u_AmbientColor;
+uniform vec4 u_AlbedoColor;
+uniform vec4 u_SpecularColor;
+uniform vec4 u_EmissionColor;
+uniform float u_Roughness;
 
 uniform mat4 u_InvViewMatrix;
 
-/**
- albedo    0
- normal    1
- bump      2
- specular  3
- roughness 4
- shininess 5
- */
-uniform sampler2D albedoTexture;
-uniform sampler2D specularTexture;
-uniform sampler2D bumpTexture;
-uniform sampler2D roughnessTexture;
+uniform sampler2D u_AlbedoTexture;
+uniform sampler2D u_SpecularTexture;
+uniform sampler2D u_BumpTexture;
+uniform sampler2D u_RoughnessTexture;
 
-uniform samplerCube cubeMapTexture;
+uniform samplerCube u_CubeMapTexture;
 
 uniform mat4 u_ProjectionMatrix;
 
-uniform float textureDeltaX;
-uniform float textureDeltaY;
+uniform float u_TextureDeltaX;
+uniform float u_TextureDeltaY;
 
 varying vec3 v_Normal;
 varying vec2 v_TexCoord;
@@ -88,6 +67,6 @@ void main() {
 
   gl_FragData[0] = vec4(1,0,0,1);//texture2D(albedoTexture, v_TexCoord);
   gl_FragData[1] = vec4((n + 1.0) * 0.5, 1.0);
-  gl_FragData[2] = texture2D(specularTexture, v_TexCoord);
+  gl_FragData[2] = texture2D(u_SpecularTexture, v_TexCoord);
   gl_FragData[3] = pack(gl_FragCoord.z);
 }

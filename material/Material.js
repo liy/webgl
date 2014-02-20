@@ -35,14 +35,6 @@ p.setTextureMap = function(map){
   }
 }
 
-/**
-  uniform sampler2D albedoTexture;
-  uniform sampler2D specularTexture;
-  uniform sampler2D normalTexture;
-  uniform sampler2D roughnessTexture;
-  uniform sampler2D depthTexture;
- */
-// TODO: FIXME: find a better way to set the uniforms and bind the textures!!!
 p.uploadUniforms = function(shader){
   // albedo
   if(this.textures.albedo){
@@ -91,8 +83,8 @@ p.uploadUniforms = function(shader){
   // bump
   if(this.textures.bump){
     if(this.textures.bump.ready){
-      shader.f('textureDeltaX', 1/this.textures.bump.width);
-      shader.f('textureDeltaY', 1/this.textures.bump.height);
+      shader.f('u_TextureDeltaX', 1/this.textures.bump.width);
+      shader.f('u_TextureDeltaY', 1/this.textures.bump.height);
       this.textures.bump.bind(gl.TEXTURE0+4);
     }
     else
@@ -112,18 +104,18 @@ p.uploadUniforms = function(shader){
   else
     Texture.unbind(gl.TEXTURE0+5);
 
-  shader.i('albedoTexture', 0);
-  shader.i('specularTexture', 1);
-  shader.i('normalTexture', 2);
-  shader.i('roughnessTexture', 3);
-  shader.i('bumpTexture', 4);
-  shader.i('cubeMapTexture', 5);
+  shader.i('u_AlbedoTexture', 0);
+  shader.i('u_SpecularTexture', 1);
+  shader.i('u_NormalTexture', 2);
+  shader.i('u_RoughnessTexture', 3);
+  shader.i('u_BumpTexture', 4);
+  shader.i('u_CubeMapTexture', 5);
 
-  shader.fv3('ambientColor', this.ambientColor);
-  shader.fv3('albedoColor', this.albedoColor);
-  shader.fv3('specularColor', this.specularColor);
-  shader.fv3('emissionColor', this.emissionColor);
-  shader.f('roughness', this.roughness);
+  shader.fv3('u_AmbientColor', this.ambientColor);
+  shader.fv3('u_AlbedoColor', this.albedoColor);
+  shader.fv3('u_SpecularColor', this.specularColor);
+  shader.fv3('u_EmissionColor', this.emissionColor);
+  shader.f('u_Roughness', this.roughness);
 }
 
 Material.id = 0;

@@ -25,9 +25,9 @@ camera.lookTarget = vec3.fromValues(0, camera.y, 0);
 scene.add(camera);
 
 var p3 = new DirectionalLight();
-// p3.z = 1;
-p3.x = -1;
-// p3.y = 1;
+p3.z = 1;
+p3.x = 1;
+p3.y = 1;
 scene.add(p3);
 
 // var p1 = new PointLight();

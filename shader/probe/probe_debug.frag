@@ -2,7 +2,7 @@ precision mediump float;
 
 const float gamma = 2.2;
 
-uniform samplerCube cubeMapTexture;
+uniform samplerCube u_CubeMapTexture;
 
 uniform mat4 u_InvViewMatrix;
 
@@ -21,5 +21,5 @@ void main() {
   vec3 r = normalize(reflect(-v, n));
   r = vec3(u_InvViewMatrix * vec4(r, 0.0));
 
-  gl_FragColor = textureCube(cubeMapTexture, r);
+  gl_FragColor = textureCube(u_CubeMapTexture, r);
 }

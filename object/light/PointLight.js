@@ -56,7 +56,7 @@ p.uploadUniforms = function(shader){
   shader.fv3('u_Light.position', this._viewSpacePosition);
   shader.fv3('u_Light.color', this.color);
   shader.f('u_Light.radius', this.radius);
-  shader.f('radius', this.radius);
+  shader.f('u_Radius', this.radius);
 }
 
 // draw the light volume
