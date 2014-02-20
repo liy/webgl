@@ -38,12 +38,12 @@ p.createVertexArray = function(shader){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  shader.mat4('u_ModelViewMatrix', this.modelViewMatrix);
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
-  gl.uniform3fv(shader.uniforms['u_Light.direction'], this.direction);
-  gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
-  gl.uniform1i(shader.uniforms['u_Light.enabled'], this.enabled);
+  shader.fv3('u_Light.direction', this.direction);
+  shader.fv3('u_Light.color', this.color);
+  shader.i('u_Light.enabled', this.enabled);
 
   // console.log(this._viewSpacePosition);
 }

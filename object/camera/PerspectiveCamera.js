@@ -21,10 +21,10 @@ p.uploadUniforms = function(shader){
   Camera.prototype.uploadUniforms.call(this, shader);
 
   // Extra properties pass to shader. Used by directional light shader.
-  gl.uniform1f(shader.uniforms['u_FieldOfView'], this.fieldOfView);
-  gl.uniform1f(shader.uniforms['u_AspectRatio'], this.aspectRatio);
-  gl.uniform1f(shader.uniforms['u_Near'], this.near);
-  gl.uniform1f(shader.uniforms['u_Far'], this.far);
+  shader.f('u_FieldOfView', this.fieldOfView);
+  shader.f('u_AspectRatio', this.aspectRatio);
+  shader.f('u_Near', this.near);
+  shader.f('u_Far', this.far);
 
   // console.log(this.near);
 }

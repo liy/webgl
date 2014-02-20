@@ -76,13 +76,13 @@ p.pointLighting = function(light, camera){
 
   // bind the geometry targets
   this.import.albedoBuffer.bind(gl.TEXTURE0);
-  gl.uniform1i(this.pointLightShader.uniforms['albedoBuffer'], 0);
+  this.pointLightShader.i('albedoBuffer', 0);
   this.import.normalBuffer.bind(gl.TEXTURE0+1);
-  gl.uniform1i(this.pointLightShader.uniforms['normalBuffer'], 1);
+  this.pointLightShader.i('normalBuffer', 1);
   this.import.specularBuffer.bind(gl.TEXTURE0+2)
-  gl.uniform1i(this.pointLightShader.uniforms['specularBuffer'], 2);
+  this.pointLightShader.i('specularBuffer', 2);
   this.depthBuffer.bind(gl.TEXTURE0+3)
-  gl.uniform1i(this.pointLightShader.uniforms['depthBuffer'], 3);
+  this.pointLightShader.i('depthBuffer', 3);
 
   camera.uploadUniforms(this.pointLightShader)
   light.lit(this.pointLightShader, camera);
@@ -98,13 +98,13 @@ p.directionalLighting = function(scene, camera){
     var light = scene.directionalLights[i];
 
     this.import.albedoBuffer.bind(gl.TEXTURE0);
-    gl.uniform1i(this.dirLightShader.uniforms['albedoBuffer'], 0);
+    this.dirLightShader.i('albedoBuffer', 0);
     this.import.normalBuffer.bind(gl.TEXTURE0+1);
-    gl.uniform1i(this.dirLightShader.uniforms['normalBuffer'], 1);
+    this.dirLightShader.i('normalBuffer', 1);
     this.import.specularBuffer.bind(gl.TEXTURE0+2)
-    gl.uniform1i(this.dirLightShader.uniforms['specularBuffer'], 2);
+    this.dirLightShader.i('specularBuffer', 2);
     this.depthBuffer.bind(gl.TEXTURE0+3)
-    gl.uniform1i(this.dirLightShader.uniforms['depthBuffer'], 3);
+    this.dirLightShader.i('depthBuffer', 3);
 
     light.lit(this.dirLightShader, camera);
   }

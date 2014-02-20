@@ -50,13 +50,13 @@ p.createVertexArray = function(shader){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
+  shader.mat4('u_ModelViewMatrix', this.modelViewMatrix);
 
   // notice that the light's position is the eye space position, since it is more convenient to do light in eye space
-  gl.uniform3fv(shader.uniforms['u_Light.position'], this._viewSpacePosition);
-  gl.uniform3fv(shader.uniforms['u_Light.color'], this.color);
-  gl.uniform1f(shader.uniforms['u_Light.radius'], this.radius);
-  gl.uniform1f(shader.uniforms['radius'], this.radius);
+  shader.fv3('u_Light.position', this._viewSpacePosition);
+  shader.fv3('u_Light.color', this.color);
+  shader.f('u_Light.radius', this.radius);
+  shader.f('radius', this.radius);
 }
 
 // draw the light volume

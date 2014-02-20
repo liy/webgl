@@ -54,12 +54,12 @@ p.updateMatrix = function(){
 p.shadowMapping = function(shader, index){
   if(this.castShadow){
     gl.activeTexture(gl.TEXTURE1 + index);
-    gl.uniform1i(shader.uniform['u_ShadowMap'], 1+index);
+    shader.i('u_ShadowMap', 1+index);
     gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
 
     // setup light view and projection matrix for shadow mapping
-    gl.uniformMatrix4fv(shader.uniform['u_LightViewMatrix'], false, this.shadowCamera.matrix);
-    gl.uniformMatrix4fv(shader.uniform['u_LightProjectionMatrix'], false, this.shadowCamera.projectionMatrix);
+    shader.mat4('u_LightViewMatrix', this.shadowCamera.matrix);
+    shader.mat4('u_LightProjectionMatrix', this.shadowCamera.projectionMatrix);
 
     // reset to texture 0
     gl.activeTexture(gl.TEXTURE0);
@@ -79,15 +79,15 @@ p.lit = function(shader, camera){
   this._trasnformedPosition = vec3.create();
   vec3.transformMat4(this._trasnformedPosition, this.position, camera.matrix);
 
-  gl.uniform4fv(shader.uniform['u_Light.position'], [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
-  gl.uniform4fv(shader.uniform['u_Light.ambient'], this.ambient);
-  gl.uniform4fv(shader.uniform['u_Light.diffuse'], this.diffuse);
-  gl.uniform4fv(shader.uniform['u_Light.specular'], this.specular);
-  gl.uniform3fv(shader.uniform['u_Light.attenuation'], this.attenuation);
-  gl.uniform3fv(shader.uniform['u_Light.direction'], this._transformedDirection);
-  gl.uniform1f(shader.uniform['u_Light.cosOuter'], this._cosOuter);
-  gl.uniform1f(shader.uniform['u_Light.cosFalloff'], this._cosOuter - this._cosInner);
-  gl.uniform1i(shader.uniform['u_Light.enabled'], this.enabled);
+  shader.fv4('u_Light.position', [this._trasnformedPosition[0], this._trasnformedPosition[1], this._trasnformedPosition[2], this.directional]);
+  shader.fv4('u_Light.ambient', this.ambient);
+  shader.fv4('u_Light.diffuse', this.diffuse);
+  shader.fv4('u_Light.specular', this.specular);
+  shader.fv3('u_Light.attenuation', this.attenuation);
+  shader.fv3('u_Light.direction', this._transformedDirection);
+  shader.f('u_Light.cosOuter', this._cosOuter);
+  shader.f('u_Light.cosFalloff', this._cosOuter - this._cosInner);
+  shader.i('u_Light.enabled', this.enabled);
 }
 
 Object.defineProperty(p, "outerRadian", {

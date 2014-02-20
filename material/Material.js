@@ -104,8 +104,8 @@ p.uploadUniforms = function(shader){
   // bump
   if(this.textureMap.bump){
     if(this.textureMap.bump.ready){
-      gl.uniform1f(shader.uniforms['textureDeltaX'], 1/this.textureMap.bump.width);
-      gl.uniform1f(shader.uniforms['textureDeltaY'], 1/this.textureMap.bump.height);
+      shader.f('textureDeltaX', 1/this.textureMap.bump.width);
+      shader.f('textureDeltaY', 1/this.textureMap.bump.height);
       this.textureMap.bump.bind(gl.TEXTURE0+4);
     }
     else
@@ -125,20 +125,20 @@ p.uploadUniforms = function(shader){
   else
     Texture.unbind(gl.TEXTURE0+5);
 
-  gl.uniform1i(shader.uniforms['albedoTexture'], 0);
-  gl.uniform1i(shader.uniforms['specularTexture'], 1);
-  gl.uniform1i(shader.uniforms['normalTexture'], 2);
-  gl.uniform1i(shader.uniforms['roughnessTexture'], 3);
-  gl.uniform1i(shader.uniforms['bumpTexture'], 4);
-  gl.uniform1i(shader.uniforms['cubeMapTexture'], 5);
+  shader.i('albedoTexture', 0);
+  shader.i('specularTexture', 1);
+  shader.i('normalTexture', 2);
+  shader.i('roughnessTexture', 3);
+  shader.i('bumpTexture', 4);
+  shader.i('cubeMapTexture', 5);
 
-  gl.uniform1f(shader.uniforms['u_CubeMapEnabled'], this.u_CubeMapEnabled);
+  shader.f('u_CubeMapEnabled', this.u_CubeMapEnabled);
 
-  gl.uniform4fv(shader.uniforms['ambientColor'], this.ambientColor);
-  gl.uniform4fv(shader.uniforms['albedoColor'], this.albedoColor);
-  gl.uniform4fv(shader.uniforms['specularColor'], this.specularColor);
-  gl.uniform4fv(shader.uniforms['emissionColor'], this.emissionColor);
-  gl.uniform1f(shader.uniforms['roughness'], this.roughness);
+  shader.fv3('ambientColor', this.ambientColor);
+  shader.fv3('albedoColor', this.albedoColor);
+  shader.fv3('specularColor', this.specularColor);
+  shader.fv3('emissionColor', this.emissionColor);
+  shader.f('roughness', this.roughness);
 }
 
 Material.id = 0;

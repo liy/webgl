@@ -147,9 +147,9 @@ p.createVertexArray = function(shader){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelMatrix'], false, this.worldMatrix);
-  gl.uniformMatrix4fv(shader.uniforms['u_ModelViewMatrix'], false, this.modelViewMatrix);
-  gl.uniformMatrix3fv(shader.uniforms['u_NormalMatrix'], false, this.normalMatrix);
+  shader.mat4('u_ModelMatrix', this.worldMatrix);
+  shader.mat4('u_ModelViewMatrix', this.modelViewMatrix);
+  shader.mat3('u_NormalMatrix', this.normalMatrix);
 
   if(this.material)
     this.material.uploadUniforms(shader);

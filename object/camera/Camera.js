@@ -40,8 +40,8 @@ p.update = function(){
 }
 
 p.uploadUniforms = function(shader){
-  gl.uniformMatrix4fv(shader.uniforms['u_ProjectionMatrix'], false, this.projectionMatrix);
-  gl.uniformMatrix4fv(shader.uniforms['u_InvProjectionMatrix'], false, this.invertProjectionMatrix);
-  gl.uniformMatrix4fv(shader.uniforms['u_ViewMatrix'], false, this.viewMatrix);
-  gl.uniformMatrix4fv(shader.uniforms['u_InvViewMatrix'], false, this.invertViewMatrix);
+  shader.mat4('u_ProjectionMatrix', this.projectionMatrix);
+  shader.mat4('u_InvProjectionMatrix', this.invertProjectionMatrix);
+  shader.mat4('u_ViewMatrix', this.viewMatrix);
+  shader.mat4('u_InvViewMatrix', this.invertViewMatrix);
 }
