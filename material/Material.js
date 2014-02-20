@@ -10,13 +10,10 @@ function Material(){
   this.albedoColor = vec3.fromValues(1.0, 1.0, 1.0);
   this.specularColor = vec3.fromValues(1.0, 1.0, 1.0);
   this.emissionColor = vec3.fromValues(0.0, 0.0, 0.0);
-  // float
   this.roughness = 65;
 
-  this.u_CubeMapEnabled = 0;
-
   // stores the actual webgl texture object.
-  this.textureMap = {};
+  this.textures = {};
 }
 var p = Material.prototype;
 
@@ -24,7 +21,7 @@ var p = Material.prototype;
 p.setTextureMap = function(map){
   for(var name in map){
     if(map[name]){
-      var texture = this.textureMap[name] = new Texture2D();
+      var texture = this.textures[name] = new Texture2D();
       texture.name = name;
       texture.setParameters = function(texture){
         if(texture.name === 'albedo'){
@@ -38,16 +35,6 @@ p.setTextureMap = function(map){
   }
 }
 
-p.setCubeMap = function(faces){
-  this.textureMap['cubeMap'] = new TextureCube();
-  this.textureMap['cubeMap'].load(faces);
-  this.u_CubeMapEnabled = 1;
-}
-
-p.setCubeTexture = function(cubeTexture){
-  this.textureMap['cubeMap'] = cubeTexture;
-}
-
 /**
   uniform sampler2D albedoTexture;
   uniform sampler2D specularTexture;
@@ -58,69 +45,69 @@ p.setCubeTexture = function(cubeTexture){
 // TODO: FIXME: find a better way to set the uniforms and bind the textures!!!
 p.uploadUniforms = function(shader){
   // albedo
-  if(this.textureMap.albedo){
-    if(this.textureMap.albedo.ready){
-      this.textureMap.albedo.bind(gl.TEXTURE0);
+  if(this.textures.albedo){
+    if(this.textures.albedo.ready){
+      this.textures.albedo.bind(gl.TEXTURE0);
     }
     else
-      this.textureMap.albedo.unbind();
+      this.textures.albedo.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+0);
 
   // specular
-  if(this.textureMap.specular){
-    if(this.textureMap.specular.ready){
-      this.textureMap.specular.bind(gl.TEXTURE0+1);
+  if(this.textures.specular){
+    if(this.textures.specular.ready){
+      this.textures.specular.bind(gl.TEXTURE0+1);
     }
     else
-      this.textureMap.specular.unbind();
+      this.textures.specular.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+1);
 
   // normal
-  if(this.textureMap.normal){
-    if(this.textureMap.normal.ready){
-      this.textureMap.normal.bind(gl.TEXTURE0+2);
+  if(this.textures.normal){
+    if(this.textures.normal.ready){
+      this.textures.normal.bind(gl.TEXTURE0+2);
     }
     else
-      this.textureMap.normal.unbind();
+      this.textures.normal.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+2);
 
   // roughness
-  if(this.textureMap.roughness){
-    if(this.textureMap.roughness.ready){
-      this.textureMap.roughness.bind(gl.TEXTURE0+3);
+  if(this.textures.roughness){
+    if(this.textures.roughness.ready){
+      this.textures.roughness.bind(gl.TEXTURE0+3);
     }
     else
-      this.textureMap.roughness.unbind();
+      this.textures.roughness.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+3);
 
   // bump
-  if(this.textureMap.bump){
-    if(this.textureMap.bump.ready){
-      shader.f('textureDeltaX', 1/this.textureMap.bump.width);
-      shader.f('textureDeltaY', 1/this.textureMap.bump.height);
-      this.textureMap.bump.bind(gl.TEXTURE0+4);
+  if(this.textures.bump){
+    if(this.textures.bump.ready){
+      shader.f('textureDeltaX', 1/this.textures.bump.width);
+      shader.f('textureDeltaY', 1/this.textures.bump.height);
+      this.textures.bump.bind(gl.TEXTURE0+4);
     }
     else
-      this.textureMap.bump.unbind();
+      this.textures.bump.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+4);
 
   // cube map
-  if(this.textureMap.cubeMap){
-    if(this.textureMap.cubeMap.ready){
-      this.textureMap.cubeMap.bind(gl.TEXTURE0+5);
+  if(this.textures.cubeMap){
+    if(this.textures.cubeMap.ready){
+      this.textures.cubeMap.bind(gl.TEXTURE0+5);
     }
     else
-      this.textureMap.cubeMap.unbind();
+      this.textures.cubeMap.unbind();
   }
   else
     Texture.unbind(gl.TEXTURE0+5);
@@ -131,8 +118,6 @@ p.uploadUniforms = function(shader){
   shader.i('roughnessTexture', 3);
   shader.i('bumpTexture', 4);
   shader.i('cubeMapTexture', 5);
-
-  shader.f('u_CubeMapEnabled', this.u_CubeMapEnabled);
 
   shader.fv3('ambientColor', this.ambientColor);
   shader.fv3('albedoColor', this.albedoColor);

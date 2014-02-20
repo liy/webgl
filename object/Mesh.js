@@ -59,13 +59,6 @@ p.createBuffer = function(){
       data.push(bt[1]);
       data.push(bt[2]);
     }
-
-    // tint color, RGBA
-    if(this.material.color.length !== 0){
-      data.push(this.material.color[0]);
-      data.push(this.material.color[1]);
-      data.push(this.material.color[2]);
-    }
   }
 
   // create the buffer contains all the data
@@ -100,9 +93,6 @@ p.createVertexArray = function(shader){
   // bitangent
   if(this.geometry.bitangents.length !== 0)
     strideBytes += 12;
-  // color
-  if(this.material.color.length !== 0)
-    strideBytes += 12;
 
   // starting point of each attribute data
   var pointerOffset = 0;
@@ -132,12 +122,6 @@ p.createVertexArray = function(shader){
   if(this.geometry.bitangents.length !== 0){
     gl.enableVertexAttribArray(shader.attributes.a_Bitangent);
     gl.vertexAttribPointer(shader.attributes.a_Bitangent, 3, gl.FLOAT, false, strideBytes, pointerOffset+=12);
-  }
-
-  // tint color
-  if(this.material.color.length !== 0){
-    gl.enableVertexAttribArray(shader.attributes.a_Color);
-    gl.vertexAttribPointer(shader.attributes.a_Color, 3, gl.FLOAT, false, strideBytes, pointerOffset+=12);
   }
 
   // index information

@@ -2,7 +2,9 @@
 function SkyBox(faces){
   Mesh.call(this, new SkyBoxGeometry(), new Material());
 
-  this.material.setCubeMap(faces)
+  var cubeTexture = new TextureCube();
+  cubeTexture.load(faces);
+  this.material.textures.cubeMap = cubeTexture;
 }
 var p = SkyBox.prototype = Object.create(Mesh.prototype);
 
@@ -16,11 +18,6 @@ p.createBuffer = function(){
     data.push(v[0]);
     data.push(v[1]);
     data.push(v[2]);
-
-    // tint color, RGBA
-    data.push(this.material.color[0]);
-    data.push(this.material.color[1]);
-    data.push(this.material.color[2]);
   }
 
   // create the buffer contains all the data
@@ -45,11 +42,7 @@ p.createVertexArray = function(shader){
 
   // vertex
   gl.enableVertexAttribArray(shader.attributes.a_Vertex);
-  gl.vertexAttribPointer(shader.attributes.a_Vertex, 3, gl.FLOAT, false, 24, 0);
-
-  // tint color
-  gl.enableVertexAttribArray(shader.attributes.a_Color);
-  gl.vertexAttribPointer(shader.attributes.a_Color, 3, gl.FLOAT, false, 24, 12);
+  gl.vertexAttribPointer(shader.attributes.a_Vertex, 3, gl.FLOAT, false, 12, 0);
 
   // index information
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);

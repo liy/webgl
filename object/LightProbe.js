@@ -141,7 +141,7 @@ function LightProbe(size){
   // this.geometry = new SphereGeometry(0.5, 30, 30);
   this.geometry = new CubeGeometry();
   this.material = new Material();
-  this.material.setCubeTexture(this.cubeTexture);
+  this.material.textures.cubeMap = this.cubeTexture;
 
   this.createBuffer();
 }

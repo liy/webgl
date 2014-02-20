@@ -38,14 +38,14 @@ p.locateAttributes = function(){
 p.locateUniforms = function(){
   var count = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
   for (var i = 0; i<count; i++){
-    var uniform = gl.getActiveUniform(this.program, i);
+    var info = gl.getActiveUniform(this.program, i);
     // console.log(this.uniforms);
-    if(uniform.size === 1)
-      this.uniforms[uniform.name] = gl.getUniformLocation(this.program, uniform.name);
+    if(info.size === 1)
+      this.uniforms[info.name] = gl.getUniformLocation(this.program, info.name);
     else{
-      var name = uniform.name.replace("[0]", "");
+      var name = info.name.replace("[0]", "");
       this.uniforms[name] = [];
-      for(var j=0; j<uniform.size; ++j){
+      for(var j=0; j<info.size; ++j){
         var location = gl.getUniformLocation(this.program, name+"["+j+"]");
         this.uniforms[name].push(location);
         // two ways to access the array, either by using index or string

@@ -21,14 +21,12 @@ const float gamma = 2.2;
 //   sampler2D roughnessTexture;
 // };
 
-uniform float numbers[3];
-
-uniform vec4 ambientColor;
-uniform vec4 albedoColor;
-uniform vec4 specularColor;
-uniform vec4 emissionColor;
-uniform float roughness;
-uniform float delta;
+uniform vec4 u_AmbientColor;
+uniform vec4 u_AlbedoColor;
+uniform vec4 u_SpecularColor;
+uniform vec4 u_EmissionColor;
+uniform float u_Roughness;
+uniform float u_Delta;
 
 uniform mat4 u_InvViewMatrix;
 
@@ -142,7 +140,7 @@ void main() {
 
   vec3 n = normalize(v_Normal);
   vec3 v = -normalize(v_Position.xyz);
-  float vdotn = dot(v, n) + numbers[0];
+  float vdotn = dot(v, n);
 
   // note that, the first parameter of reflect function is incoming direction, which is from SOURCE TOWARDS SURFACE!
   vec3 r = normalize(reflect(v_Position.xyz, v_Normal));
