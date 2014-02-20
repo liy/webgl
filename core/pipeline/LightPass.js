@@ -76,12 +76,13 @@ p.pointLighting = function(light, camera){
 
   // bind the geometry targets
   this.import.albedoBuffer.bind(gl.TEXTURE0);
-  this.pointLightShader.i('albedoBuffer', 0);
   this.import.normalBuffer.bind(gl.TEXTURE0+1);
-  this.pointLightShader.i('normalBuffer', 1);
   this.import.specularBuffer.bind(gl.TEXTURE0+2)
-  this.pointLightShader.i('specularBuffer', 2);
   this.depthBuffer.bind(gl.TEXTURE0+3)
+
+  this.pointLightShader.i('albedoBuffer', 0);
+  this.pointLightShader.i('normalBuffer', 1);
+  this.pointLightShader.i('specularBuffer', 2);
   this.pointLightShader.i('depthBuffer', 3);
 
   camera.uploadUniforms(this.pointLightShader)

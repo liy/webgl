@@ -1,18 +1,18 @@
 precision mediump float;
 
-uniform sampler2D albedoBuffer;
-uniform sampler2D diffuseLightBuffer;
-uniform sampler2D specularLightBuffer;
-uniform sampler2D lightProbeDebugBuffer;
+uniform sampler2D u_AlbedoBuffer;
+uniform sampler2D u_DiffuseLightBuffer;
+uniform sampler2D u_SpecularLightBuffer;
+uniform sampler2D u_LightProbeDebugBuffer;
 
 varying vec2 v_TexCoord;
 
 void main(){
-  vec4 albedo = texture2D(albedoBuffer, v_TexCoord);
-  vec4 diffuseLight = texture2D(diffuseLightBuffer, v_TexCoord);
-  vec4 specularLight = texture2D(specularLightBuffer, v_TexCoord);
+  vec4 albedo = texture2D(u_AlbedoBuffer, v_TexCoord);
+  vec4 diffuseLight = texture2D(u_DiffuseLightBuffer, v_TexCoord);
+  vec4 specularLight = texture2D(u_SpecularLightBuffer, v_TexCoord);
 
-  vec4 lightProbe = texture2D(lightProbeDebugBuffer, v_TexCoord);
+  vec4 lightProbe = texture2D(u_LightProbeDebugBuffer, v_TexCoord);
 
   // gl_FragColor = (albedo*diffuseLight + specularLight) + lightProbe;
   gl_FragColor = lightProbe;

@@ -19,19 +19,20 @@ p.render = function(scene, camera){
 
   // geometry targets
   this.import.albedoBuffer.bind(gl.TEXTURE0);
-  this.synthesisShader.i('albedoBuffer', 0);
   // light targets
   this.import.diffuseLightBuffer.bind(gl.TEXTURE0+1);
-  this.synthesisShader.i('diffuseLightBuffer', 1);
   this.import.specularLightBuffer.bind(gl.TEXTURE0+2);
-  this.synthesisShader.i('specularLightBuffer', 2);
 
   // light probe debug
   if(this.import.lightProbeDebugBuffer)
     this.import.lightProbeDebugBuffer.bind(gl.TEXTURE0+3);
   else
     Texture.unbind(gl.TEXTURE0+3);
- this.synthesisShader.i('lightProbeDebugBuffer', 3);
+
+  this.synthesisShader.i('u_AlbedoBuffer', 0);
+  this.synthesisShader.i('u_DiffuseLightBuffer', 1);
+  this.synthesisShader.i('u_SpecularLightBuffer', 2);
+  this.synthesisShader.i('u_LightProbeDebugBuffer', 3);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
