@@ -22,10 +22,9 @@ function Shader(vertPath, fragPath){
   this.locateUniforms();
 
   this.validateLocation = false;
+  this.logs = Object.create(null);
 }
 var p = Shader.prototype;
-
-Shader.logs = Object.create(null);
 
 p.locateAttributes = function(){
   var count = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
@@ -63,12 +62,12 @@ p.getUniformLocation = function(locationName){
 
   if(this.validateLocation){
     if(!location){
-      if(!Shader.logs[locationName]){
+      if(!this.logs[locationName]){
         console.groupCollapsed('location %c' + locationName, 'color: blue', 'is invalid');
         console.error('uniform location %c' + locationName, 'color: blue', 'is invalid');
         console.info(this.vertPath);
         console.groupEnd();
-        Shader.logs[locationName] = true;
+        this.logs[locationName] = true;
       }
     }
   }
