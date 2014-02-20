@@ -1,7 +1,6 @@
 precision mediump float;
 
 attribute vec3 a_Vertex;
-attribute vec3 a_Color;
 
 uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_ModelMatrix;
@@ -9,7 +8,6 @@ uniform mat4 u_ViewMatrix;
 uniform mat4 u_ModelViewMatrix;
 
 varying vec3 v_TexCoord;
-varying vec3 v_Color;
 
 void main(){
   // when rendering sky box, translation must not be applied, I simply dropped last column of ModelView matrix.
@@ -20,5 +18,4 @@ void main(){
   gl_Position = position.xyww;
 
   v_TexCoord = a_Vertex;
-  v_Color = a_Color;
 }

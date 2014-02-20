@@ -33,7 +33,6 @@ varying vec3 v_Normal;
 varying vec2 v_TexCoord;
 varying vec3 v_Tangent;
 varying vec3 v_Bitangent;
-varying vec3 v_Color;
 
 varying vec4 v_Position;
 
