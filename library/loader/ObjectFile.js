@@ -26,14 +26,28 @@ p.load = function(url, callback){
 
   console.log('loading: ' + this.url);
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', this.url, true);
-  xhr.onload = bind(this, this.onload);
-  xhr.send();
+  return new Promise(bind(this, function(resolve, reject){
+    this.resolve = resolve;
+    this.reject = reject;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', this.url, true);
+    xhr.onerror = function(err){
+      reject(err);
+    }
+    xhr.onload = bind(this, this.onload);
+    
+    xhr.send();
+  }))
 }
 
 p.onload = function(e){
-  console.log('parsing obj file...');
+  if(e.target.status !== 200){
+    this.reject();
+    return;
+  }
+
+  console.log('parsing obj file...', e.target.status);
 
   var lines = e.target.responseText.split( "\n" );
   var result, line;
@@ -288,7 +302,6 @@ p.onload = function(e){
     if(this.object.children.length === 0)
       this.object = new Mesh(currentMeshInfo.geometry, currentMeshInfo.material);
 
-    if(this.callback)
-      this.callback();
+    this.resolve();
   }
 }

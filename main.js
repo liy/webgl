@@ -7,10 +7,11 @@ stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
 document.body.appendChild( stats.domElement );
 
+var renderer = new DeferredRenderer();
 
-var loader = new Loader();
-loader.load('shader/geometry.frag').then(function(rep){
-  console.log(rep)
-}, function(err){
-  console.log(err)
+var file = new ObjectFile();
+file.load('../webgl-meshes/head/head.obj').then(function(loader){
+  console.log('loaded', loader)
+}).catch(function(error){
+  console.log('error');
 })
