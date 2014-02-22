@@ -4,29 +4,29 @@
 <title></title>
 <script src="lib/stats.min.js"></script>
 <script src='lib/gl-matrix.js'></script>
-<script src='lib/utils.js'></script>
 <script src="lib/texture-util.js"></script>
 <script src='lib/dat.gui.min.js'></script>
 
-<script src='core/shader/ShaderLoader.js'></script>
-<script src='core/shader/Shader.js'></script>
+<script src='util/utils.js'></script>
+<script src='util/ExtensionCheck.js'></script>
 
 <script src="event/Event.js"></script>
 <script src="event/EventDispatcher.js"></script>
 
-<script src="asset/texture/Texture.js"></script>
-<script src="asset/texture/Texture2D.js"></script>
-<script src="asset/texture/TextureCube.js"></script>
+<script src='library/loader/ShaderLoader.js'></script>
+<script src="library/loader/NativeLoader.js"></script>
+<script src="library/loader/TGALoader.js"></script>
+<script src="library/loader/ObjectMatFile.js"></script>
+<script src="library/loader/ObjectFile.js"></script>
 
-<script src="asset/image/NativeLoader.js"></script>
-<script src="asset/image/TGALoader.js"></script>
+<script src="library/texture/Texture.js"></script>
+<script src="library/texture/Texture2D.js"></script>
+<script src="library/texture/TextureCube.js"></script>
 
-<script src="asset/resource/Resource.js"></script>
-<script src="asset/resource/ImageResource.js"></script>
-<script src="asset/Library.js"></script>
-
-<script src="asset/model/ObjectMatFile.js"></script>
-<script src="asset/model/ObjectFile.js"></script>
+<script src="library/resource/Resource.js"></script>
+<script src='library/resource/Shader.js'></script>
+<script src="library/resource/ImageResource.js"></script>
+<script src="library/Library.js"></script>
 
 <script src='object/Node.js'></script>
 <script src='object/Face3.js'></script>
@@ -55,8 +55,6 @@
 
 <script src="object/Mesh.js"></script>
 <script src="object/SkyBox.js"></script>
-
-<script src='util/ExtensionCheck.js'></script>
 
 <script src="core/pipeline/RenderPass.js"></script>
 <script src="core/pipeline/GeometryPass.js"></script>

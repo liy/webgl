@@ -89,3 +89,25 @@ function isPointerLocked(){
 document.addEventListener('pointerlockerror', pointerLockError, false);
 document.addEventListener('mozpointerlockerror', pointerLockError, false);
 document.addEventListener('webkitpointerlockerror', pointerLockError, false);
+
+
+function get(url, responseType){
+  var xhr = new XMLHttpRequest();
+  xhr.responseType = responseType;
+  xhr.open('GET', url, true);
+
+  return new Promise(function(resolve, reject){
+    xhr.onload = function(){
+      if(xhr.status === 200)
+        resolve(xhr.response);
+      else
+        reject(new Error(xhr.statusText));
+    };
+
+    xhr.onerror = function(error){
+      reject(new Error('Network error', error))
+    }
+    
+    xhr.send();
+  });
+}

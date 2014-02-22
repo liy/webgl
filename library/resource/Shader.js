@@ -24,7 +24,7 @@ function Shader(vertPath, fragPath){
   this.validateLocation = false;
   this.logs = Object.create(null);
 }
-var p = Shader.prototype;
+var p = Shader.prototype = Object.create(Resource.prototype);
 
 p.locateAttributes = function(){
   var count = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
