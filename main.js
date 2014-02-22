@@ -43,26 +43,44 @@ scene.add(p3);
 // scene.add(p1);
 // scene.add(p2);
 
+setTimeout(init1, 1000);
 
-var loader = new ObjectFile();
-loader.load("../webgl-meshes/head/head.obj");
-var obj = loader.object;
-obj.x = 0.6;
-scene.add(obj);
+function init1(){
+  console.log('init 1');
 
+  var loader = new ObjectFile();
+  loader.load("../webgl-meshes/head/head.obj");
+  var obj = loader.object;
+  obj.x = 0.6;
+  scene.add(obj);
 
-var probe = new LightProbe();
-scene.add(probe);
+  setTimeout(init2, 2000);
+}
 
-var skyBox = new SkyBox([
-  {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
-  {url: "../webgl-meshes/cube_map/negx.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
-  {url: "../webgl-meshes/cube_map/posy.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
-  {url: "../webgl-meshes/cube_map/negy.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
-  {url: "../webgl-meshes/cube_map/posz.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
-  {url: "../webgl-meshes/cube_map/negz.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
-]);
-scene.add(skyBox);
+function init2(){
+  console.log('init 2');
+  var skyBox = new SkyBox([
+    {url: "../webgl-meshes/cube_map/posx.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
+    {url: "../webgl-meshes/cube_map/negx.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
+    {url: "../webgl-meshes/cube_map/posy.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
+    {url: "../webgl-meshes/cube_map/negy.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+    {url: "../webgl-meshes/cube_map/posz.jpg", face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
+    {url: "../webgl-meshes/cube_map/negz.jpg", face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
+  ]);
+  scene.add(skyBox);
+
+  setTimeout(init3, 2000);
+}
+
+function init3(){
+  console.log('init 3');
+
+  var probe = new LightProbe();
+  scene.add(probe);
+
+  setTimeout(render, 2000);
+}
+
 
 function render(){
   stats.begin();
@@ -76,7 +94,6 @@ function render(){
   stats.end();
   requestAnimFrame(render);
 }
-render();
 
 
 

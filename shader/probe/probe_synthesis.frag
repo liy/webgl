@@ -15,5 +15,5 @@ void main(){
   vec4 lightProbe = texture2D(u_LightProbeDebugBuffer, v_TexCoord);
 
   // gl_FragColor = (albedo*diffuseLight + specularLight) + lightProbe;
-  gl_FragColor = lightProbe;
+  gl_FragColor = vec4(1, 0, 0, 1);
 }

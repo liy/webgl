@@ -3,7 +3,7 @@ function LightProbePass(params){
   RenderPass.call(this, params);
 
   // note that, this.width and this.height are buffer size, not probe size.
-  this.defaultProbeWidth = this.defaultProbeHeight = 512;
+  this.defaultProbeWidth = this.defaultProbeHeight = 128;
 
 
   // the buffer used by light probe

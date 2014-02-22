@@ -92,7 +92,7 @@ function LightProbe(size){
 
     init: (function(depthStencilRenderBuffer, cubeTexture, framebuffer){
       return function(){
-        this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
+        this.synthesisShader = new Shader('shader/probe/probe_synthesis.vert', 'shader/probe/probe_synthesis.frag');
         this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
 
         this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
