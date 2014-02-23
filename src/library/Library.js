@@ -1,7 +1,8 @@
-(function(window){
+define(function(require){
+
   "use strict"
 
-  window.Library = {
+  var Library = {
     init: function(){
       // default resourceStore
       var resourceStore = Library.resourceStore = {};
@@ -36,7 +37,15 @@
     }
   }
 
-})(window);
+  Library.get = function(){
+    
+  }
+
+  return Library;
+});
+
+
+
 
 
 

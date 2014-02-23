@@ -1,5 +1,10 @@
+define(function(require){
+
+var Resource = require('library/resource/Resource');
+var ShaderLoader = require('library/loader/ShaderLoader')
+
 "use strict"
-function Shader(vertPath, fragPath){
+var Shader = function(vertPath, fragPath){
   this.a = this.attributes = {};
   this.u = this.uniforms = {};
 
@@ -288,3 +293,7 @@ p.mat4 = function(locationName, value){
 
   gl.uniformMatrix4fv(location, gl.FALSE, value);
 }
+
+return Shader;
+
+});

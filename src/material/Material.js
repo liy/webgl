@@ -1,6 +1,11 @@
+define(function(require){
+
+var Texture = require('library/texture/Texture');
+var Texture2D = require('library/texture/Texture2D');
+
 "use strict"
 // TODO: FIXME: Match the uniform names? So I can easily traverse the object to expose uniform entry points?(Later for auto detect uniforms in GUI application)
-function Material(){
+var Material = function(){
   this.id = Material.id++;
 
   this.name = '';
@@ -119,3 +124,6 @@ p.uploadUniforms = function(shader){
 }
 
 Material.id = 0;
+
+return Material;
+});

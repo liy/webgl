@@ -1,6 +1,10 @@
+define(function(require){
+
+var Node = require('object/Node');
+
 "use strict"
 
-function LightProbe(size){
+var LightProbe = function(size){
   Node.call(this);
 
   // keep capturing every frame
@@ -291,3 +295,6 @@ p.draw = function(shader){
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   gl.bindVertexArrayOES(null);
 }
+
+return LightProbe
+});

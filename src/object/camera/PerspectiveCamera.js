@@ -1,6 +1,10 @@
+define(function(require){
+
+var Camera = require('object/camera/Camera');
+
 "use strict"
 // TODO: make it base class of 2 types of camera, perspective and orthogonal
-function PerspectiveCamera(fieldOfView, aspectRatio, near, far){
+var PerspectiveCamera = function(fieldOfView, aspectRatio, near, far){
   Camera.call(this);
 
   this.perspective(fieldOfView, aspectRatio, near, far);
@@ -28,3 +32,6 @@ p.uploadUniforms = function(shader){
 
   // console.log(this.near);
 }
+
+return PerspectiveCamera;
+});

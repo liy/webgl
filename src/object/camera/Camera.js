@@ -1,5 +1,9 @@
+define(function(require){
+
+var Node = require('object/Node');
+
 "use strict"
-function Camera(){
+var Camera = function(){
   Node.call(this);
 
   this.projectionMatrix = mat4.create();
@@ -45,3 +49,6 @@ p.uploadUniforms = function(shader){
   shader.mat4('u_ViewMatrix', this.viewMatrix);
   shader.mat4('u_InvViewMatrix', this.invertViewMatrix);
 }
+
+return Camera;
+});

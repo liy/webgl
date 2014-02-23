@@ -1,5 +1,11 @@
+define(function(require){
+
 "use strict"
-function Texture2D(){
+
+var Texture = require('library/texture/Texture');
+var Library = require('library/Library');
+
+var Texture2D = function Texture2D(){
   Texture.call(this, gl.TEXTURE_2D);
 
   // setup default parameters
@@ -13,9 +19,9 @@ function Texture2D(){
 var p = Texture2D.prototype = Object.create(Texture.prototype);
 
 p.load = function(url){
-  this.resource = Library.instance.get(url);
-  this.resource.loader.addEventListener(Event.COMPLETE, bind(this, this.onComplete));
-  this.resource.loader.load();
+  // this.resource = Library.get(url);
+  // this.resource.loader.addEventListener(Event.COMPLETE, bind(this, this.onComplete));
+  // this.resource.loader.load();
 }
 
 p.onComplete = function(e){
@@ -38,3 +44,7 @@ p.onComplete = function(e){
 
   this.unbind();
 }
+
+return Texture2D;
+
+});

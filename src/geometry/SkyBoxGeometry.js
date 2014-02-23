@@ -1,5 +1,9 @@
+define(function(require){
+
+var Geometry = require('geometry/Geometry');
+
 "use strict"
-function SkyBoxGeometry(width, height, depth){
+var SkyBoxGeometry = function(width, height, depth){
   Geometry.call(this);
 
   this.vertices = [
@@ -47,3 +51,7 @@ function SkyBoxGeometry(width, height, depth){
   ];
 }
 var p = SkyBoxGeometry.prototype = Object.create(Geometry.prototype);
+
+return SkyBoxGeometry;
+
+});

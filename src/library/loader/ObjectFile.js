@@ -1,5 +1,16 @@
+define(function(require){
+
+var Node = require('object/Node');
+var Geometry = require('geometry/Geometry');
+var Material = require('material/Material');
+var Mesh = require('object/Mesh');
+var Node = require('object/Node');
+var ObjectMatFile = require('library/loader/ObjectMatFile');
+var Face3 = require('object/Face3');
+var SkyBoxGeometry = require('geometry/SkyBoxGeometry')
+
 "use strict"
-function ObjectFile(){
+var ObjectFile = function(){
   //
 }
 var p = ObjectFile.prototype;
@@ -305,3 +316,6 @@ p.onload = function(e){
     this.resolve();
   }
 }
+
+return ObjectFile;
+});

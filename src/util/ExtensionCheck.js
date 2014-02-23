@@ -1,5 +1,7 @@
+define(function(require){
+
 "use strict"
-function ExtensionCheck(){
+var ExtensionCheck = function(){
 }
 
 ExtensionCheck.check = function(exts){
@@ -12,3 +14,7 @@ ExtensionCheck.check = function(exts){
     }
   }
 }
+
+return ExtensionCheck;
+
+})

@@ -1,5 +1,14 @@
+define(function(require){
+
+var Node = require('object/Node');
+var Mesh = require('object/Mesh');
+var Light = require('object/light/Light');
+var LightProbe = require('object/LightProbe');
+var DirectionalLight = require('object/light/DirectionalLight');
+var SkyBox = require('object/SkyBox');
+
 "use strict"
-function Scene(){
+var Scene = function(){
   Node.call(this);
 
   this.scene = this;
@@ -162,3 +171,7 @@ p.updateViewMatrix = function(camera){
     vec3.transformMat4(light._viewSpacePosition, light._position, camera.viewMatrix);
   }
 }
+
+return Scene;
+
+});

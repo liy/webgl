@@ -1,5 +1,9 @@
+define(function(requirejs){
+
+var RenderPass = require('core/pipeline/RenderPass');
+
 "use strict"
-function LightPass(params){
+var LightPass = function(params){
   RenderPass.call(this, params);
 }
 var p = LightPass.prototype = Object.create(RenderPass.prototype);
@@ -110,3 +114,7 @@ p.directionalLighting = function(scene, camera){
     light.lit(this.dirLightShader, camera);
   }
 }
+
+return LightPass;
+
+});

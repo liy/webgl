@@ -1,5 +1,12 @@
+define(function(require){
+
+var Material = require('material/Material');
+var Mesh = require('object/Mesh');
+var TextureCube = require('library/texture/TextureCube');
+var SkyBoxGeometry = require('geometry/SkyBoxGeometry');
+
 "use strict"
-function SkyBox(faces){
+var SkyBox = function(faces){
   Mesh.call(this, new SkyBoxGeometry(), new Material());
 
   var cubeTexture = new TextureCube();
@@ -49,3 +56,6 @@ p.createVertexArray = function(shader){
 
   gl.bindVertexArrayOES(null);
 }
+
+return SkyBox;
+});

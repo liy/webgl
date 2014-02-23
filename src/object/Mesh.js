@@ -1,5 +1,9 @@
+define(function(require){
+
+var Node = require('object/Node');
+
 "use strict"
-function Mesh(geometry, material){
+var Mesh = function(geometry, material){
   Node.call(this);
 
   // model view matrix
@@ -150,3 +154,6 @@ p.draw = function(shader){
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   gl.bindVertexArrayOES(null);
 }
+
+return Mesh;
+});

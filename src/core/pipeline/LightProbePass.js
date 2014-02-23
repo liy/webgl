@@ -1,5 +1,12 @@
+define(function(requirejs){
+
+var Shader = require('library/resource/Shader');
+var RenderPass = require('core/pipeline/RenderPass');
+var GeometryPass = require('core/pipeline/GeometryPass');
+var LightPass = require('core/pipeline/LightPass');
+
 "use strict"
-function LightProbePass(params){
+var LightProbePass = function(params){
   RenderPass.call(this, params);
 
   // note that, this.width and this.height are buffer size, not probe size.
@@ -11,7 +18,7 @@ function LightProbePass(params){
 
 
   // debugger shader
-  this.shader = new Shader('shader/probe/probe_debug.vert', 'shader/probe/probe_debug.frag');
+  this.shader = new Shader('src/shader/probe/probe_debug.vert', 'src/shader/probe/probe_debug.frag');
   // debugger buffer
   this.export.lightProbeDebugBuffer = RenderPass.createColorTexture(this.width, this.height);
 
@@ -37,7 +44,7 @@ p.createSharedPasses = function(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.shader = new Shader('shader/probe/probe_geometry.vert', 'shader/probe/probe_geometry.frag');
+        this.shader = new Shader('src/shader/probe/probe_geometry.vert', 'src/shader/probe/probe_geometry.frag');
 
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -62,10 +69,10 @@ p.createSharedPasses = function(){
 
     init: (function(depthBuffer){
       return function(){
-        this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
-        this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
+        this.pointLightShader = new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag');
+        this.dirLightShader = new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag');
         // a null shader for stencil update
-        this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
+        this.stencilShader = new Shader('src/shader/stencil.vert', 'src/shader/stencil.frag');
 
         // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
         this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -120,3 +127,7 @@ p.render = function(scene, camera){
 
   gl.depthMask(false);
 }
+
+return LightProbePass;
+
+});

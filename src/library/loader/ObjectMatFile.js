@@ -1,3 +1,6 @@
+define(function(require){
+
+
 "use strict"
 /**
  * http://www.sc.ehu.es/ccwgamoa/docencia/Material/FileFormats/wavefrontObj.htm
@@ -78,7 +81,7 @@ MatInfo.prototype.hasTexture = function(){
   return false;
 }
 
-function ObjectMatFile(){
+var ObjectMatFile = function(){
   // contains materials
   this.matInfoMap = Object.create(null);
 }
@@ -204,3 +207,6 @@ p.onload = function(e){
   if(this.callback)
     this.callback();
 }
+
+return ObjectMatFile
+});

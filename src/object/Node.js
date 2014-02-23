@@ -1,5 +1,8 @@
+define(function(require){
+
+
 "use strict"
-function Node(){
+var Node = function(){
   this._position = vec3.create();
   // eye space position, used by sorting function in renderer only.
   this._viewSpacePosition = vec3.create();
@@ -205,3 +208,7 @@ Object.defineProperty(p, "matrix", {
 
 Node.origin = vec3.create();
 Node.id = 0;
+
+return Node;
+
+});

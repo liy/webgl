@@ -1,5 +1,9 @@
+define(function(require){
+
 "use strict"
-function GeometryPass(params){
+var RenderPass = require('core/pipeline/RenderPass');
+
+var GeometryPass = function(params){
   RenderPass.call(this, params);
 }
 var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
@@ -35,3 +39,7 @@ p.render = function(scene, camera){
   // Other passes, such as lighting pass should only read the depth information.
   gl.depthMask(false);
 }
+
+return GeometryPass;
+
+});

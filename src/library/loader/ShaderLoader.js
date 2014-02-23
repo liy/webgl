@@ -1,5 +1,8 @@
-(function(window){
-function ShaderLoader(path, type){
+define(function(require){
+
+require('util/utils')
+
+var ShaderLoader = function(path, type){
   this.path = path;
   this.type = type;
 
@@ -23,5 +26,6 @@ p.onload = function(e){
     throw "could not compile shader:" + gl.getShaderInfoLog(this.data);
 };
 
-window.ShaderLoader = ShaderLoader;
-})(window)
+return ShaderLoader;
+
+});

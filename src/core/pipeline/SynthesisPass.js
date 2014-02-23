@@ -1,6 +1,10 @@
+define(function(requirejs){
+
+var RenderPass = require('core/pipeline/RenderPass');
+
 "use strict"
 // do light and albedo synthesis and draw sky box.
-function SynthesisPass(params){
+var SynthesisPass = function(params){
   RenderPass.call(this, params);
 
   this.createSynthesisBuffer();
@@ -96,3 +100,7 @@ p.createSynthesisBuffer = function(){
 
   gl.bindVertexArrayOES(null);
 }
+
+return SynthesisPass;
+
+});

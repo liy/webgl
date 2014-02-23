@@ -2,7 +2,7 @@
 <html>
 <head>
 <title></title>
-<script src="lib/stats.min.js"></script>
+<!-- <script src="lib/stats.min.js"></script>
 <script src='lib/gl-matrix.js'></script>
 <script src="lib/texture-util.js"></script>
 <script src='lib/dat.gui.min.js'></script>
@@ -63,8 +63,11 @@
 <script src="core/pipeline/ScreenPass.js"></script>
 <script src="core/DeferredRenderer.js"></script>
 <script src="core/ForwardRenderer.js"></script>
-<script src="core/pipeline/LightProbePass.js"></script>
+<script src="core/pipeline/LightProbePass.js"></script> -->
 
+<script src="lib/stats.min.js"></script>
+<script src="lib/gl-matrix.js"></script>
+<script src="lib/require.js" data-main="src/main"></script>
 </head>
 <body style="margin:0">
 <div id='info' style="display:none; width:800px; margin-top:100; margin-left:auto; margin-right:auto;">
@@ -82,7 +85,5 @@
   Search for webgl.enable-draft-extensions, and enable it.
 </div>
 <div id='pointer-locker'></div>
-<script src='main.js'></script>
-
 </body>
 </html>

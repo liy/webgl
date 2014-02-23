@@ -1,5 +1,9 @@
+define(function(require){
+
+var  Texture2D = require('library/texture/Texture2D');
+
 "use strict"
-function RenderPass(params){
+var RenderPass = function(params){
   // render targets, textures imported from parent passes, upstream.
   this.import = Object.create(null);
   // The render targets which the current RenderPass expose to other RenderPasses, downstream.
@@ -91,3 +95,7 @@ RenderPass.createDepthStencilRenderBuffer = function(w, h){
 
   return renderbuffer;
 }
+
+return RenderPass;
+
+});

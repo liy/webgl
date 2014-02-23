@@ -1,5 +1,9 @@
+define(function(require){
+
+var Light = require('object/light/Light');
+
 "use strict"
-function PointLight(radius){
+var  PointLight = function(radius){
   Light.call(this);
 
   this.radius = radius || 0.5;
@@ -72,3 +76,6 @@ p.lit = function(shader, camera){
   gl.drawElements(gl.TRIANGLES, this.geometry.indexData.length, gl.UNSIGNED_SHORT, 0);
   gl.bindVertexArrayOES(null);
 }
+
+return PointLight;
+});

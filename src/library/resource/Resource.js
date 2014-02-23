@@ -1,5 +1,8 @@
+
+define(function(require){
+
 "use strict"
-function Resource(url){
+var Resource = function(url){
   this.url = url;
   this.loader = this.createLoader(url);
 }
@@ -30,3 +33,7 @@ p.createLoader = function(url){
 p.refresh = function(){
   this.loader.load();
 }
+
+return Resource;
+
+});

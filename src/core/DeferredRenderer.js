@@ -1,5 +1,17 @@
+define(function(require){
+
+var ExtensionCheck = require('util/ExtensionCheck');
+var RenderPass = require('core/pipeline/RenderPass');
+var GeometryPass = require('core/pipeline/GeometryPass');
+var LightPass = require('core/pipeline/LightPass');
+var LightProbePass = require('core/pipeline/LightProbePass');
+var SynthesisPass = require('core/pipeline/SynthesisPass');
+var ScreenPass = require('core/pipeline/ScreenPass');
+var Shader = require('library/resource/Shader');
+
+
 "use strict"
-function DeferredRenderer(){
+var DeferredRenderer = function(){
   this.canvas = document.createElement('canvas');
   document.body.appendChild(this.canvas);
   this.canvas.width = window.innerWidth;
@@ -54,7 +66,7 @@ function DeferredRenderer(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
+        this.shader = new Shader('src/shader/geometry.vert', 'src/shader/geometry.frag');
 
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -79,10 +91,10 @@ function DeferredRenderer(){
 
     init: (function(depthBuffer){
       return function(){
-        this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
-        this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
+        this.pointLightShader = new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag');
+        this.dirLightShader = new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag');
         // a null shader for stencil update
-        this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
+        this.stencilShader = new Shader('src/shader/stencil.vert', 'src/shader/stencil.frag');
 
         // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
         this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -114,8 +126,8 @@ function DeferredRenderer(){
 
     init: (function(depthStencilRenderBuffer){
       return function(){
-        this.synthesisShader = new Shader('shader/synthesis.vert', 'shader/synthesis.frag');
-        this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
+        this.synthesisShader = new Shader('src/shader/synthesis.vert', 'src/shader/synthesis.frag');
+        this.skyBoxShader = new Shader('src/shader/skybox.vert', 'src/shader/skybox.frag');
 
         this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
 
@@ -133,7 +145,7 @@ function DeferredRenderer(){
     width: this.canvas.width,
     height: this.canvas.height,
     init: function(){
-      this.shader = new Shader('shader/screen.vert', 'shader/screen.frag');
+      this.shader = new Shader('src/shader/screen.vert', 'src/shader/screen.frag');
     }
   });
 
@@ -178,3 +190,6 @@ function sort(camera){
       return 0;
   }
 }
+
+return DeferredRenderer;
+});

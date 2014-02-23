@@ -1,6 +1,10 @@
+define(function(require){
+
+var Node = require('object/Node');
+
 "use strict"
 // by default position directional light, from (1, 1, 1)
-function Light(){
+var Light = function(){
   Node.call(this);
 
   // model view matrix
@@ -62,4 +66,8 @@ Object.defineProperty(p, "castShadow", {
   get: function(){
     return this._castShadow;
   }
+});
+
+return Light;
+
 });

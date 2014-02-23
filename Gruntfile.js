@@ -1,25 +1,44 @@
-// Gruntfile.js
+var glob = require('glob');
+
 module.exports = function(grunt){
+  var includeList = [];
+
+  function getModules(){
+      glob("**/*.js", {cwd: './src'}, function(err, files){
+        files.forEach(function(file){
+          includeList.push(file.replace(/\.js$/, ''));
+        });
+      });
+  };
+  getModules();
+
   grunt.initConfig({
-    // traceur: {
-    //   options: {
-    //     sourceMaps: true,
-    //     experimental:true,  // Turn on all experimental features
-    //     blockBinding: true // Turn on support for let and const
-    //   },
-    //   custom: {
-    //     files:{
-    //       'build/': ['js/**/*.js']
+    meta: {
+      banner: '/*use strict*/'
+    },
+
+    // requirejs: {
+    //   compile: {
+    //     options: {
+    //       baseUrl: 'src',
+    //       optimize: 'none',
+    //       mainConfigFile: "src/main.js",
+    //       name: "main",
+    //       out: "build/build.js"
     //     }
-    //   }
-    // }
-    traceur: {
-      build: {
-        src: '*.js',
-        dest: 'build/build.min.js'
-      }
-    }
+    //   },
+    // },
+
+    watch: {
+      files: ['src/**/*.js'],
+      tasks: ['requirejs']
+    },
+
   });
 
-  grunt.loadNpmTasks('grunt-traceur');
+  grunt.loadNpmTasks('grunt-contrib-watch');  
+  grunt.loadNpmTasks('grunt-notify');
+  grunt.loadNpmTasks('grunt-contrib-requirejs');
+
+  grunt.registerTask('default', ['watch']);
 }

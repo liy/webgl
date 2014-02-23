@@ -1,5 +1,9 @@
+define(function(requirejs){
+
+var RenderPass = require('core/pipeline/RenderPass');
+
 "use strict"
-function ScreenPass(params){
+var ScreenPass = function(params){
   RenderPass.call(this, params);
 
   this.createScreenBuffer();
@@ -51,3 +55,7 @@ p.createScreenBuffer = function(){
 
   gl.bindVertexArrayOES(null);
 }
+
+return ScreenPass;
+
+});

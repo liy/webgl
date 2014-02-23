@@ -1,5 +1,7 @@
+define(function(require){
+
 "use strict"
-function Geometry(){
+var Geometry = function(){
   // holding the vec3 objects
   this.vertices = [];
   this.normals = [];
@@ -177,3 +179,6 @@ p.computeTangent = function(){
 }
 
 Geometry.id = 0;
+
+return Geometry;
+});

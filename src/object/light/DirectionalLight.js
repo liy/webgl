@@ -1,5 +1,9 @@
+define(function(require){
+
+var Light = require('object/light/Light');
+
 "use strict"
-function DirectionalLight(){
+var DirectionalLight = function(){
   Light.call(this);
 
   this.direction = vec3.create();
@@ -71,3 +75,7 @@ p.lit = function(shader, camera){
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   gl.bindVertexArrayOES(null);
 }
+
+return DirectionalLight;
+
+});

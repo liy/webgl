@@ -1,5 +1,10 @@
+define(function(require){
+
+var Library = require('library/Library');
+var Texture = require('library/texture/Texture');
+
 "use strict"
-function TextureCube(){
+var TextureCube = function(){
   Texture.call(this, gl.TEXTURE_CUBE_MAP);
 
   this.bind();
@@ -20,7 +25,7 @@ p.load = function(faces){
   for(var i=0; i<faces.length; ++i){
     var faceInfo = faces[i];
 
-    this.resource = Library.instance.get(faceInfo.url);
+    this.resource = Library.get(faceInfo.url);
     this.resource.loader.addEventListener(Event.COMPLETE, (function(face, loader, texture){
       return function(e){
         if(loader.data)
@@ -58,3 +63,7 @@ p.setCubeMapData = function(data, face){
 
   this.unbind();
 }
+
+return TextureCube;
+
+});

@@ -1,5 +1,8 @@
+define(function(require){
+
 "use strict"
-function Texture(target){
+
+var Texture = function(target){
   this.glTexture = gl.createTexture();
 
   this.target = target;
@@ -55,3 +58,7 @@ Texture.unbind = function(unit){
 
 // id
 Texture.id = 0;
+
+return Texture;
+
+});
