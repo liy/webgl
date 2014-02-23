@@ -1,3 +1,12 @@
+"use strict";
+
+// requirejs configurations.
+({
+  paths: {
+
+  }
+});
+
 define(function(require){
 
 var DeferredRenderer = require('core/DeferredRenderer');
@@ -8,7 +17,7 @@ var PointLight = require('object/light/PointLight');
 var ObjectFile = require('library/loader/ObjectFile');
 var SkyBox = require('object/SkyBox');
 
-"use strict"
+
 var stats = new Stats();
 stats.setMode(0); // 0: fps, 1: ms
 // Align top-left

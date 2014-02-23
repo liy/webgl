@@ -1,33 +1,33 @@
-var glob = require('glob');
+// var glob = require('glob');
 
 module.exports = function(grunt){
-  var includeList = [];
+  // var includeList = [];
 
-  function getModules(){
-      glob("**/*.js", {cwd: './src'}, function(err, files){
-        files.forEach(function(file){
-          includeList.push(file.replace(/\.js$/, ''));
-        });
-      });
-  };
-  getModules();
+  // function getModules(){
+  //     glob("**/*.js", {cwd: './src'}, function(err, files){
+  //       files.forEach(function(file){
+  //         includeList.push(file.replace(/\.js$/, ''));
+  //       });
+  //     });
+  // };
+  // getModules();
 
   grunt.initConfig({
     meta: {
       banner: '/*use strict*/'
     },
 
-    // requirejs: {
-    //   compile: {
-    //     options: {
-    //       baseUrl: 'src',
-    //       optimize: 'none',
-    //       mainConfigFile: "src/main.js",
-    //       name: "main",
-    //       out: "build/build.js"
-    //     }
-    //   },
-    // },
+    requirejs: {
+      compile: {
+        options: {
+          baseUrl: 'src',
+          optimize: 'none',
+          mainConfigFile: "src/main.js",
+          name: "main",
+          out: "dist/release.js"
+        }
+      },
+    },
 
     watch: {
       files: ['src/**/*.js'],
@@ -40,5 +40,5 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-notify');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
 
-  grunt.registerTask('default', ['watch']);
+  grunt.registerTask('default', ['requirejs', 'watch']);
 }
