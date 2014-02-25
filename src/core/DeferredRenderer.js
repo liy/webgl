@@ -51,6 +51,16 @@ var DeferredRenderer = function(){
     }
   }
 
+  function validateNoneOfTheArgsAreUndefined(functionName, args) {
+    for (var ii = 0; ii < args.length; ++ii) {
+      if (args[ii] === undefined) {
+        console.error("undefined passed to gl." + functionName + "(" +
+                       WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
+      }
+    }
+  }
+  gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
+
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
@@ -107,8 +117,8 @@ var DeferredRenderer = function(){
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
-        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);        
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
+        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
       }
     })(depthBuffer)
   });
@@ -119,7 +129,7 @@ var DeferredRenderer = function(){
     passDepthStencilRenderBuffer: depthStencilRenderBuffer
   });
 
-  this.synthesisPass = new SynthesisPass({ 
+  this.synthesisPass = new SynthesisPass({
     inputs: [this.geometryPass, this.lightPass, LightProbePass.instance],
     width: this.bufferWidth,
     height: this.bufferHeight,
@@ -140,7 +150,7 @@ var DeferredRenderer = function(){
     })(depthStencilRenderBuffer)
   });
 
-  this.screenPass = new ScreenPass({ 
+  this.screenPass = new ScreenPass({
     inputs: [this.synthesisPass],
     width: this.canvas.width,
     height: this.canvas.height,

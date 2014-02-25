@@ -67,7 +67,7 @@ p.createSharedPasses = function(){
     width: this.defaultProbeWidth,
     height: this.defaultProbeHeight,
 
-    init: (function(depthBuffer){
+    init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
         this.pointLightShader = new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag');
         this.dirLightShader = new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag');
@@ -85,10 +85,10 @@ p.createSharedPasses = function(){
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
         gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
       }
-    })(this.depthBuffer)
+    })(this.depthBuffer, this.depthStencilRenderBuffer)
   });
 }
 
