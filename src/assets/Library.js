@@ -38,7 +38,7 @@ define(function(require){
   }
 
   Library.get = function(){
-    
+
   }
 
   return Library;

@@ -1,7 +1,7 @@
 define(function(require){
 
-var Texture = require('library/texture/Texture');
-var Texture2D = require('library/texture/Texture2D');
+var Texture = require('texture/Texture');
+var Texture2D = require('texture/Texture2D');
 
 "use strict"
 // TODO: FIXME: Match the uniform names? So I can easily traverse the object to expose uniform entry points?(Later for auto detect uniforms in GUI application)

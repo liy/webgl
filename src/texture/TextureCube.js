@@ -1,7 +1,7 @@
 define(function(require){
 
-var Library = require('library/Library');
-var Texture = require('library/texture/Texture');
+var Library = require('assets/Library');
+var Texture = require('texture/Texture');
 
 "use strict"
 var TextureCube = function(){

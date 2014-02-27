@@ -1,19 +1,28 @@
 define(function(require){
 
-var Resource = require('library/resource/Resource');
-var ShaderLoader = require('library/loader/ShaderLoader')
+var Resource = require('assets/resource/Resource');
+var ShaderLoader = require('assets/loader/ShaderLoader')
 
 "use strict"
 var Shader = function(vertPath, fragPath){
   this.a = this.attributes = {};
   this.u = this.uniforms = {};
 
-  this.vertPath = vertPath;
-  this.fragPath = fragPath;
+  this.validateLocation = false;
+  this.logs = Object.create(null);
 
-  var vertLoader = new ShaderLoader(vertPath, gl.VERTEX_SHADER);
-  var fragLoader = new ShaderLoader(fragPath, gl.FRAGMENT_SHADER);
+  this.vertLoader = new ShaderLoader(vertPath, gl.VERTEX_SHADER);
+  this.fragLoader = new ShaderLoader(fragPath, gl.FRAGMENT_SHADER);
+}
+var p = Shader.prototype = Object.create(Resource.prototype);
 
+p.load = function(){
+  return Promise.all([this.vertLoader.load(), this.fragLoader.load()])
+                .then(createProgram.bind(this));
+}
+
+p.createProgram = function(){
+  console.log('create program')
   this.program = gl.createProgram();
   gl.attachShader(this.program, vertLoader.data);
   gl.attachShader(this.program, fragLoader.data);
@@ -25,11 +34,7 @@ var Shader = function(vertPath, fragPath){
 
   this.locateAttributes();
   this.locateUniforms();
-
-  this.validateLocation = false;
-  this.logs = Object.create(null);
 }
-var p = Shader.prototype = Object.create(Resource.prototype);
 
 p.locateAttributes = function(){
   var count = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);

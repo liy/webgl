@@ -1,6 +1,6 @@
 define(function(requirejs){
 
-var Shader = require('library/resource/Shader');
+var Shader = require('assets/resource/Shader');
 var RenderPass = require('core/pipeline/RenderPass');
 var GeometryPass = require('core/pipeline/GeometryPass');
 var LightPass = require('core/pipeline/LightPass');

@@ -5,7 +5,7 @@ var Geometry = require('geometry/Geometry');
 var Material = require('material/Material');
 var Mesh = require('object/Mesh');
 var Node = require('object/Node');
-var ObjectMatFile = require('library/loader/ObjectMatFile');
+var ObjectMatFile = require('assets/loader/ObjectMatFile');
 var Face3 = require('object/Face3');
 var SkyBoxGeometry = require('geometry/SkyBoxGeometry')
 
@@ -47,7 +47,7 @@ p.load = function(url, callback){
       reject(err);
     }
     xhr.onload = bind(this, this.onload);
-    
+
     xhr.send();
   }))
 }

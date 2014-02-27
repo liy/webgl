@@ -7,7 +7,7 @@ var LightPass = require('core/pipeline/LightPass');
 var LightProbePass = require('core/pipeline/LightProbePass');
 var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
-var Shader = require('library/resource/Shader');
+var Shader = require('assets/resource/Shader');
 
 
 "use strict"

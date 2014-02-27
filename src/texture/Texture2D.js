@@ -2,8 +2,8 @@ define(function(require){
 
 "use strict"
 
-var Texture = require('library/texture/Texture');
-var Library = require('library/Library');
+var Texture = require('texture/Texture');
+var Library = require('assets/Library');
 
 var Texture2D = function Texture2D(){
   Texture.call(this, gl.TEXTURE_2D);

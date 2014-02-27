@@ -2,7 +2,7 @@ define(function(require){
 
 var Material = require('material/Material');
 var Mesh = require('object/Mesh');
-var TextureCube = require('library/texture/TextureCube');
+var TextureCube = require('texture/TextureCube');
 var SkyBoxGeometry = require('geometry/SkyBoxGeometry');
 
 "use strict"

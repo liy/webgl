@@ -1,6 +1,6 @@
 define(function(require){
 
-var  Texture2D = require('library/texture/Texture2D');
+var  Texture2D = require('texture/Texture2D');
 
 "use strict"
 var RenderPass = function(params){
