@@ -48,17 +48,19 @@ function bind(scope, func) {
     };
 }
 
-/*
-  http://blog.bripkens.de/2011/05/maintaining-and-testing-scope-in-javascript/
-  Don't konw which way is better... probably, this is slower than former function approach.
-*/
-Function.prototype.bind = function(scope){
-  var func = this;
-  return function(){
-    return func.apply(scope, arguments);
+/**
+ * http://blog.bripkens.de/2011/05/maintaining-and-testing-scope-in-javascript/
+ * Don't konw which way is better... probably, this is slower than former function approach.
+ * The native implementation should not be override, so check bind exist or not before overrding.
+ */
+if(Function.prototype.bind == undefined) {
+  Function.prototype.bind = function(scope){
+    var func = this;
+    return function(){
+      return func.apply(scope, arguments);
+    };
   };
-};
-
+}
 
 
 
@@ -107,7 +109,7 @@ function get(url, responseType){
     xhr.onerror = function(error){
       reject(new Error('Network error', error))
     }
-    
+
     xhr.send();
   });
 }

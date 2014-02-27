@@ -11,29 +11,34 @@ var Shader = function(vertPath, fragPath){
   this.validateLocation = false;
   this.logs = Object.create(null);
 
+  this.program = gl.createProgram();
+
   this.vertLoader = new ShaderLoader(vertPath, gl.VERTEX_SHADER);
   this.fragLoader = new ShaderLoader(fragPath, gl.FRAGMENT_SHADER);
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
-p.load = function(){
-  return Promise.all([this.vertLoader.load(), this.fragLoader.load()])
-                .then(createProgram.bind(this));
+p.load = function(vertPath, fragPath){
+  // first load vertex and fragment shader, then create the program
+  return Promise.all([this.vertLoader.load(vertPath), this.fragLoader.load(fragPath)])
+                .then(this.createProgram.bind(this));
 }
 
 p.createProgram = function(){
-  console.log('create program')
-  this.program = gl.createProgram();
-  gl.attachShader(this.program, vertLoader.data);
-  gl.attachShader(this.program, fragLoader.data);
-  gl.linkProgram(this.program);
+  return new Promise(function(resolve, reject){
+    gl.attachShader(this.program, this.vertLoader.data);
+    gl.attachShader(this.program, this.fragLoader.data);
+    gl.linkProgram(this.program);
 
-  var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
-  if (!success)
-    throw ("shader failed to link:" + gl.getProgramInfoLog(this.program));
+    var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
+    if (!success)
+      throw "shader failed to link:" + gl.getProgramInfoLog(this.program);
 
-  this.locateAttributes();
-  this.locateUniforms();
+    this.locateAttributes();
+    this.locateUniforms();
+
+    resolve(this);
+  }.bind(this));
 }
 
 p.locateAttributes = function(){

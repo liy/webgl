@@ -18,7 +18,7 @@ p.load = function(path){
 p.resolver = function(resolve, reject){
   this.resolve = resolve;
 
-  this.xhr.onload = bind(this, function(){
+  this.xhr.onload = function(){
     if(this.xhr.status === 200){
       this.source = this.xhr.responseText;
 
@@ -26,18 +26,16 @@ p.resolver = function(resolve, reject){
       gl.shaderSource(this.data, this.source);
       gl.compileShader(this.data);
 
-      console.log('shader created', this)
-
       // Check if it compiled
-      // var success = gl.getShaderParameter(this.data, gl.COMPILE_STATUS);
-      // if (!success)
-      //   console.error("could not compile shader:" + gl.getShaderInfoLog(this.data));
+      var success = gl.getShaderParameter(this.data, gl.COMPILE_STATUS);
+      if (!success)
+        throw "could not compile shader:" + gl.getShaderInfoLog(this.data);
 
       this.resolve(this);
     }
     else
       reject(new Error(this.xhr.statusText));
-  });
+  }.bind(this);
 
   this.xhr.onerror = function(error){
     reject(new Error('Network error', error))
