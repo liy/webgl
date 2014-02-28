@@ -184,6 +184,7 @@ p.onload = function(e){
         url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.albedo = url;
 
+        Library.resourceStore[url] = new ImageResource(url);
         break;
       case 'map_Ks':
         // specular texture
