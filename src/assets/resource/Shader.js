@@ -28,10 +28,7 @@ p.load = function(vertPath, fragPath){
   // first load vertex and fragment shader, then link the program
   return Promise.all([get(this.vertexShader.url), get(this.fragmentShader.url)])
                 .then(this.compile.bind(this))
-                .then(this.link.bind(this))
-                .catch(function(err){
-                  console.error(err);
-                });
+                .then(this.link.bind(this));
 }
 
 p.compile = function(responses){
@@ -51,7 +48,8 @@ p.compile = function(responses){
   if (!success)
     throw "Could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
 
-  return Promise.resolve([this.vertexShader, this.fragmentShader]);
+  // pass to link function
+  return [this.vertexShader, this.fragmentShader];
 }
 
 p.link = function(shaders){
@@ -61,14 +59,13 @@ p.link = function(shaders){
 
   var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
   if (!success)
-    throw "shader failed to link:" + gl.getProgramInfoLog(this.program);
+    throw "Failed to link shader:" + gl.getProgramInfoLog(this.program);
 
   this.locateAttributes();
   this.locateUniforms();
 
-  // since this is not a asynchronous call, just wrap the return value into a resolved Promise so
-  // we can chain it.
-  return Promise.resolve(this);
+  // this is not a asynchronous call just return a value.
+  return this;
 }
 
 p.locateAttributes = function(){
