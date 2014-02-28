@@ -18,18 +18,16 @@ var Shader = function(vertPath, fragPath){
 
   this.vertexShader.url = vertPath;
   this.fragmentShader.url = fragPath;
-}
-var p = Shader.prototype = Object.create(Resource.prototype);
-
-p.load = function(vertPath, fragPath){
-  this.vertexShader.url = vertPath || this.vertexShader.url;
-  this.fragmentShader.url = fragPath || this.fragmentShader.url;
 
   // first load vertex and fragment shader, then link the program
-  return Promise.all([get(this.vertexShader.url), get(this.fragmentShader.url)])
-                .then(this.compile.bind(this))
-                .then(this.link.bind(this));
+  this.ready = Promise.all([get(vertPath), get(fragPath)])
+                        .then(this.compile.bind(this))
+                        .then(this.link.bind(this))
+                        .catch(function(err){
+                          console.error(err);
+                        });
 }
+var p = Shader.prototype = Object.create(Resource.prototype);
 
 p.compile = function(responses){
   this.vertexShader.source = responses[0];

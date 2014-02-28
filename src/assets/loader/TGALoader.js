@@ -1,31 +1,39 @@
-"use strict"
-function TGALoader(url){
-  EventDispatcher.call(this);
+/*
+ * Copyright (c) 2012 Brandon Jones
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ *    1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ *
+ *    2. Altered source versions must be plainly marked as such, and must not
+ *    be misrepresented as being the original software.
+ *
+ *    3. This notice may not be removed or altered from any source
+ *    distribution.
+ */
+define(function(require){
 
+"use strict"
+var TGALoader = function(url){
   this.url = url;
   this.data = null;
   this.width = NaN;
   this.height = NaN;
+
+  this.ready = get(url, "arraybuffer").then(this.decodeTGA.bind(this));
 }
-var p = TGALoader.prototype = Object.create(EventDispatcher.prototype);
+var p = TGALoader.prototype;
 
-p.load = function(callback){
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', this.url, true);
-  xhr.responseType = "arraybuffer";
-  xhr.onload = bind(this, function(e){
-    if(e.target.status == 200)
-      this._decodeTGA(e.target.response);
-
-    this.dispatchEvent(new Event(Event.COMPLETE));
-
-    if(callback)
-      callback();
-  });
-  xhr.send(null);
-}
-
-p._decodeTGA = function(arrayBuffer){
+p.decodeTGA = function(arrayBuffer){
   var content = new Uint8Array(arrayBuffer),
       contentOffset = 18 + content[0],
       imagetype = content[2], // 2 = rgb, only supported format for now
@@ -37,20 +45,15 @@ p._decodeTGA = function(arrayBuffer){
       bytesPerRow = width * 4,
       data, i, j, x, y;
 
-  if(!width || !height) {
-    console.error("Invalid dimensions");
-    return null;
-  }
+  if(!width || !height)
+    throw "Invalid dimensions";
 
-  if (imagetype != 2) {
-    console.error("Unsupported TGA format:", imagetype);
-    return null;
-  }
+  if (imagetype != 2)
+    throw "Unsupported TGA format:" + imagetype;
 
   data = new Uint8Array(width * height * 4);
   i = contentOffset;
 
-  // Oy, with the flipping of the rows...
   for(y = height-1; y >= 0; --y) {
     for(x = 0; x < width; ++x, i += bytesPerPixel) {
       j = (x * 4) + (y * bytesPerRow);
@@ -62,6 +65,12 @@ p._decodeTGA = function(arrayBuffer){
   }
 
   this.data = data;
-  this.width = this.data.width = width;
-  this.height = this.data.height = height;
+  this.width = width;
+  this.height = height;
+
+  return this;
 }
+
+return TGALoader;
+
+});

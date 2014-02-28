@@ -111,7 +111,7 @@ p.onload = function(e){
 
   var currentMtl;
 
-  var chunks, colour;
+  var chunks, colour, url;
   var len = lines.length;
   for(var i=0; i<len; ++i){
     var line = lines[i].trim();
@@ -176,10 +176,14 @@ p.onload = function(e){
         currentMtl.emissiveColor = [parseFloat(strs[0]), parseFloat(strs[1]), parseFloat(strs[2])];
         break;
       case 'map_Ka':
-        currentMtl.imageMap.ambient = this.dir + chunks[chunks.length-1];
+        url = this.dir + chunks[chunks.length-1];
+        currentMtl.imageMap.ambient = url;
+        Library.resourceStore[url] = new ImageResource(url);
         break;
       case 'map_Kd':
-        currentMtl.imageMap.albedo = this.dir + chunks[chunks.length-1];
+        url = this.dir + chunks[chunks.length-1];
+        currentMtl.imageMap.albedo = url;
+
         break;
       case 'map_Ks':
         // specular texture

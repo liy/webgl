@@ -1,25 +1,28 @@
-"use strict"
-function NativeLoader(url){
-  EventDispatcher.call(this);
+define(function(require){
 
+"use strict"
+var NativeLoader = function(url){
   this.url = url;
   this.data = null;
-  this.width = NaN;
-  this.height = NaN;
+
+  this.ready = new Promise(function(resolve, reject){
+
+    var image = this.data = new Image();
+    image.onload = function(e){
+      this.width = image.width;
+      this.height = image.height;
+
+      resolve(this);
+    }.bind(this);
+    image.onerror = function(err){
+      reject(this);
+    }.bind(this);
+
+    image.src = this.url;
+  }.bind(this));
 }
-var p = NativeLoader.prototype = Object.create(EventDispatcher.prototype);
+var p = NativeLoader.prototype;
 
-p.load = function(callback){
-  var image = new Image();
-  image.onload = bind(this, function(){
-    this.data = image;
-    this.width = image.width;
-    this.height = image.width;
+return NativeLoader;
 
-    this.dispatchEvent(new Event(Event.COMPLETE));
-
-    if(callback)
-      callback();
-  });
-  image.src = this.url;
-}
+});

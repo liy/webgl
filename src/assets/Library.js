@@ -37,8 +37,30 @@ define(function(require){
     }
   }
 
-  Library.get = function(){
+  Library.get = function(url){
+    return resourceStore[url] || this._createResource(url);
+  }
 
+  Library.load = function(){
+
+  }
+
+  Library._createResource = function(url){
+    var dotIndex = url.lastIndexOf(".");
+    var ext = url.substring(index+1);
+    var name = url.substring(0, index);
+
+    switch(ext.toLowerCase()){
+      case "jpg":
+      case "jpeg":
+      case "png":
+      case "gif":
+      case "bmp":
+      case "tga":
+        return new ImageResource(url);
+      case "shader":
+        return new Shader(name+'.vert', name+'.frag');
+    }
   }
 
   return Library;
