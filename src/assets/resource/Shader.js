@@ -25,20 +25,20 @@ p.load = function(vertPath, fragPath){
 }
 
 p.createProgram = function(){
-  return new Promise(function(resolve, reject){
-    gl.attachShader(this.program, this.vertLoader.data);
-    gl.attachShader(this.program, this.fragLoader.data);
-    gl.linkProgram(this.program);
+  gl.attachShader(this.program, this.vertLoader.data);
+  gl.attachShader(this.program, this.fragLoader.data);
+  gl.linkProgram(this.program);
 
-    var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
-    if (!success)
-      throw "shader failed to link:" + gl.getProgramInfoLog(this.program);
+  var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
+  if (!success)
+    throw "shader failed to link:" + gl.getProgramInfoLog(this.program);
 
-    this.locateAttributes();
-    this.locateUniforms();
+  this.locateAttributes();
+  this.locateUniforms();
 
-    resolve(this);
-  }.bind(this));
+  // since this is not a asynchronous call, just wrap the return value into a resolved Promise so
+  // we can chain it.
+  return Promise.resolve(this);
 }
 
 p.locateAttributes = function(){
