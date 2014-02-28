@@ -1,7 +1,8 @@
 define(function(require){
 
+require('util/utils');
 var Resource = require('assets/resource/Resource');
-var ShaderLoader = require('assets/loader/ShaderLoader')
+
 
 "use strict"
 var Shader = function(vertPath, fragPath){
@@ -12,21 +13,50 @@ var Shader = function(vertPath, fragPath){
   this.logs = Object.create(null);
 
   this.program = gl.createProgram();
+  this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-  this.vertLoader = new ShaderLoader(vertPath, gl.VERTEX_SHADER);
-  this.fragLoader = new ShaderLoader(fragPath, gl.FRAGMENT_SHADER);
+  this.vertexShader.url = vertPath;
+  this.fragmentShader.url = fragPath;
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
 p.load = function(vertPath, fragPath){
-  // first load vertex and fragment shader, then create the program
-  return Promise.all([this.vertLoader.load(vertPath), this.fragLoader.load(fragPath)])
-                .then(this.createProgram.bind(this));
+  this.vertexShader.url = vertPath || this.vertexShader.url;
+  this.fragmentShader.url = fragPath || this.fragmentShader.url;
+
+  // first load vertex and fragment shader, then link the program
+  return Promise.all([get(this.vertexShader.url), get(this.fragmentShader.url)])
+                .then(this.compile.bind(this))
+                .then(this.link.bind(this))
+                .catch(function(err){
+                  console.error(err);
+                });
 }
 
-p.createProgram = function(){
-  gl.attachShader(this.program, this.vertLoader.data);
-  gl.attachShader(this.program, this.fragLoader.data);
+p.compile = function(responses){
+  this.vertexShader.source = responses[0];
+  gl.shaderSource(this.vertexShader, responses[0]);
+  gl.compileShader(this.vertexShader);
+
+  var success = gl.getShaderParameter(this.vertexShader, gl.COMPILE_STATUS);
+  if (!success)
+    throw "Could not compile vertex shader:" + gl.getShaderInfoLog(this.vertexShader);
+
+  this.fragmentShader.source = responses[1];
+  gl.shaderSource(this.fragmentShader, responses[1]);
+  gl.compileShader(this.fragmentShader);
+
+  success = gl.getShaderParameter(this.fragmentShader, gl.COMPILE_STATUS);
+  if (!success)
+    throw "Could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
+
+  return Promise.resolve([this.vertexShader, this.fragmentShader]);
+}
+
+p.link = function(shaders){
+  gl.attachShader(this.program, shaders[0]);
+  gl.attachShader(this.program, shaders[1]);
   gl.linkProgram(this.program);
 
   var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
