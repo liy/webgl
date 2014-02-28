@@ -36,7 +36,7 @@ p.compile = function(responses){
 
   var success = gl.getShaderParameter(this.vertexShader, gl.COMPILE_STATUS);
   if (!success)
-    throw "Could not compile vertex shader:" + gl.getShaderInfoLog(this.vertexShader);
+    throw this.vertexShader.url + " could not compile vertex shader:" + gl.getShaderInfoLog(this.vertexShader);
 
   this.fragmentShader.source = responses[1];
   gl.shaderSource(this.fragmentShader, responses[1]);
@@ -44,7 +44,7 @@ p.compile = function(responses){
 
   success = gl.getShaderParameter(this.fragmentShader, gl.COMPILE_STATUS);
   if (!success)
-    throw "Could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
+    throw this.fragmentShader.url + " could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
 
   // pass to link function
   return [this.vertexShader, this.fragmentShader];

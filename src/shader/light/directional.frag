@@ -1,3 +1,9 @@
+// needs to specify this line in order to use multiple render targets: gl_FragData[]
+// #extension GL_EXT_draw_buffers : require
+#ifdef GL_EXT_draw_buffers
+  #extension GL_EXT_draw_buffers : require
+#endif
+
 precision highp float;
 
 const float pi = 3.1415926;
@@ -50,7 +56,7 @@ float unpack (vec4 colour)
  * Using eye ray to recover the eye space position, avoiding inverse projection matrix computation, and transformation.
  */
 vec3 getEyeSpacePosition(){
-  // depth texture value is [0, 1], the ray's z is at far plane. Think depth texture value as a ratio for eye ray's z component. 
+  // depth texture value is [0, 1], the ray's z is at far plane. Think depth texture value as a ratio for eye ray's z component.
   // So just need to directly scale eye ray by the normalized(in range of [0, 1]) depth value.
   return v_EyeRay * unpack(texture2D(depthBuffer, v_TexCoord));
 }

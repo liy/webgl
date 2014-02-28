@@ -1,7 +1,9 @@
 define(function(require){
 
-  "use strict"
+  var ImageResource = require('assets/resource/ImageResource');
+  var Shader = require('assets/resource/Shader');
 
+  "use strict"
   var Library = {
     init: function(){
       // default resourceStore
@@ -12,7 +14,7 @@ define(function(require){
        * Shader resource key extension is shader
        * Sound resource key will be have its corresponding extension
        */
-      resourceStore = {
+      this.resourceStore = {
         'posx.jpg': new ImageResource('../webgl-meshes/cube_map/posx.jpg'),
         'negx.jpg': new ImageResource('../webgl-meshes/cube_map/negx.jpg'),
         'posy.jpg': new ImageResource('../webgl-meshes/cube_map/posy.jpg'),
@@ -21,18 +23,18 @@ define(function(require){
         'negz.jpg': new ImageResource('../webgl-meshes/cube_map/negz.jpg'),
 
 
-        'directional.shader': new Shader('shader/light/directional.vert', 'shader/light/directional.frag'),
-        'point.shader': new Shader('shader/light/point.vert', 'shader/light/point.frag'),
+        'directional.shader': new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag'),
+        'point.shader': new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag'),
 
-        'geometry.shader': new Shader('shader/geometry.vert', 'shader/geometry.frag'),
-        'screen.shader': new Shader('shader/screen.vert', 'shader/screen.frag'),
-        'skybox.shader': new Shader('shader/skybox.vert', 'shader/skybox.frag'),
-        'stencil.shader': new Shader('shader/stencil.vert', 'shader/stencil.frag'),
-        'synthesis.shader': new Shader('shader/synthesis.vert', 'shader/synthesis.frag'),
+        'geometry.shader': new Shader('src/shader/geometry.vert', 'src/shader/geometry.frag'),
+        'screen.shader': new Shader('src/shader/screen.vert', 'src/shader/screen.frag'),
+        'skybox.shader': new Shader('src/shader/skybox.vert', 'src/shader/skybox.frag'),
+        'stencil.shader': new Shader('src/shader/stencil.vert', 'src/shader/stencil.frag'),
+        'synthesis.shader': new Shader('src/shader/synthesis.vert', 'src/shader/synthesis.frag'),
 
-        'probe_debug.shader': new Shader('shader/probe/probe_debug.vert', 'shader/probe/probe_debug.frag'),
-        'probe_geometry.shader': new Shader('shader/probe/probe_geometry.vert', 'shader/probe/probe_geometry.frag'),
-        'probe_synthesis.shader': new Shader('shader/probe/probe_synthesis.vert', 'shader/probe/probe_synthesis.frag')
+        'probe_debug.shader': new Shader('src/shader/probe/probe_debug.vert', 'src/shader/probe/probe_debug.frag'),
+        'probe_geometry.shader': new Shader('src/shader/probe/probe_geometry.vert', 'src/shader/probe/probe_geometry.frag'),
+        'probe_synthesis.shader': new Shader('src/shader/probe/probe_synthesis.vert', 'src/shader/probe/probe_synthesis.frag')
       };
     }
   }
@@ -42,7 +44,12 @@ define(function(require){
   }
 
   Library.load = function(){
-
+    var resources = [];
+    for(var key in Library.resourceStore){
+      resources.push(Library.resourceStore[key]);
+    }
+    console.log(resources);
+    return Promise.all(resources);
   }
 
   Library._createResource = function(url){
