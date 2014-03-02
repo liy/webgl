@@ -178,32 +178,41 @@ p.onload = function(e){
       case 'map_Ka':
         url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.ambient = url;
-        Library.resourceStore[url] = new ImageResource(url);
+        Library.get(url);
         break;
       case 'map_Kd':
         url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.albedo = url;
-
-        Library.resourceStore[url] = new ImageResource(url);
+        Library.get(url);
         break;
       case 'map_Ks':
         // specular texture
-        currentMtl.imageMap.specular = this.dir + chunks[chunks.length-1];
+        url = this.dir + chunks[chunks.length-1];
+        currentMtl.imageMap.specular = url;
+        Library.get(url);
         break;
       case 'map_Ns':
         // shininess texture
+        url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.shininess = this.dir + chunks[chunks.length-1];
+        Library.get(url);
         break;
       case 'map_d':
         // alpha texture
+        url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.alpha = this.dir + chunks[chunks.length-1];
+        Library.get(url);
         break;
       case 'map_bump':
       case 'bump':
+        url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.bump = this.dir + chunks[chunks.length-1];
+        Library.get(url)
         break;
       case 'map_normal':
+        url = this.dir + chunks[chunks.length-1];
         currentMtl.imageMap.normal = this.dir + chunks[chunks.length-1];
+        Library.get(url);
         break;
     }
   }
