@@ -5,7 +5,7 @@ var Resource = require('assets/resource/Resource');
 
 
 "use strict"
-var Shader = function(vertPath, fragPath){
+var Shader = function(){
   this.a = this.attributes = {};
   this.u = this.uniforms = {};
 
@@ -15,19 +15,28 @@ var Shader = function(vertPath, fragPath){
   this.program = gl.createProgram();
   this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
   this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+}
+var p = Shader.prototype = Object.create(Resource.prototype);
 
+p.load = function(vertPath, fragPath){
   this.vertexShader.url = vertPath;
   this.fragmentShader.url = fragPath;
 
   // first load vertex and fragment shader, then link the program
-  this.ready = Promise.all([get(vertPath), get(fragPath)])
+  return Promise.all([get(vertPath), get(fragPath)])
                         .then(this.compile.bind(this))
                         .then(this.link.bind(this))
                         .catch(function(err){
                           console.error(err);
                         });
 }
-var p = Shader.prototype = Object.create(Resource.prototype);
+
+p.import = function(vertSource, fragSource){
+  this.compile([vertSource, fragSource]);
+  this.link([this.vertexShader, this.fragmentShader]);
+
+  return this;
+}
 
 p.compile = function(responses){
   this.vertexShader.source = responses[0];
