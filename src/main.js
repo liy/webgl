@@ -49,13 +49,78 @@ var vaoExt = gl.getExtension("OES_vertex_array_object");
 //   console.log('resources loaded', resources);
 // })
 
-// var shader = new Shader();
-// shader.import(require('text!shader/geometry.vert'), require('text!shader/geometry.frag'));
 
-var regex = /[bc]+/
 
-var str = 'abcdefg, abcdefg';
 
-console.log(regex.exec(str));
+var uniformRegex = /uniform\s+(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube)\s+([\w\,]+)?(\[.*?\])?\s*(:\s*([\S\s]+?))?;/g;
+var attributeRegex = /attribute\s+(float|int|vec2|vec3|vec4)\s+(\w*)\s*(:\s*(\w+))?;/g;
+var defineRegex = /#define\s+(\w+)?(\s+[\w-.]+)?\s*\n/g;
+
+var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
+// attribute vec3 position : POSITION;
+var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
+var defineRegex = /#define +(\w+)/
+
+var uniformTypeMap = {
+    "bool" : "1i",
+    "int" : "1i",
+    "sampler2D" : "t",
+    "samplerCube" : "t",
+    "float" : "1f",
+    "vec2" : "2f",
+    "vec3" : "3f",
+    "vec4" : "4f",
+    "ivec2" : "2i",
+    "ivec3" : "3i",
+    "ivec4" : "4i",
+    "mat2" : "m2",
+    "mat3" : "m3",
+    "mat4" : "m4"
+}
+var uniformValueConstructor = {
+    'bool' : function() {return true;},
+    'int' : function() {return 0;},
+    'float' : function() {return 0;},
+    'sampler2D' : function() {return null;},
+    'samplerCube' : function() {return null;},
+
+    'vec2' : function() {return [0, 0];},
+    'vec3' : function() {return [0, 0, 0];},
+    'vec4' : function() {return [0, 0, 0, 0];},
+
+    'ivec2' : function() {return [0, 0];},
+    'ivec3' : function() {return [0, 0, 0];},
+    'ivec4' : function() {return [0, 0, 0, 0];},
+
+    'mat2' : function() {return mat2.create();},
+    'mat3' : function() {return mat3.create();},
+    'mat4' : function() {return mat4.create();},
+
+    'array' : function() {return [];}
+}
+
+var testVertSource = require('text!shader/test.vert');
+
+var _uniformList = [];
+var _textureStatus = [];
+
+testVertSource.replace(attributeRegex, parseAttribute);
+
+function parseUniform(str, type, symbol, array, semantic){
+  console.log(' |str| ' + str + ' |type| ' + type + ' |symbol| ' + symbol + ' |array| ' + array + ' |semantic| ' + semantic);
+}
+
+function parseAttribute(str, type, symbol, semantic){
+  console.log(' |str| ' + str + ' |type| ' + type + ' |symbol| ' + symbol + ' |semantic| ' + semantic);
+}
+
+function parseDefine(str) {
+
+}
+
+
+console.log(parseFloat('12/3'));
+
+
 
 });

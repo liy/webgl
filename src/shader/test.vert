@@ -1,19 +1,40 @@
-precision mediump float;
+@export buildin.basic.vertex
 
-attribute vec3 a_Vertex;
-attribute vec3 a_Color;
+uniform mat4 worldViewProjection : WORLDVIEWPROJECTION;
 
-uniform mat4 u_ProjectionMatrix;
-uniform mat4 u_ViewMatrix;
+uniform vec2 uvRepeat : [1.0, 1.0];
 
-varying vec3 v_Color;
+//attribute vec2 texcoord : TEXCOORD_0;
+attribute vec3 position : POSITION;
 
-/**
- * final composition
- */
-void main(){
-  vec4 clipSpace = u_ProjectionMatrix * vec4(a_Vertex, 1.0);
-  gl_Position = vec4(clipSpace.xy/clipSpace.w, 0.0, 1.0);
-  // gl_Position = vec4(a_Vertex, 1.0);
-  v_Color = a_Color;
+attribute vec3 barycentric;
+
+#ifdef SKINNING
+attribute vec3 weight : WEIGHT;
+attribute vec4 joint : JOINT;
+
+uniform mat4 skinMatrix[JOINT_NUMBER]: SKIN_MATRIX;
+#endif
+
+varying vec2 v_Texcoord;
+varying vec3 v_Barycentric;
+
+void main()
+{
+
+    vec3 skinnedPosition = position;
+
+    #ifdef SKINNING
+
+        @import buildin.chunk.skin_matrix
+
+        skinnedPosition = (skinMatrixWS * vec4(position, 1.0)).xyz;
+    #endif
+
+    v_Texcoord = texcoord * uvRepeat;
+    v_Barycentric = barycentric;
+
+    gl_Position = worldViewProjection * vec4(skinnedPosition, 1.0);
 }
+
+@end
