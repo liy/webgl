@@ -32,9 +32,10 @@ var Shader = function(vertSource, fragSource){
   this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
   this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-  this.preprocess(vertSource, fragSource);
-
+  // static defines for the shader
   this.defines = Object.create(null);
+
+  this.preprocess(vertSource, fragSource);
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
