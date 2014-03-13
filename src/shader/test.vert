@@ -1,10 +1,12 @@
-@export buildin.basic.vertex
+precision highp float;
+
+#include test.glsl
 
 uniform mat4 worldViewProjection : WORLDVIEWPROJECTION;
 
 uniform vec2 uvRepeat : [1.0, 1.0];
 
-//attribute vec2 texcoord : TEXCOORD_0;
+attribute vec2 texcoord : TEXCOORD_0;
 attribute vec3 position : POSITION;
 
 attribute vec3 barycentric;
@@ -24,17 +26,8 @@ void main()
 
     vec3 skinnedPosition = position;
 
-    #ifdef SKINNING
-
-        @import buildin.chunk.skin_matrix
-
-        skinnedPosition = (skinMatrixWS * vec4(position, 1.0)).xyz;
-    #endif
-
     v_Texcoord = texcoord * uvRepeat;
     v_Barycentric = barycentric;
 
     gl_Position = worldViewProjection * vec4(skinnedPosition, 1.0);
 }
-
-@end

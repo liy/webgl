@@ -1,13 +1,29 @@
 define(function(require){
+"use strict"
 
 require('util/utils');
 var Resource = require('assets/resource/Resource');
 
+// define all the shared glsl includes here... work for now. Maybe future should be put into grunt task
+var includes = {
+  'test.glsl': require('text!shader/include/test.glsl'),
+  'second.glsl': require('text!shader/include/second.glsl')
+}
 
-"use strict"
-var Shader = function(){
-  this.a = this.attributes = {};
-  this.u = this.uniforms = {};
+// (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
+var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
+var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
+var includeRegex = /#include +([\w\.\/]+)/
+
+var Shader = function(vertSource, fragSource){
+  this.a = this.attributes = Object.create(null);
+  this.u = this.uniforms = Object.create(null);
+
+  // map semantic to uniform names
+  this.semanticUniformNames = Object.create(null);
+  this.semanticAttributeNames = Object.create(null);
+  // map semantic uniform to specific function
+  this.semantics = Object.create(null);
 
   this.validateLocation = false;
   this.logs = Object.create(null);
@@ -15,55 +31,72 @@ var Shader = function(){
   this.program = gl.createProgram();
   this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
   this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+  this.preprocess(vertSource, fragSource);
+
+  this.defines = Object.create(null);
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
-p.load = function(vertPath, fragPath){
-  this.vertexShader.url = vertPath;
-  this.fragmentShader.url = fragPath;
+p.preprocess = function(vertSource, fragSource){
+  this.vertexSource = vertSource.replace(uniformRegex, parseUniform.bind(this))
+                                .replace(attributeRegex, parseAttribute.bind(this))
+                                .replace(includeRegex, parseInclude.bind(this))
+  this.fragmentSource = fragSource.replace(uniformRegex, parseUniform.bind(this))
+                                  .replace(attributeRegex, parseAttribute.bind(this))
+                                  .replace(includeRegex, parseInclude.bind(this))
 
-  // first load vertex and fragment shader, then link the program
-  return Promise.all([get(vertPath), get(fragPath)])
-                        .then(this.compile.bind(this))
-                        .then(this.link.bind(this))
-                        .catch(function(err){
-                          console.error(err);
-                        });
+  function parseUniform(str, type, name, array, semantic){
+    // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |array| ' + array + ' |semantic| ' + semantic);
+    if(semantic)
+      this.semanticUniformNames[semantic] = name;
+
+    return ["uniform", type, name, array].join(" ")+";\n";
+  }
+
+  function parseAttribute(str, type, name, semantic){
+    // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |semantic| ' + semantic);
+    if(semantic)
+      this.semanticAttributeNames[semantic] = name;
+
+    return ["attribute", type, name].join(" ")+";\n";
+  }
+
+  function parseInclude(str, key){
+    var content = includes[key];
+    if(includeRegex.exec(content) !== null)
+      content = content.replace(includeRegex, parseInclude.bind(this));
+
+    return content;
+  }
 }
 
-p.import = function(vertSource, fragSource){
-  this.compile([vertSource, fragSource]);
-  this.link([this.vertexShader, this.fragmentShader]);
+p.compile = function(){
+  // construct defines for both vertex and fragment shaders.
+  var defineArr = [];
+  for(var key in this.defines){
+    defineArr.push('#define ' + key + ' ' + this.defines[key]);
+  }
+  this.vertexSource = defineArr.join('\n') + '\n' + this.vertexSource;
+  this.fragmentSource = defineArr.join('\n') + '\n' + this.fragmentSource;
+  console.log(this.vertexSource);
+  // console.log(this.fragmentSource);
 
-  return this;
-}
-
-p.compile = function(responses){
-  this.vertexShader.source = responses[0];
-  gl.shaderSource(this.vertexShader, responses[0]);
+  gl.shaderSource(this.vertexShader, this.vertexSource);
   gl.compileShader(this.vertexShader);
-
   var success = gl.getShaderParameter(this.vertexShader, gl.COMPILE_STATUS);
   if (!success)
     throw this.vertexShader.url + " could not compile vertex shader:" + gl.getShaderInfoLog(this.vertexShader);
 
-  this.fragmentShader.source = responses[1];
-  gl.shaderSource(this.fragmentShader, responses[1]);
+  gl.shaderSource(this.fragmentShader, this.fragmentSource);
   gl.compileShader(this.fragmentShader);
-
   success = gl.getShaderParameter(this.fragmentShader, gl.COMPILE_STATUS);
   if (!success)
     throw this.fragmentShader.url + " could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
 
-  // pass to link function
-  return [this.vertexShader, this.fragmentShader];
-}
-
-p.link = function(shaders){
-  gl.attachShader(this.program, shaders[0]);
-  gl.attachShader(this.program, shaders[1]);
+  gl.attachShader(this.program, this.vertexShader);
+  gl.attachShader(this.program, this.fragmentShader);
   gl.linkProgram(this.program);
-
   var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
   if (!success)
     throw "Failed to link shader:" + gl.getProgramInfoLog(this.program);
@@ -71,7 +104,6 @@ p.link = function(shaders){
   this.locateAttributes();
   this.locateUniforms();
 
-  // this is not a asynchronous call just return a value.
   return this;
 }
 
@@ -103,7 +135,7 @@ p.locateUniforms = function(){
     }
   }
 
-  // console.log(this.uniforms);
+  console.log(this.uniforms);
 }
 
 p.getUniformLocation = function(locationName){
@@ -124,6 +156,9 @@ p.getUniformLocation = function(locationName){
   return location;
 }
 
+p.semantic = function(name, value){
+
+}
 
 p.f = function(locationName, x){
   var location = this.getUniformLocation(locationName);
