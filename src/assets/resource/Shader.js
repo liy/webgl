@@ -13,7 +13,7 @@ var includes = {
 // (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
 var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
 var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
-var includeRegex = /#include +([\w\.\/]+)/
+var includeRegex = /#include +([\w\.\/]+)/g;
 
 var Shader = function(vertSource, fragSource){
   this.a = this.attributes = Object.create(null);
@@ -64,8 +64,15 @@ p.preprocess = function(vertSource, fragSource){
 
   function parseInclude(str, key){
     var content = includes[key];
-    if(includeRegex.exec(content) !== null)
-      content = content.replace(includeRegex, parseInclude.bind(this));
+
+    var result = includeRegex.exec(content);
+    // nested includes.
+    if(result !== null){
+      if(result[1] !== key)
+        content = content.replace(includeRegex, parseInclude.bind(this));
+      else
+        throw new Error('Recursive include in: ' + key);
+    }
 
     return content;
   }

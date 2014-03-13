@@ -1,5 +1,3 @@
-#include second.glsl
-
 void include_me(){
 
 }
