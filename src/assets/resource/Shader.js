@@ -6,8 +6,10 @@ var Resource = require('assets/resource/Resource');
 
 // define all the shared glsl includes here... work for now. Maybe future should be put into grunt task
 var includes = {
-  'test.glsl': require('text!shader/include/test.glsl'),
-  'second.glsl': require('text!shader/include/second.glsl')
+  'one.glsl': require('text!shader/include/one.glsl'),
+  'two.glsl': require('text!shader/include/two.glsl'),
+  'three.glsl': require('text!shader/include/three.glsl'),
+  'four.glsl': require('text!shader/include/four.glsl')
 }
 
 // (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
@@ -36,6 +38,9 @@ var Shader = function(vertSource, fragSource){
   this.defines = Object.create(null);
 
   this.preprocess(vertSource, fragSource);
+
+  // For checking whether a source file is included or not. If the source is included already, do not include it again
+  this.included = {};
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
@@ -64,6 +69,10 @@ p.preprocess = function(vertSource, fragSource){
   }
 
   function parseInclude(str, key){
+    if(included[key])
+      return "";
+    included[key] = true;
+
     var content = includes[key];
 
     var result = includeRegex.exec(content);

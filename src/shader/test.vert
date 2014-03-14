@@ -1,7 +1,8 @@
 precision highp float;
 
-#include test.glsl
-#include second.glsl
+#include one.glsl
+#include three.glsl
+#include four.glsl
 
 uniform mat4 worldViewProjection : WORLDVIEWPROJECTION;
 

@@ -1,3 +1,0 @@
-void second(){
-  // do nothing
-}
