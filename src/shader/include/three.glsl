@@ -1,3 +1,3 @@
 #include one.glsl
-void three(){
+vod three(){
 }

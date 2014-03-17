@@ -63,9 +63,10 @@ p.compile = function(vertSource, fragSource){
   var defineArr = [];
   for(var key in this.defines){
     defineArr.push('#define ' + key + ' ' + this.defines[key]);
+    defineArr.push('\n')
   }
-  var vertexSource = defineArr.join('\n') + '\n' + vertParseResult.source;
-  var fragmentSource = defineArr.join('\n') + '\n' + fragParseResult.source;
+  var vertexSource = defineArr.join('') + vertParseResult.source;
+  var fragmentSource = defineArr.join('') + fragParseResult.source;
   console.log(vertexSource);
 
   this.compileShader(this.vertexShader, vertexSource, vertParseResult.included);
@@ -146,9 +147,10 @@ p.parse = function(source){
 
 p.compileShader = function(shader, source, included){
   var errorLineRegex = /([0-9]+):([0-9])+/g;
-
   var uniqueInclude = {};
-  var idx = 0;
+  var result;
+  var errorLine, errorColumn;
+  var lineTrack = 0;
 
 
   gl.shaderSource(shader, source);
@@ -156,9 +158,12 @@ p.compileShader = function(shader, source, included){
   var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success){
     var error = gl.getShaderInfoLog(shader);
-    var errorInfo = errorLineRegex.exec(error);
+    result = errorLineRegex.exec(error);
+    errorColumn = result[1];
+    errorLine = result[2];
 
-    traverse(shader.rawSource);
+    var data = traverse(shader.rawSource);
+    console.log(data);
 
     throw "Cannot compile vertex shader:" + error;
   }
@@ -166,7 +171,8 @@ p.compileShader = function(shader, source, included){
 
   function traverse(includeSource){
     var reg = /#include +([\w\.\/]+)/g;
-    var result;
+    var data = [];
+
 
     while(result = reg.exec(includeSource)){
       var includeName = result[1];
@@ -176,9 +182,23 @@ p.compileShader = function(shader, source, included){
 
       var lineNum = includeSource.substring(0, result.index).split(/\r\n|\r|\n/).length;
 
-      traverse(includes[includeName].text);
+
+
+      data = traverse(includes[includeName].text).concat(data);
+      data.push({
+        key: includeName,
+        lineNum: lineNum,
+        length: includes[includeName].length
+      });
       console.log(includeName, 'linenum', lineNum, 'length', includes[includeName].length);
+
+      lineTrack += (lineNum-1) + includes[includeName].length;
+      console.log(lineTrack);
+      if(lineTrack > errorLine)
+        console.info(includeName);
     }
+
+    return data;
   }
 }
 
