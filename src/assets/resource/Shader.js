@@ -30,12 +30,6 @@ var includes = (function(){
 })();
 
 
-// (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
-var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
-var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
-var includeRegex = /#include +([\w\.\/]+)/g;
-var errorLineRegex = /([0-9]+):([0-9])+/g;
-
 var Shader = function(){
   this.a = this.attributes = Object.create(null);
   this.u = this.uniforms = Object.create(null);
@@ -72,7 +66,7 @@ p.compile = function(vertSource, fragSource){
   }
   var vertexSource = defineArr.join('\n') + '\n' + vertParseResult.source;
   var fragmentSource = defineArr.join('\n') + '\n' + fragParseResult.source;
-  // console.log(vertexSource);
+  console.log(vertexSource);
 
   this.compileShader(this.vertexShader, vertexSource, vertParseResult.included);
   this.compileShader(this.fragmentShader, fragmentSource, fragParseResult.included);
@@ -91,6 +85,13 @@ p.compile = function(vertSource, fragSource){
 }
 
 p.parse = function(source){
+  // (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
+  var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
+  var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
+  // the include regular expression should not be shared by other function, just in case it mess up the iterator.
+  var includeRegex = /#include +([\w\.\/]+)(?:\r\n|\r|\n)/g;
+
+
   var uniqueInclude = {};
   var included = [];
 
@@ -119,7 +120,7 @@ p.parse = function(source){
       return ''; // do not return new line
     uniqueInclude[includeName] = true;
 
-    var content = includes[includeName].text;
+    var content = includes[includeName].text+'\n';
     // console.log(content);
 
     var result = includeRegex.exec(content);
@@ -144,6 +145,8 @@ p.parse = function(source){
 }
 
 p.compileShader = function(shader, source, included){
+  var errorLineRegex = /([0-9]+):([0-9])+/g;
+
   var uniqueInclude = {};
   var idx = 0;
 
@@ -155,27 +158,26 @@ p.compileShader = function(shader, source, included){
     var error = gl.getShaderInfoLog(shader);
     var errorInfo = errorLineRegex.exec(error);
 
-    getErrorLine(shader.rawSource, 0);
+    traverse(shader.rawSource);
 
     throw "Cannot compile vertex shader:" + error;
   }
 
 
-  function getErrorLine(includeSource, lineNum){
-    var regex = /#include +([\w\.\/]+)/g;
-    var result = regex.exec(includeSource);
+  function traverse(includeSource){
+    var reg = /#include +([\w\.\/]+)/g;
+    var result;
 
-    while(result){
+    while(result = reg.exec(includeSource)){
       var includeName = result[1];
       if(uniqueInclude[includeName])
-        return; // do not return new line
+        continue; // do not return new line
       uniqueInclude[includeName] = true;
-      console.log(includeName);
 
-      if(idx++ > 10)
-        return;
+      var lineNum = includeSource.substring(0, result.index).split(/\r\n|\r|\n/).length;
 
-      getErrorLine(includes[result[1]].text, 0);
+      traverse(includes[includeName].text);
+      console.log(includeName, 'linenum', lineNum, 'length', includes[includeName].length);
     }
   }
 }

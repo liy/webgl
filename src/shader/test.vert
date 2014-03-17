@@ -1,6 +1,5 @@
 precision highp float;
 
-
 #include one.glsl
 #include three.glsl
 #include four.glsl
