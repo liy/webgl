@@ -5,21 +5,38 @@ require('util/utils');
 var Resource = require('assets/resource/Resource');
 
 // define all the shared glsl includes here... work for now. Maybe future should be put into grunt task
-var includes = {
-  'one.glsl': require('text!shader/include/one.glsl'),
-  'two.glsl': require('text!shader/include/two.glsl'),
-  'three.glsl': require('text!shader/include/three.glsl'),
-  'four.glsl': require('text!shader/include/four.glsl')
-}
+var includes = (function(){
+  var sourceInfo = {
+    'one.glsl': {
+      text: require('text!shader/include/one.glsl')
+    },
+    'two.glsl': {
+      text: require('text!shader/include/two.glsl')
+    },
+    'three.glsl': {
+      text: require('text!shader/include/three.glsl')
+    },
+    'four.glsl': {
+      text: require('text!shader/include/four.glsl')
+    }
+  };
+
+  // count number of lines of each include source
+  for(var key in sourceInfo){
+    sourceInfo[key]['length'] = sourceInfo[key].text.split(/\r\n|\r|\n/).length;
+  }
+
+  return sourceInfo;
+})();
+
 
 // (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
 var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
 var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
 var includeRegex = /#include +([\w\.\/]+)/g;
+var errorLineRegex = /([0-9]+):([0-9])+/g;
 
-var errorLineRegex = /[0-9]+:([0-9])+/g;
-
-var Shader = function(vertSource, fragSource){
+var Shader = function(){
   this.a = this.attributes = Object.create(null);
   this.u = this.uniforms = Object.create(null);
 
@@ -38,30 +55,48 @@ var Shader = function(vertSource, fragSource){
 
   // static defines for the shader
   this.defines = Object.create(null);
-
-  // stores included file's number of lines
-  this.vertexIncludeInfo = [];
-  this.fragmentIncludeInfo = [];
-
-  this.preprocess(vertSource, fragSource);
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
-p.preprocess = function(vertSource, fragSource){
-  // For checking whether a source file is included or not. If the source is included already, do not include it again
-  var included = {};
+p.compile = function(vertSource, fragSource){
+  this.vertexShader.rawSource = vertSource;
+  this.fragmentShader.rawSource = fragSource;
 
-  var includeInfo = [];
-  this.vertexSource = vertSource.replace(uniformRegex, parseUniform.bind(this))
-                                .replace(attributeRegex, parseAttribute.bind(this))
-                                .replace(includeRegex, parseInclude.bind(this));
-  this.vertexIncludeInfo = includeInfo.concat();
+  var vertParseResult = this.parse(vertSource);
+  var fragParseResult = this.parse(fragSource);
 
-  includeInfo = [];
-  this.fragmentSource = fragSource.replace(uniformRegex, parseUniform.bind(this))
-                                  .replace(attributeRegex, parseAttribute.bind(this))
-                                  .replace(includeRegex, parseInclude.bind(this));
-  this.fragmentIncludeInfo = includeInfo.concat();
+  // construct defines for both vertex and fragment shaders.
+  var defineArr = [];
+  for(var key in this.defines){
+    defineArr.push('#define ' + key + ' ' + this.defines[key]);
+  }
+  var vertexSource = defineArr.join('\n') + '\n' + vertParseResult.source;
+  var fragmentSource = defineArr.join('\n') + '\n' + fragParseResult.source;
+  // console.log(vertexSource);
+
+  this.compileShader(this.vertexShader, vertexSource, vertParseResult.included);
+  this.compileShader(this.fragmentShader, fragmentSource, fragParseResult.included);
+
+  gl.attachShader(this.program, this.vertexShader);
+  gl.attachShader(this.program, this.fragmentShader);
+  gl.linkProgram(this.program);
+  var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
+  if (!success)
+    throw "Failed to link shader:" + gl.getProgramInfoLog(this.program);
+
+  this.locateAttributes();
+  this.locateUniforms();
+
+  return this;
+}
+
+p.parse = function(source){
+  var uniqueInclude = {};
+  var included = [];
+
+  source = source.replace(uniformRegex, parseUniform.bind(this))
+                  .replace(attributeRegex, parseAttribute.bind(this))
+                  .replace(includeRegex, parseInclude.bind(this));
 
   function parseUniform(str, type, name, array, semantic){
     // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |array| ' + array + ' |semantic| ' + semantic);
@@ -79,81 +114,70 @@ p.preprocess = function(vertSource, fragSource){
     return ["attribute", type, name].join(" ")+";\n";
   }
 
-  function parseInclude(str, key){
-    if(included[key])
-      return "";
-    included[key] = true;
+  function parseInclude(str, includeName){
+    if(uniqueInclude[includeName])
+      return ''; // do not return new line
+    uniqueInclude[includeName] = true;
 
-    var content = includes[key];
-    // check number of lines in the file
-    var numLines = content.split(/\r\n|\r|\n/).length;
+    var content = includes[includeName].text;
+    // console.log(content);
 
     var result = includeRegex.exec(content);
     // nested includes.
     if(result !== null){
-      if(result[1] !== key)
+      if(result[1] !== includeName)
         content = content.replace(includeRegex, parseInclude.bind(this));
       else
-        throw new Error('Recursive include in: ' + key);
+        throw new Error('Recursive include in: ' + includeName);
     }
 
-    // include line information
-    includeInfo.push({
-      key: key,
-      numLines: numLines
-    });
-    console.log(key, numLines);
+    // included ordering information, for tracking error line information
+    included.push(includes[includeName]);
 
     return content;
   }
+
+  return {
+    source: source,
+    included: included
+  }
 }
 
-p.compile = function(){
-  // construct defines for both vertex and fragment shaders.
-  var defineArr = [];
-  for(var key in this.defines){
-    defineArr.push('#define ' + key + ' ' + this.defines[key]);
-  }
-  this.vertexSource = defineArr.join('\n') + '\n' + this.vertexSource;
-  this.fragmentSource = defineArr.join('\n') + '\n' + this.fragmentSource;
-  // console.log(this.vertexSource);
-  // console.log(this.fragmentSource);
-  console.log(this.vertexIncludeInfo);
-  console.log(this.fragmentIncludeInfo);
+p.compileShader = function(shader, source, included){
+  var uniqueInclude = {};
+  var idx = 0;
 
 
-  gl.shaderSource(this.vertexShader, this.vertexSource);
-  gl.compileShader(this.vertexShader);
-  var success = gl.getShaderParameter(this.vertexShader, gl.COMPILE_STATUS);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success){
-    var errorLine = errorLineRegex
-    var lineTracker = 0;
-    for(var i=0; i<this.vertexIncludeInfo.length; ++i){
-      var numLines = this.vertexIncludeInfo[i].numLines;
-      lineTracker += numLines-1;
-      if(lineTracker)
+    var error = gl.getShaderInfoLog(shader);
+    var errorInfo = errorLineRegex.exec(error);
+
+    getErrorLine(shader.rawSource, 0);
+
+    throw "Cannot compile vertex shader:" + error;
+  }
+
+
+  function getErrorLine(includeSource, lineNum){
+    var regex = /#include +([\w\.\/]+)/g;
+    var result = regex.exec(includeSource);
+
+    while(result){
+      var includeName = result[1];
+      if(uniqueInclude[includeName])
+        return; // do not return new line
+      uniqueInclude[includeName] = true;
+      console.log(includeName);
+
+      if(idx++ > 10)
+        return;
+
+      getErrorLine(includes[result[1]].text, 0);
     }
-    throw this.vertexShader.url + " could not compile vertex shader:" + gl.getShaderInfoLog(this.vertexShader);
   }
-
-  gl.shaderSource(this.fragmentShader, this.fragmentSource);
-  gl.compileShader(this.fragmentShader);
-  success = gl.getShaderParameter(this.fragmentShader, gl.COMPILE_STATUS);
-  if (!success){
-    throw this.fragmentShader.url + " could not compile fragment shader:" + gl.getShaderInfoLog(this.fragmentShader);
-  }
-
-  gl.attachShader(this.program, this.vertexShader);
-  gl.attachShader(this.program, this.fragmentShader);
-  gl.linkProgram(this.program);
-  var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
-  if (!success)
-    throw "Failed to link shader:" + gl.getProgramInfoLog(this.program);
-
-  this.locateAttributes();
-  this.locateUniforms();
-
-  return this;
 }
 
 p.locateAttributes = function(){

@@ -1,6 +1,2 @@
 #include two.glsl
-void one(){
-
-
-
-
+void one

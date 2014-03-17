@@ -49,13 +49,10 @@ var vaoExt = gl.getExtension("OES_vertex_array_object");
 //   console.log('resources loaded', resources);
 // })
 
-
-// var testVertSource = require('text!shader/test.vert');
-
-var shader = new Shader(require('text!shader/test.vert'), require('text!shader/test.frag'));
+var shader = new Shader();
 shader.defines = {
   test: '10'
 }
-shader.compile();
+shader.compile(require('text!shader/test.vert'), require('text!shader/test.frag'));
 
 });
