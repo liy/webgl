@@ -192,6 +192,8 @@ p.compileShader = function(shader, source, included){
 
       traverse(includes[includeName].text);
 
+      //console.log(includeName, lineNum, lastLineNum, gap);
+
       // console.log(includeName, 'offset', offset, 'length', includes[includeName].length);
     }
 
