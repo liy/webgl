@@ -56,8 +56,8 @@ p.compile = function(vertSource, fragSource){
   this.vertexShader.rawSource = vertSource;
   this.fragmentShader.rawSource = fragSource;
 
-  var vertParseResult = this.parse(vertSource);
-  var fragParseResult = this.parse(fragSource);
+  var vertParseResult = this.preprocess(vertSource);
+  var fragParseResult = this.preprocess(fragSource);
 
   // construct defines for both vertex and fragment shaders.
   var defineArr = [];
@@ -67,7 +67,7 @@ p.compile = function(vertSource, fragSource){
   }
   var vertexSource = defineArr.join('') + vertParseResult.source;
   var fragmentSource = defineArr.join('') + fragParseResult.source;
-  console.log(vertexSource);
+  // console.log(vertexSource);
 
   this.compileShader(this.vertexShader, vertexSource, vertParseResult.included);
   this.compileShader(this.fragmentShader, fragmentSource, fragParseResult.included);
@@ -85,27 +85,25 @@ p.compile = function(vertSource, fragSource){
   return this;
 }
 
-p.parse = function(source){
+p.preprocess = function(source){
   // (?:) is non-capturing group, which does not introduce parameter to the replace callback function.
   var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
   var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
-  // the include regular expression should not be shared by other function, just in case it mess up the iterator.
-  var includeRegex = /#include +([\w\.\/]+)(?:\r\n|\r|\n)/g;
 
-
+  // do not include same file
   var uniqueInclude = {};
-  var included = [];
 
-  source = source.replace(uniformRegex, parseUniform.bind(this))
-                  .replace(attributeRegex, parseAttribute.bind(this))
-                  .replace(includeRegex, parseInclude.bind(this));
+  source = source.replace(uniformRegex, parseUniform.bind(this)).replace(attributeRegex, parseAttribute.bind(this));
+
+  var preprocessResult = processLines(source);
+  console.dir(preprocessResult);
 
   function parseUniform(str, type, name, array, semantic){
     // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |array| ' + array + ' |semantic| ' + semantic);
     if(semantic)
       this.semanticUniformNames[semantic] = name;
 
-    return ["uniform", type, name, array].join(" ")+";\n";
+    return ["uniform", type, name, array].join(" ")+";";
   }
 
   function parseAttribute(str, type, name, semantic){
@@ -113,36 +111,61 @@ p.parse = function(source){
     if(semantic)
       this.semanticAttributeNames[semantic] = name;
 
-    return ["attribute", type, name].join(" ")+";\n";
+    return ["attribute", type, name].join(" ")+";";
   }
 
-  function parseInclude(str, includeName){
-    if(uniqueInclude[includeName])
-      return ''; // do not return new line
-    uniqueInclude[includeName] = true;
+  // function parseInclude(str, includeName){
+  //   if(uniqueInclude[includeName])
+  //     return ''; // do not return new line
+  //   uniqueInclude[includeName] = true;
 
-    var content = includes[includeName].text+'\n';
-    // console.log(content);
+  //   var content = includes[includeName].text+'\n';
+  //   // console.log(content);
 
-    var result = includeRegex.exec(content);
-    // nested includes.
-    if(result !== null){
-      if(result[1] !== includeName)
-        content = content.replace(includeRegex, parseInclude.bind(this));
+  //   var result = includeRegex.exec(content);
+  //   // nested includes.
+  //   if(result !== null){
+  //     if(result[1] !== includeName)
+  //       content = content.match(includeRegex, parseInclude.bind(this));
+  //     else
+  //       throw new Error('Recursive include in: ' + includeName);
+  //   }
+
+  //   return content;
+  // }
+
+  function processLines(source, currentFile){
+    var sourceLines = source.split(/\r?\n/);
+    var result;
+    var lines = [];
+
+    var len = sourceLines.length;
+    for(var i=0; i<len; ++i){
+      result = /#include +([\w\.\/]+)/g.exec(sourceLines[i]);
+
+      // an include statement
+      if(result){
+        var fileName = result[1];
+
+        // duplicate include do nothing
+        if(uniqueInclude[fileName])
+          continue;
+        uniqueInclude[fileName] = true;
+
+        lines = lines.concat(processLines(includes[fileName].text, fileName));
+      }
+      // not an include statement
       else
-        throw new Error('Recursive include in: ' + includeName);
+        lines.push({
+          file: currentFile,
+          text: sourceLines[i]
+        });
     }
 
-    // included ordering information, for tracking error line information
-    included.push(includes[includeName]);
-
-    return content;
+    return lines;
   }
 
-  return {
-    source: source,
-    included: included
-  }
+  return processLines(source);
 }
 
 p.compileShader = function(shader, source, included){
@@ -160,45 +183,45 @@ p.compileShader = function(shader, source, included){
   if (!success){
     var error = gl.getShaderInfoLog(shader);
     result = errorLineRegex.exec(error);
-    errorColumn = result[1];
-    errorLine = result[2];
+    // errorColumn = result[1];
+    // errorLine = result[2];
 
-    var data = traverse(shader.rawSource, 0);
-    console.log(data);
+    // var data = traverse(shader.rawSource, 0);
+    // console.log(data);
 
     throw "Cannot compile vertex shader:" + error;
   }
 
 
-  function traverse(includeSource){
-    var reg = /#include +([\w\.\/]+)/g;
-    var data = [];
+  // function traverse(includeSource){
+  //   var reg = /#include +([\w\.\/]+)/g;
+  //   var data = [];
 
-    var lastLineNum = 0;
+  //   var lastLineNum = 0;
 
-    while(result = reg.exec(includeSource)){
-      var includeName = result[1];
-      if(uniqueInclude[includeName])
-        continue; // do not return new line
-      uniqueInclude[includeName] = true;
+  //   while(result = reg.exec(includeSource)){
+  //     var includeName = result[1];
+  //     if(uniqueInclude[includeName])
+  //       continue; // do not return new line
+  //     uniqueInclude[includeName] = true;
 
-      var lineNum = includeSource.substring(0, result.index).split(/\r\n|\r|\n/).length;
-      var gap = lineNum - lastLineNum - 1;
+  //     var lineNum = includeSource.substring(0, result.index).split(/\r\n|\r|\n/).length;
+  //     var gap = lineNum - lastLineNum - 1;
 
 
-      lastLineNum = lineNum;
+  //     lastLineNum = lineNum;
 
-      console.log(includeName, lineNum, lastLineNum, gap);
+  //     console.log(includeName, lineNum, lastLineNum, gap);
 
-      traverse(includes[includeName].text);
+  //     traverse(includes[includeName].text);
 
-      //console.log(includeName, lineNum, lastLineNum, gap);
+  //     //console.log(includeName, lineNum, lastLineNum, gap);
 
-      // console.log(includeName, 'offset', offset, 'length', includes[includeName].length);
-    }
+  //     // console.log(includeName, 'offset', offset, 'length', includes[includeName].length);
+  //   }
 
-    return data;
-  }
+  //   return data;
+  // }
 }
 
 p.locateAttributes = function(){
