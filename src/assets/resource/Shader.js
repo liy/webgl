@@ -158,7 +158,8 @@ p.preprocess = function(source){
       else
         lines.push({
           file: currentFile,
-          text: sourceLines[i]
+          line: sourceLines[i],
+          index: i
         });
     }
 
