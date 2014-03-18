@@ -150,7 +150,8 @@ p.compileShader = function(shader, source, included){
   var uniqueInclude = {};
   var result;
   var errorLine, errorColumn;
-  var lineTrack = 0;
+
+  var linePointer = 0;
 
 
   gl.shaderSource(shader, source);
@@ -162,7 +163,7 @@ p.compileShader = function(shader, source, included){
     errorColumn = result[1];
     errorLine = result[2];
 
-    var data = traverse(shader.rawSource);
+    var data = traverse(shader.rawSource, 0);
     console.log(data);
 
     throw "Cannot compile vertex shader:" + error;
@@ -173,6 +174,7 @@ p.compileShader = function(shader, source, included){
     var reg = /#include +([\w\.\/]+)/g;
     var data = [];
 
+    var lastLineNum = 0;
 
     while(result = reg.exec(includeSource)){
       var includeName = result[1];
@@ -181,21 +183,16 @@ p.compileShader = function(shader, source, included){
       uniqueInclude[includeName] = true;
 
       var lineNum = includeSource.substring(0, result.index).split(/\r\n|\r|\n/).length;
+      var gap = lineNum - lastLineNum - 1;
 
 
+      lastLineNum = lineNum;
 
-      data = traverse(includes[includeName].text).concat(data);
-      data.push({
-        key: includeName,
-        lineNum: lineNum,
-        length: includes[includeName].length
-      });
-      console.log(includeName, 'linenum', lineNum, 'length', includes[includeName].length);
+      console.log(includeName, lineNum, lastLineNum, gap);
 
-      lineTrack += (lineNum-1) + includes[includeName].length;
-      console.log(lineTrack);
-      if(lineTrack > errorLine)
-        console.info(includeName);
+      traverse(includes[includeName].text);
+
+      // console.log(includeName, 'offset', offset, 'length', includes[includeName].length);
     }
 
     return data;
