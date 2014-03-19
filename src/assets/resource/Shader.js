@@ -39,17 +39,17 @@ var Shader = function(){
 var p = Shader.prototype = Object.create(Resource.prototype);
 
 p.compile = function(source){
-  var lines = [];
-  // construct defines for both vertex and fragment shaders.
+  // preprocess the source, separate it into line array and corresponding info
+  var lineInfo = this.preprocess(source);
+
+  var defineLines = [];
+  // add defines for both vertex and fragment shaders.
   for(var key in this.defines){
-    lines.push('#define ' + key + ' ' + this.defines[key]);
+    defineLines.push('#define ' + key + ' ' + this.defines[key]);
   }
-  lines.concat(this.preprocess(source));
 
-  var vertexSource = lines.map()
-
-  this.compileShader(this.vertexShader, '#define VERTEX_SHADER\n' + lines.join('\n'));
-  this.compileShader(this.fragmentShader, '#define FRAGMENT_SHADER\n' + lines.join('\n'));
+  this.compileShader(this.vertexShader, lineInfo, defineLines.concat(['#define VERTEX_SHADER']));
+  // this.compileShader(this.fragmentShader, lineInfo, defineLines.concat(['#define FRAGMENT_SHADER']));
 
   gl.attachShader(this.program, this.vertexShader);
   gl.attachShader(this.program, this.fragmentShader);
@@ -64,12 +64,18 @@ p.compile = function(source){
   return this;
 }
 
-p.preprocess = function(source){
+p.preprocess = function(source, type){
   // do not include same file
   var uniqueInclude = {};
 
   source = source.replace(uniformRegex, parseUniform.bind(this))
                 .replace(attributeRegex, parseAttribute.bind(this));
+
+  var lineInfo = {
+    lines: [],
+    info: []
+  }
+  processLines(source, null, lineInfo.lines, lineInfo.info);
 
   function parseUniform(str, type, name, array, semantic){
     // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |array| ' + array + ' |semantic| ' + semantic);
@@ -87,10 +93,9 @@ p.preprocess = function(source){
     return ["attribute", type, name].join(" ")+";";
   }
 
-  function processLines(source, currentFile){
+  function processLines(source, currentFile, lines, info){
     var sourceLines = source.split(/\r?\n/);
     var result;
-    var lines = [];
 
     var len = sourceLines.length;
     for(var i=0; i<len; ++i){
@@ -106,46 +111,72 @@ p.preprocess = function(source){
           continue;
         uniqueInclude[fileName] = true;
 
-        lines = lines.concat(processLines(includes[fileName].text, fileName));
+        processLines(includes[fileName], fileName, lines, info);
       }
       // not an include statement
-      else
-        lines.push({
+      else{
+        lines.push(sourceLines[i]);
+        info.push({
           file: currentFile,
-          line: sourceLines[i],
           index: i
-        });
+        })
+      }
     }
-
-    return lines;
   }
 
-  return processLines(source);
+  return lineInfo;
 }
 
-p.compileShader = function(shader, source){
-  var errorLineRegex = /([0-9]+):([0-9])+/g;
-  var uniqueInclude = {};
-  var result;
-  var errorLine, errorColumn;
+p.compileShader = function(shader, lineInfo, defineLines){
+  var source = defineLines.join('\n') + '\n' + lineInfo.lines.join('\n');
+  var offset = defineLines.length;
 
-  var linePointer = 0;
-
+  console.log(source);
 
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success){
+    var errorLineRegex = /(\w+):\s+(\d+):(\d+):\s*(.*)/;
     var error = gl.getShaderInfoLog(shader);
-    result = errorLineRegex.exec(error);
-    // errorColumn = result[1];
-    // errorLine = result[2];
+    // [dummy, level, sourceID, lineno, message]
+    // http://immersedcode.org/2012/1/12/random-notes-on-webgl/
+    var result = errorLineRegex.exec(error);
+    // console.log(result);
+    var level = result[1];
+    var errorLineIndex = result[3] - offset - 1;
+    var message = result[4];
 
-    // var data = traverse(shader.rawSource, 0);
-    // console.log(data);
+    // console.log('error', error);
+    // console.log('offset', offset);
+    // console.log('lineInfo', lineInfo);
+    // console.log('errorLineIndex', errorLineIndex);
 
-    throw "Cannot compile vertex shader:" + error;
+    var errorLineInfo = lineInfo.info[errorLineIndex];
+    console.error(level + ' ' + errorLineInfo.file + ' ' + (errorLineInfo.index+1) + ':' + message);
   }
+
+    // var errorLineRegex = /(\w+):\s+(\d+):(\d+):\s*(.*)/;
+  //   console.error('Shader error ', errorLineInfo.file)
+  //   console.debug("Shader debug information:");
+  //   var lines = error.split(/\r?\n/)
+  //   for(var line in lines)
+  //     var result = errorLineRegex.exec(line);
+  //     if(result){
+  //       var error = gl.getShaderInfoLog(shader);
+  //       var errorLineIndex = result[3] - offset - 1;
+  //       var errorLineInfo = lineInfo.info[errorLineIndex];
+  //       var level = result[1];
+  //       var errorLineIndex = result[3] - offset - 1;
+  //       var message = result[4];
+  //       var errorLineInfo = lineInfo.info[errorLineIndex];
+  //       console.error(level + ' ' + errorLineInfo.file + ' ' + (errorLineInfo.index+1) + ':' + message);
+  //     }
+  //     else{
+  //       console.log(line)
+  //     }
+  //   throw "Abort: Unable to load shader '#{filename}' because of errors"
+  // }
 }
 
 p.locateAttributes = function(){
