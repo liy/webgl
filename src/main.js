@@ -50,9 +50,6 @@ var vaoExt = gl.getExtension("OES_vertex_array_object");
 // })
 
 var shader = new Shader();
-shader.defines = {
-  test: '10'
-}
-shader.compile(require('text!shader/test.glsl'));
+shader.compile(require('text!shader/probe/probe_synthesis.glsl'));
 
 });
