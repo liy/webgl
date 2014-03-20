@@ -8,15 +8,17 @@ var Resource = require('assets/resource/Resource');
 var uniformRegex = /uniform +(bool|float|int|vec2|vec3|vec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube) +(\w+)(?:\[(.+)\])? *(?:: *(.+))?;/g;
 var attributeRegex = /attribute +(float|int|vec2|vec3|vec4) +(\w+) *(?:: *(.+))?;/g;
 
-// define all the shared glsl includes here... work for now. Maybe future should be put into grunt task
+// preload all the shared glsl includes here... work for now. Maybe future should be put into grunt task
 var includes = {
-  'one.glsl': require('text!shader/include/one.glsl'),
-  'two.glsl': require('text!shader/include/two.glsl'),
-  'three.glsl': require('text!shader/include/three.glsl'),
-  'four.glsl': require('text!shader/include/four.glsl')
+  'common.glsl': require('text!shader/lib/common.glsl')
 }
 
 var Shader = function(){
+  // whether to validate undefined uniform location
+  this.validateLocation = false;
+  // store the error of the undefined uniform location, so it only trace out once.
+  this.logs = Object.create(null);
+
   this.a = this.attributes = Object.create(null);
   this.u = this.uniforms = Object.create(null);
 
@@ -26,14 +28,11 @@ var Shader = function(){
   // map semantic uniform to specific function
   this.semantics = Object.create(null);
 
-  this.validateLocation = false;
-  this.logs = Object.create(null);
-
   this.program = gl.createProgram();
   this.vertexShader = gl.createShader(gl.VERTEX_SHADER);
   this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-  // static defines for the shader
+  // stores runtime defines
   this.defines = Object.create(null);
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
@@ -42,18 +41,19 @@ p.compile = function(source){
   // preprocess the source, separate it into line array and corresponding info
   var lineInfo = this.preprocess(source);
 
-  var defineLines = [];
+  var runtimeDefines = [];
   // add defines for both vertex and fragment shaders.
   for(var key in this.defines){
-    defineLines.push('#define ' + key + ' ' + this.defines[key]);
+    runtimeDefines.push('#define ' + key + ' ' + this.defines[key]);
   }
 
-  this.compileShader(this.vertexShader, lineInfo, defineLines.concat(['#define VERTEX_SHADER']));
-  // this.compileShader(this.fragmentShader, lineInfo, defineLines.concat(['#define FRAGMENT_SHADER']));
+  this.compileShader(this.vertexShader, lineInfo, runtimeDefines.concat(['#define VERTEX_SHADER']));
+  this.compileShader(this.fragmentShader, lineInfo, runtimeDefines.concat(['#define FRAGMENT_SHADER']));
 
   gl.attachShader(this.program, this.vertexShader);
   gl.attachShader(this.program, this.fragmentShader);
   gl.linkProgram(this.program);
+
   var success = gl.getProgramParameter(this.program, gl.LINK_STATUS);
   if (!success)
     throw "Failed to link shader:" + gl.getProgramInfoLog(this.program);
@@ -67,16 +67,10 @@ p.compile = function(source){
 p.preprocess = function(source, type){
   // do not include same file
   var uniqueInclude = {};
+  // keep track of all the lines, and corresponding information, such as line index and which file it belongs.
+  var lineInfo = { lines: [], info: [] }
 
-  source = source.replace(uniformRegex, parseUniform.bind(this))
-                .replace(attributeRegex, parseAttribute.bind(this));
-
-  var lineInfo = {
-    lines: [],
-    info: []
-  }
-  processLines(source, null, lineInfo.lines, lineInfo.info);
-
+  // TODO: semantic glsl
   function parseUniform(str, type, name, array, semantic){
     // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |array| ' + array + ' |semantic| ' + semantic);
     if(semantic)
@@ -85,6 +79,7 @@ p.preprocess = function(source, type){
     return ["uniform", type, name, array].join(" ")+";";
   }
 
+  // TODO: semantic glsl
   function parseAttribute(str, type, name, semantic){
     // console.log(' |str| ' + str + ' |type| ' + type + ' |name| ' + name + ' |semantic| ' + semantic);
     if(semantic)
@@ -93,7 +88,7 @@ p.preprocess = function(source, type){
     return ["attribute", type, name].join(" ")+";";
   }
 
-  function processLines(source, currentFile, lines, info){
+  function expandIncludeLine(source, currentFile, lines, info){
     var sourceLines = source.split(/\r?\n/);
     var result;
 
@@ -104,37 +99,43 @@ p.preprocess = function(source, type){
 
       // an include statement
       if(result){
-        var fileName = result[1];
+        var file = result[1];
 
-        // duplicate include do nothing
-        if(uniqueInclude[fileName])
+        // duplicate include is ignored
+        if(uniqueInclude[file])
           continue;
-        uniqueInclude[fileName] = true;
+        uniqueInclude[file] = true;
 
-        processLines(includes[fileName], fileName, lines, info);
+        if(!includes[file])
+          throw new Error('#include ' + file + ' does not exist');
+        else {
+          expandIncludeLine(includes[file], file, lines, info);
+        }
       }
-      // not an include statement
+      // keep track of current line's index and which file it belongs, if not an include statement
       else{
         lines.push(sourceLines[i]);
-        info.push({
-          file: currentFile,
-          index: i
-        })
+        info.push({ file: currentFile, index: i })
       }
     }
   }
 
+  // TODO: semantic glsl conversion
+  source = source.replace(uniformRegex, parseUniform.bind(this))
+                 .replace(attributeRegex, parseAttribute.bind(this));
+
+  // TODO: try to find a way to get the root shader file name
+  expandIncludeLine(source, null, lineInfo.lines, lineInfo.info);
+
   return lineInfo;
 }
 
-p.compileShader = function(shader, lineInfo, defineLines){
-  var source = defineLines.join('\n') + '\n' + lineInfo.lines.join('\n');
-  var offset = defineLines.length;
-
-  console.log(source);
-
+p.compileShader = function(shader, lineInfo, runtimeDefines){
+  var source = runtimeDefines.join('\n') + '\n' + lineInfo.lines.join('\n');
+  // console.log(source);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
+
   var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success){
     var errorLineRegex = /(\w+):\s+(\d+):(\d+):\s*(.*)/;
@@ -142,41 +143,14 @@ p.compileShader = function(shader, lineInfo, defineLines){
     // [dummy, level, sourceID, lineno, message]
     // http://immersedcode.org/2012/1/12/random-notes-on-webgl/
     var result = errorLineRegex.exec(error);
-    // console.log(result);
     var level = result[1];
-    var errorLineIndex = result[3] - offset - 1;
+    // since there are runtime defines added, we need to offset the error line by minus the number of runtime defines, and -1 to get the index
+    var errorLineIndex = result[3] - runtimeDefines.length - 1;
     var message = result[4];
 
-    // console.log('error', error);
-    // console.log('offset', offset);
-    // console.log('lineInfo', lineInfo);
-    // console.log('errorLineIndex', errorLineIndex);
-
     var errorLineInfo = lineInfo.info[errorLineIndex];
-    console.error(level + ' ' + errorLineInfo.file + ' ' + (errorLineInfo.index+1) + ':' + message);
+    throw new Error(level + ' ' + errorLineInfo.file + ' ' + (errorLineInfo.index+1) + ':' + message);
   }
-
-    // var errorLineRegex = /(\w+):\s+(\d+):(\d+):\s*(.*)/;
-  //   console.error('Shader error ', errorLineInfo.file)
-  //   console.debug("Shader debug information:");
-  //   var lines = error.split(/\r?\n/)
-  //   for(var line in lines)
-  //     var result = errorLineRegex.exec(line);
-  //     if(result){
-  //       var error = gl.getShaderInfoLog(shader);
-  //       var errorLineIndex = result[3] - offset - 1;
-  //       var errorLineInfo = lineInfo.info[errorLineIndex];
-  //       var level = result[1];
-  //       var errorLineIndex = result[3] - offset - 1;
-  //       var message = result[4];
-  //       var errorLineInfo = lineInfo.info[errorLineIndex];
-  //       console.error(level + ' ' + errorLineInfo.file + ' ' + (errorLineInfo.index+1) + ':' + message);
-  //     }
-  //     else{
-  //       console.log(line)
-  //     }
-  //   throw "Abort: Unable to load shader '#{filename}' because of errors"
-  // }
 }
 
 p.locateAttributes = function(){
@@ -206,8 +180,7 @@ p.locateUniforms = function(){
       }
     }
   }
-
-  console.log(this.uniforms);
+  // console.log(this.uniforms);
 }
 
 p.getUniformLocation = function(locationName){

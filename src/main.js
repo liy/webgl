@@ -53,6 +53,6 @@ var shader = new Shader();
 shader.defines = {
   test: '10'
 }
-shader.compile(require('text!shader/test.vert'), require('text!shader/test.frag'));
+shader.compile(require('text!shader/test.glsl'));
 
 });
