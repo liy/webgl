@@ -1,8 +1,8 @@
 define(function(require){
+"use strict"
 
 var Geometry = require('geometry/Geometry');
 
-"use strict"
 var SkyBoxGeometry = function(width, height, depth){
   Geometry.call(this);
 

@@ -30,7 +30,7 @@ stats.setMode(0); // 0: fps, 1: ms
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
-document.body.appendChild( stats.domElement );
+document.body.appendChild(stats.domElement);
 
 
 var renderer = new DeferredRenderer();
@@ -42,6 +42,11 @@ scene.add(camera);
 
 var dirLight = new DirectionalLight();
 scene.add(dirLight);
+
+var p = new PointLight();
+scene.add(p);
+p.x = -0.3;
+vec3.set(p.color, 1, 0, 0);
 
 var loader = new ObjectFile();
 loader.load('../webgl-meshes/head/head.obj').then(function(){

@@ -1,5 +1,10 @@
+define(function(require){
 "use strict"
-function SphereGeometry(radius, latitudeBands, longitudeBands){
+
+var Geometry = require('geometry/Geometry');
+var Face3 = require('object/Face3');
+
+var SphereGeometry = function(radius, latitudeBands, longitudeBands){
   Geometry.call(this);
 
   this.radius = radius || 0.5;
@@ -47,3 +52,7 @@ function SphereGeometry(radius, latitudeBands, longitudeBands){
   }
 }
 var p = SphereGeometry.prototype = Object.create(Geometry.prototype);
+
+return SphereGeometry;
+
+})

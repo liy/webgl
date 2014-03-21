@@ -1,6 +1,7 @@
 define(function(require){
 
 var Light = require('object/light/Light');
+var SphereGeometry = require('geometry/SphereGeometry');
 
 "use strict"
 var  PointLight = function(radius){
