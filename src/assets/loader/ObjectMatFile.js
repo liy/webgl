@@ -1,5 +1,6 @@
 define(function(require){
 
+var Library = require('assets/Library')
 
 "use strict"
 /**

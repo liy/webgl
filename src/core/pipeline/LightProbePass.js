@@ -18,7 +18,8 @@ var LightProbePass = function(params){
 
 
   // debugger shader
-  this.shader = new Shader('src/shader/probe/probe_debug.vert', 'src/shader/probe/probe_debug.frag');
+  this.shader = new Shader();
+  this.shader.compile(require('text!shader/probe/probe_debug.glsl'));
   // debugger buffer
   this.export.lightProbeDebugBuffer = RenderPass.createColorTexture(this.width, this.height);
 
@@ -44,7 +45,7 @@ p.createSharedPasses = function(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.shader = new Shader('src/shader/probe/probe_geometry.vert', 'src/shader/probe/probe_geometry.frag');
+        this.shader = new Shader(require('text!shader/probe/probe_geometry.glsl'));
 
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -69,10 +70,10 @@ p.createSharedPasses = function(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.pointLightShader = new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag');
-        this.dirLightShader = new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag');
+        this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
+        this.dirLightShader = new Shader(require('text!shader/light/directional.glsl'));
         // a null shader for stencil update
-        this.stencilShader = new Shader('src/shader/stencil.vert', 'src/shader/stencil.frag');
+        this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
 
         // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
         this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);

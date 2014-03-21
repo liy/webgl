@@ -59,7 +59,7 @@ var DeferredRenderer = function(){
       }
     }
   }
-  gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
+  // gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
@@ -76,7 +76,8 @@ var DeferredRenderer = function(){
 
     init: (function(depthBuffer, depthStencilRenderBuffer){
       return function(){
-        this.shader = new Shader('src/shader/geometry.vert', 'src/shader/geometry.frag');
+        this.shader = new Shader();
+        this.shader.compile(require('text!shader/geometry.glsl'));
 
         this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
         this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -101,10 +102,15 @@ var DeferredRenderer = function(){
 
     init: (function(depthBuffer){
       return function(){
-        this.pointLightShader = new Shader('src/shader/light/point.vert', 'src/shader/light/point.frag');
-        this.dirLightShader = new Shader('src/shader/light/directional.vert', 'src/shader/light/directional.frag');
+        this.pointLightShader = new Shader();
+        this.pointLightShader.compile(require('text!shader/light/point.glsl'));
+
+        this.dirLightShader = new Shader();
+        this.dirLightShader.compile(require('text!shader/light/directional.glsl'));
+
         // a null shader for stencil update
-        this.stencilShader = new Shader('src/shader/stencil.vert', 'src/shader/stencil.frag');
+        this.stencilShader = new Shader();
+        this.stencilShader.compile(require('text!shader/stencil.glsl'));
 
         // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
         this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -136,8 +142,11 @@ var DeferredRenderer = function(){
 
     init: (function(depthStencilRenderBuffer){
       return function(){
-        this.synthesisShader = new Shader('src/shader/synthesis.vert', 'src/shader/synthesis.frag');
-        this.skyBoxShader = new Shader('src/shader/skybox.vert', 'src/shader/skybox.frag');
+        this.synthesisShader = new Shader();
+        this.synthesisShader.compile(require('text!shader/synthesis.glsl'));
+
+        this.skyBoxShader = new Shader();
+        this.skyBoxShader.compile(require('text!shader/skybox.glsl'));
 
         this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
 
@@ -155,7 +164,8 @@ var DeferredRenderer = function(){
     width: this.canvas.width,
     height: this.canvas.height,
     init: function(){
-      this.shader = new Shader('src/shader/screen.vert', 'src/shader/screen.frag');
+      this.shader = new Shader();
+      this.shader.compile(require('text!shader/screen.glsl'));
     }
   });
 

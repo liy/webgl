@@ -39,7 +39,7 @@ var LightProbe = function(size){
 
       init: (function(depthBuffer, depthStencilRenderBuffer){
         return function(){
-          this.shader = new Shader('shader/geometry.vert', 'shader/geometry.frag');
+          this.shader = new Shader(require('text!shader/geometry.glsl'));
 
           this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
           this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -64,9 +64,9 @@ var LightProbe = function(size){
 
       init: (function(depthBuffer){
         return function(){
-          this.pointLightShader = new Shader('shader/light/point.vert', 'shader/light/point.frag');
-          this.dirLightShader = new Shader('shader/light/directional.vert', 'shader/light/directional.frag');
-          this.stencilShader = new Shader('shader/stencil.vert', 'shader/stencil.frag');
+          this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
+          this.dirLightShader = new Shader(require('text!shader/light/directional.glsl'));
+          this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
 
           this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
           this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
@@ -96,8 +96,8 @@ var LightProbe = function(size){
 
     init: (function(depthStencilRenderBuffer, cubeTexture, framebuffer){
       return function(){
-        this.synthesisShader = new Shader('shader/probe/probe_synthesis.vert', 'shader/probe/probe_synthesis.frag');
-        this.skyBoxShader = new Shader('shader/skybox.vert', 'shader/skybox.frag');
+        this.synthesisShader = new Shader(require('text!shader/probe/probe_synthesis.glsl'));
+        this.skyBoxShader = new Shader(require('text!shader/skybox.glsl'));
 
         this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
 

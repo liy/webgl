@@ -21,7 +21,6 @@ var ImageResource = function(url){
 }
 var p = ImageResource.prototype = Object.create(Resource.prototype);
 
-
 p.createLoader = function(url){
   var loader;
   var ext = url.substring(url.lastIndexOf(".")+1);

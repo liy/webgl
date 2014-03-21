@@ -397,7 +397,7 @@ p.mat2 = function(locationName, value){
   if(value === null || value === undefined)
     console.error('location %c' + locationName, 'color: blue', 'array invalid: ' + value);
 
-  gl.uniformMatrix2fv(location, gl.FALSE, value);
+  gl.uniformMatrix2fv(location, false, value);
 }
 
 p.mat3 = function(locationName, value){
@@ -406,7 +406,7 @@ p.mat3 = function(locationName, value){
   if(value === null || value === undefined)
     console.error('location %c' + locationName, 'color: blue', 'array invalid: ' + value);
 
-  gl.uniformMatrix3fv(location, gl.FALSE, value);
+  gl.uniformMatrix3fv(location, false, value);
 }
 
 p.mat4 = function(locationName, value){
@@ -415,7 +415,7 @@ p.mat4 = function(locationName, value){
   if(value === null || value === undefined)
     console.error('location %c' + locationName, 'color: blue', 'array invalid: ' + value);
 
-  gl.uniformMatrix4fv(location, gl.FALSE, value);
+  gl.uniformMatrix4fv(location, false, value);
 }
 
 return Shader;

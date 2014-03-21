@@ -34,6 +34,8 @@ p.setTextureMap = function(map){
           gl.generateMipmap(gl.TEXTURE_2D);
         }
         texture.unbind();
+
+        console.log('set param', texture)
       }
       texture.load(map[name]);
     }

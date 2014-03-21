@@ -33,23 +33,26 @@ stats.domElement.style.top = '0px';
 document.body.appendChild( stats.domElement );
 
 
-var canvas = document.createElement('canvas');
-document.body.appendChild(canvas);
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-window.gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+var renderer = new DeferredRenderer();
 
+var scene = new Scene();
+var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 50);
+camera.z = 0.5;
+scene.add(camera);
 
-var dbExt = gl.getExtension("WEBGL_draw_buffers");
-var dtExt = gl.getExtension("WEBGL_depth_texture");
-var vaoExt = gl.getExtension("OES_vertex_array_object");
+var loader = new ObjectFile();
+loader.load('../webgl-meshes/head/head.obj').then(function(){
+  scene.add(loader.object);
+});
 
-// Library.init();
-// Library.load().then(function(resources){
-//   console.log('resources loaded', resources);
-// })
+function loop(){
+  stats.begin();
 
-var shader = new Shader();
-shader.compile(require('text!shader/probe/probe_synthesis.glsl'));
+  renderer.render(scene, camera);
+
+  stats.end();
+  requestAnimFrame(loop);
+}
+loop();
 
 });

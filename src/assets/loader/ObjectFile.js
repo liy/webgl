@@ -15,12 +15,11 @@ var ObjectFile = function(){
 }
 var p = ObjectFile.prototype;
 
-p.load = function(url, callback){
+p.load = function(url){
   var idx = url.lastIndexOf('/');
   this.url = url;
   this.fileName = url.substring(idx);
   this.dir = url.substring(0, idx+1);
-  this.callback = callback;
 
   // whether normal is defined in the obj file.
   this.normalDefined = true;
