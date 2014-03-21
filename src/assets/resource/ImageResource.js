@@ -13,6 +13,7 @@ var ImageResource = function(url){
   this.ready = loader.ready.then(function(loader){
     this.width = loader.width;
     this.height = loader.height;
+    this.data = loader.data;
 
     return this;
   }.bind(this)).catch(function(err){

@@ -18,13 +18,14 @@ var Texture2D = function Texture2D(){
 }
 var p = Texture2D.prototype = Object.create(Texture.prototype);
 
-p.load = function(url){
-  // this.resource = Library.get(url);
-  // this.resource.loader.addEventListener(Event.COMPLETE, bind(this, this.onComplete));
-  // this.resource.loader.load();
+p.setResource = function(resource){
+  this.resource = resource;
+  this.resource.ready.then(this.onComplete.bind(this));
 }
 
-p.onComplete = function(e){
+p.onComplete = function(){
+  this.ready = true;
+
   this.bind();
 
   this.width = this.resource.width;
@@ -32,15 +33,13 @@ p.onComplete = function(e){
 
   // flip the texture content in y direction.
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  if(this.resource.loader.data instanceof Image)
-    gl.texImage2D(this.target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.resource.loader.data);
+  if(this.resource.data instanceof Image)
+    gl.texImage2D(this.target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.resource.data);
   else
-    gl.texImage2D(this.target, 0, gl.RGBA, this.resource.loader.width, this.resource.loader.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.resource.loader.data);
+    gl.texImage2D(this.target, 0, gl.RGBA, this.resource.width, this.resource.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.resource.data);
 
   if(this.setParameters)
     this.setParameters(this);
-
-  this.ready = true;
 
   this.unbind();
 }

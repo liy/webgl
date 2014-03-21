@@ -55,4 +55,11 @@ function loop(){
 }
 loop();
 
+
+// var resource = new ImageResource('../webgl-meshes/head/lambertian.jpg');
+// resource.ready.then(function(param){
+
+// console.log(param);
+// })
+
 });

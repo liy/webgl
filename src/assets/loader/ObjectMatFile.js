@@ -63,23 +63,16 @@ function MatInfo(){
   // Illumination model illum (1 / 2); 1 if specular disabled, 2 if specular enabled
   this.illum = 2;
 
-  this.imageMap = {};
-  this.imageMap.albedo = null;
-  this.imageMap.specular = null;
-  this.imageMap.shininess = null;
-  this.imageMap.roughness = null;
-  this.imageMap.alpha = null;
-  this.imageMap.normal = null;
-  this.imageMap.bump = null;
-  this.imageMap.displacement = null;
-}
-
-MatInfo.prototype.hasTexture = function(){
-  for(var name in this.imageMap){
-    if(this.imageMap[name] && this.imageMap[name] !== '')
-      return true;
-  }
-  return false;
+  // stores image resources
+  this.resources = {};
+  this.resources.albedo = null;
+  this.resources.specular = null;
+  this.resources.shininess = null;
+  this.resources.roughness = null;
+  this.resources.alpha = null;
+  this.resources.normal = null;
+  this.resources.bump = null;
+  this.resources.displacement = null;
 }
 
 var ObjectMatFile = function(){
@@ -178,42 +171,35 @@ p.onload = function(e){
         break;
       case 'map_Ka':
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.ambient = url;
-        Library.get(url);
+        currentMtl.resources.ambient = Library.get(url);
         break;
       case 'map_Kd':
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.albedo = url;
-        Library.get(url);
+        currentMtl.resources.albedo = Library.get(url);
         break;
       case 'map_Ks':
         // specular texture
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.specular = url;
-        Library.get(url);
+        currentMtl.resources.specular = Library.get(url);
         break;
       case 'map_Ns':
         // shininess texture
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.shininess = this.dir + chunks[chunks.length-1];
-        Library.get(url);
+        currentMtl.resources.shininess = Library.get(url);
         break;
       case 'map_d':
         // alpha texture
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.alpha = this.dir + chunks[chunks.length-1];
-        Library.get(url);
+        currentMtl.resources.alpha = Library.get(url);
         break;
       case 'map_bump':
       case 'bump':
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.bump = this.dir + chunks[chunks.length-1];
-        Library.get(url)
+        currentMtl.resources.bump = Library.get(url);
         break;
       case 'map_normal':
         url = this.dir + chunks[chunks.length-1];
-        currentMtl.imageMap.normal = this.dir + chunks[chunks.length-1];
-        Library.get(url);
+        currentMtl.resources.normal = Library.get(url);
         break;
     }
   }

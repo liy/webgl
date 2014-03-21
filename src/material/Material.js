@@ -23,9 +23,9 @@ var Material = function(){
 var p = Material.prototype;
 
 // TODO: Find a better way to setup textures
-p.setTextureMap = function(map){
-  for(var name in map){
-    if(map[name]){
+p.setResources = function(resources){
+  for(var name in resources){
+    if(resources[name]){
       var texture = this.textures[name] = new Texture2D();
       texture.name = name;
       texture.setParameters = function(texture){
@@ -36,9 +36,10 @@ p.setTextureMap = function(map){
         texture.unbind();
 
         console.log('set param', texture)
-      }
-      texture.load(map[name]);
+      };
+      texture.setResource(resources[name]);
     }
+
   }
 }
 
