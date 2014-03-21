@@ -24,8 +24,6 @@ p.setResource = function(resource){
 }
 
 p.onComplete = function(){
-  this.ready = true;
-
   this.bind();
 
   this.width = this.resource.width;
@@ -40,6 +38,9 @@ p.onComplete = function(){
 
   if(this.setParameters)
     this.setParameters(this);
+
+  // texture setup completed, can be bound now.
+  this.complete = true;
 
   this.unbind();
 }

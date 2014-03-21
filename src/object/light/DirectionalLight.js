@@ -7,6 +7,8 @@ var DirectionalLight = function(){
   Light.call(this);
 
   this.direction = vec3.create();
+  // Setup the default direction, notice that the direction is calculated from its position(actually eye space position)
+  vec3.set(this._position, 1, 1, 1);
 
   this.createBuffer();
 }

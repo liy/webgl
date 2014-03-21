@@ -40,6 +40,9 @@ var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.can
 camera.z = 0.5;
 scene.add(camera);
 
+var dirLight = new DirectionalLight();
+scene.add(dirLight);
+
 var loader = new ObjectFile();
 loader.load('../webgl-meshes/head/head.obj').then(function(){
   scene.add(loader.object);
@@ -55,11 +58,5 @@ function loop(){
 }
 loop();
 
-
-// var resource = new ImageResource('../webgl-meshes/head/lambertian.jpg');
-// resource.ready.then(function(param){
-
-// console.log(param);
-// })
 
 });

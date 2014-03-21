@@ -8,8 +8,6 @@ var Texture = function(target){
   this.target = target;
   this.unit = gl.TEXTURE0;
 
-  this.ready = false;
-
   this.id = Texture.id++;
 }
 var p = Texture.prototype = Object.create(null);

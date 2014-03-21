@@ -46,7 +46,7 @@ p.setResources = function(resources){
 p.uploadUniforms = function(shader){
   // albedo
   if(this.textures.albedo){
-    if(this.textures.albedo.ready){
+    if(this.textures.albedo.complete){
       this.textures.albedo.bind(gl.TEXTURE0);
     }
     else
@@ -57,7 +57,7 @@ p.uploadUniforms = function(shader){
 
   // specular
   if(this.textures.specular){
-    if(this.textures.specular.ready){
+    if(this.textures.specular.complete){
       this.textures.specular.bind(gl.TEXTURE0+1);
     }
     else
@@ -68,7 +68,7 @@ p.uploadUniforms = function(shader){
 
   // normal
   if(this.textures.normal){
-    if(this.textures.normal.ready){
+    if(this.textures.normal.complete){
       this.textures.normal.bind(gl.TEXTURE0+2);
     }
     else
@@ -79,7 +79,7 @@ p.uploadUniforms = function(shader){
 
   // roughness
   if(this.textures.roughness){
-    if(this.textures.roughness.ready){
+    if(this.textures.roughness.complete){
       this.textures.roughness.bind(gl.TEXTURE0+3);
     }
     else
@@ -90,7 +90,7 @@ p.uploadUniforms = function(shader){
 
   // bump
   if(this.textures.bump){
-    if(this.textures.bump.ready){
+    if(this.textures.bump.complete){
       shader.f('u_TextureDeltaX', 1/this.textures.bump.width);
       shader.f('u_TextureDeltaY', 1/this.textures.bump.height);
       this.textures.bump.bind(gl.TEXTURE0+4);
@@ -103,7 +103,7 @@ p.uploadUniforms = function(shader){
 
   // cube map
   if(this.textures.cubeMap){
-    if(this.textures.cubeMap.ready){
+    if(this.textures.cubeMap.complete){
       this.textures.cubeMap.bind(gl.TEXTURE0+5);
     }
     else
