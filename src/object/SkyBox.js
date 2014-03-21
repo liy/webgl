@@ -10,7 +10,7 @@ var SkyBox = function(faces){
   Mesh.call(this, new SkyBoxGeometry(), new Material());
 
   var cubeTexture = new TextureCube();
-  cubeTexture.load(faces);
+  cubeTexture.init(faces);
   this.material.textures.cubeMap = cubeTexture;
 }
 var p = SkyBox.prototype = Object.create(Mesh.prototype);

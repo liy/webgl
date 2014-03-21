@@ -1,5 +1,4 @@
 define(function(require){
-
 "use strict"
 
 var Texture = require('texture/Texture');
@@ -18,7 +17,7 @@ var Texture2D = function Texture2D(){
 }
 var p = Texture2D.prototype = Object.create(Texture.prototype);
 
-p.setResource = function(resource){
+p.init = function(resource){
   this.resource = resource;
   this.resource.ready.then(this.onComplete.bind(this));
 }

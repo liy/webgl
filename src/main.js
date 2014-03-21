@@ -22,6 +22,7 @@ var Shader = require('assets/resource/Shader');
 var NativeLoader = require('assets/loader/NativeLoader');
 var ImageResource = require('assets/resource/ImageResource');
 var Library = require('assets/Library');
+var TextureCube = require('texture/TextureCube');
 
 
 var stats = new Stats();
@@ -52,6 +53,16 @@ var loader = new ObjectFile();
 loader.load('../webgl-meshes/head/head.obj').then(function(){
   scene.add(loader.object);
 });
+
+var skybox = new SkyBox([
+  {resource: Library.get('../webgl-meshes/cube_map/posx.jpg'), target: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
+  {resource: Library.get('../webgl-meshes/cube_map/negx.jpg'), target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X},
+  {resource: Library.get('../webgl-meshes/cube_map/posy.jpg'), target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y},
+  {resource: Library.get('../webgl-meshes/cube_map/negy.jpg'), target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+  {resource: Library.get('../webgl-meshes/cube_map/posz.jpg'), target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z},
+  {resource: Library.get('../webgl-meshes/cube_map/negz.jpg'), target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
+]);
+scene.add(skybox);
 
 function loop(){
   stats.begin();

@@ -37,7 +37,7 @@ p.setResources = function(resources){
 
         console.log('set param', texture)
       };
-      texture.setResource(resources[name]);
+      texture.init(resources[name]);
     }
 
   }
