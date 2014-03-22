@@ -1,8 +1,16 @@
 define(function(require){
+"use strict"
 
 var Node = require('object/Node');
-
-"use strict"
+var LightProbePass = require('core/pipeline/LightProbePass');
+var PerspectiveCamera = require('object/camera/PerspectiveCamera');
+var TextureCube = require('texture/TextureCube');
+var SynthesisPass = require('core/pipeline/SynthesisPass');
+var Shader = require('assets/resource/Shader');
+var RenderPass = require('core/pipeline/RenderPass');
+var CubeGeometry = require('geometry/CubeGeometry');
+var Material = require('material/Material');
+var SphereGeometry = require('geometry/SphereGeometry');
 
 var LightProbe = function(size){
   Node.call(this);
@@ -142,8 +150,8 @@ var LightProbe = function(size){
   // for normal transformation and tangent transformation
   this.normalMatrix = mat3.create();
 
-  // this.geometry = new SphereGeometry(0.5, 30, 30);
-  this.geometry = new CubeGeometry();
+  this.geometry = new SphereGeometry(0.5, 30, 30);
+  // this.geometry = new CubeGeometry();
   this.material = new Material();
   this.material.textures.cubeMap = this.cubeTexture;
 

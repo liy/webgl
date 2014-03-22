@@ -1,5 +1,9 @@
+define(function(require){
 "use strict"
-function CubeGeometry(width, height, depth){
+
+var Geometry = require('geometry/Geometry');
+
+var CubeGeometry = function(width, height, depth){
   Geometry.call(this);
 
   this.width = width ? width : 1;
@@ -121,3 +125,6 @@ function CubeGeometry(width, height, depth){
   ];
 }
 var p = CubeGeometry.prototype = Object.create(Geometry.prototype);
+
+return CubeGeometry;
+});

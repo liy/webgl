@@ -1,8 +1,9 @@
 define(function(requirejs){
+"use strict"
 
 var RenderPass = require('core/pipeline/RenderPass');
+var Texture = require('texture/Texture');
 
-"use strict"
 // do light and albedo synthesis and draw sky box.
 var SynthesisPass = function(params){
   RenderPass.call(this, params);

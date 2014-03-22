@@ -23,6 +23,7 @@ var NativeLoader = require('assets/loader/NativeLoader');
 var ImageResource = require('assets/resource/ImageResource');
 var Library = require('assets/Library');
 var TextureCube = require('texture/TextureCube');
+var LightProbe = require('object/LightProbe');
 
 
 var stats = new Stats();
@@ -48,6 +49,10 @@ var p = new PointLight();
 scene.add(p);
 p.x = -0.3;
 vec3.set(p.color, 1, 0, 0);
+
+var probe = new LightProbe();
+probe.x = 1;
+scene.add(probe);
 
 var loader = new ObjectFile();
 loader.load('../webgl-meshes/head/head.obj').then(function(){

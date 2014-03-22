@@ -59,6 +59,7 @@ var DeferredRenderer = function(){
       }
     }
   }
+  // FIXME: enable this, ensure no undefined location is passed into gl related function
   // gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!

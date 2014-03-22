@@ -1,5 +1,5 @@
 define(function(require){
-"use strict"
+// "use strict"
 
 require('util/utils');
 var Resource = require('assets/resource/Resource');
@@ -13,7 +13,11 @@ var includes = {
   'common.glsl': require('text!shader/lib/common.glsl')
 }
 
-var Shader = function(){
+/**
+ * You can pass in a source glsl related parameter into constructor directly.
+ * @param {Object} source You can directly pass a glsl source String, or an Object { source: glsl source, defines: { gamma: 2.2 } }
+ */
+var Shader = function(param){
   // whether to validate undefined uniform location
   this.validateLocation = false;
   // store the error of the undefined uniform location, so it only trace out once.
@@ -34,6 +38,16 @@ var Shader = function(){
 
   // stores runtime defines
   this.defines = Object.create(null);
+
+  if(param){
+    // instanceof String return false, for this case: var source = "blallala". Use typeof instead of instance if possible for String type checking.
+    if(typeof param === 'string')
+      this.compile(param);
+    else{
+      this.defines = param.defines;
+      this.compile(param.source);
+    }
+  }
 }
 var p = Shader.prototype = Object.create(Resource.prototype);
 
