@@ -16,7 +16,7 @@ p.render = function(scene, camera){
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // light composition blend: add
+  // light accumulation blend: add
   gl.enable(gl.BLEND);
   gl.blendEquation(gl.FUNC_ADD);
   gl.blendFunc(gl.ONE, gl.ONE);
@@ -39,6 +39,9 @@ p.render = function(scene, camera){
 
   // directional light
   this.directionalLighting(scene, camera);
+
+  // after light pass disable blend.
+  gl.disable(gl.BLEND);
 }
 
 p.stencil = function(light, camera){

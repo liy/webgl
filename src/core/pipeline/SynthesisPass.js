@@ -17,7 +17,7 @@ p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
   gl.viewport(0, 0, this.width, this.height);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(1.0, 0.0, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.useProgram(this.synthesisShader.program);
@@ -50,8 +50,8 @@ p.render = function(scene, camera){
 p.drawSkyBox = function(scene, camera){
   gl.useProgram(this.skyBoxShader.program);
 
-  // I think no need to disable blend, since depth test will discard any overlapping fragments
-  // gl.disable(gl.BLEND);
+  // TODO: I think no need to disable blend, since depth test will discard any overlapping fragments
+  gl.disable(gl.BLEND);
 
   // The depth render buffer is untouched after geometry pass, we can use it to discard any sky box fragments behind the meshes.
   gl.enable(gl.DEPTH_TEST);

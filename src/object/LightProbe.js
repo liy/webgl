@@ -23,11 +23,11 @@ var LightProbe = function(size){
   // width and height value
   this.width = this.height = size || LightProbePass.instance.defaultProbeWidth;
 
-  this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.5, 5);
+  this.camera = new PerspectiveCamera(Math.PI/2, 1, 0.1, 100);
   this.add(this.camera);
 
   this.cubeTexture = new TextureCube();
-  this.cubeTexture.ready = true;
+  this.cubeTexture.complete = true;
 
   // in order to save memory, light probe will share depth and stencil buffer
   this.depthBuffer = LightProbePass.instance.depthBuffer;
@@ -160,31 +160,31 @@ var LightProbe = function(size){
 var p = LightProbe.prototype = Object.create(Node.prototype);
 
 p.capture = function(scene){
-  if(this.dynamic || !this.captured){
-    this.cubeTexture.bind();
-    // draw 6 faces
-    for(var i=0; i<6; ++i){
-      // update camera direction
-      this.camera.rotationX = this.rotations[i].x;
-      this.camera.rotationY = this.rotations[i].y;
-      this.camera.rotationZ = this.rotations[i].z;
-      // since the camera rotation is changed after DeferredRender perform model matrix update, we need to update its matrix manually.
-      this.camera.update();
-      // update scene object's view dependent matrix using current light probe's camera setup.
-      scene.updateViewMatrix(this.camera);
+  // if(this.dynamic || !this.captured){
+  //   this.cubeTexture.bind();
+  //   // draw 6 faces
+  //   for(var i=0; i<6; ++i){
+  //     // update camera direction
+  //     this.camera.rotationX = this.rotations[i].x;
+  //     this.camera.rotationY = this.rotations[i].y;
+  //     this.camera.rotationZ = this.rotations[i].z;
+  //     // since the camera rotation is changed after DeferredRender perform model matrix update, we need to update its matrix manually.
+  //     this.camera.update();
+  //     // update scene object's view dependent matrix using current light probe's camera setup.
+  //     scene.updateViewMatrix(this.camera);
 
-      // draw side
-      this.geometryPass.render(scene, this.camera);
-      this.lightPass.render(scene, this.camera);
+  //     // draw side
+  //     this.geometryPass.render(scene, this.camera);
+  //     this.lightPass.render(scene, this.camera);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, this.cubeTexture.glTexture, 0);
-      this.synthesisPass.render(scene, this.camera);
-    }
-    this.cubeTexture.unbind();
+  //     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  //     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X+i, this.cubeTexture.glTexture, 0);
+  //     this.synthesisPass.render(scene, this.camera);
+  //   }
+  //   this.cubeTexture.unbind();
 
-    this.captured = true;
-  }
+  //   this.captured = true;
+  // }
 }
 
 p.generateCoefficients = function(){

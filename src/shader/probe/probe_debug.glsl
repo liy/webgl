@@ -42,6 +42,7 @@ varying vec4 v_Position;
     vec3 r = normalize(reflect(-v, n));
     r = vec3(u_InvViewMatrix * vec4(r, 0.0));
 
-    gl_FragColor = textureCube(u_CubeMapTexture, r);
+    // gl_FragColor = textureCube(u_CubeMapTexture, r);
+    gl_FragColor = vec4(1,0,0,1);
   }
 #endif

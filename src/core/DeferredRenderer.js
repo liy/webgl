@@ -186,7 +186,7 @@ p.render = function(scene, camera){
   scene.updateViewMatrix(camera);
 
   this.geometryPass.render(scene, camera);
-  // debug draw light probe
+  // debug draw light probe. This is only for debugging purpose
   LightProbePass.instance.render(scene, camera);
   this.lightPass.render(scene, camera);
   this.synthesisPass.render(scene, camera);

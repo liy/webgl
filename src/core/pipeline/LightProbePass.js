@@ -20,6 +20,7 @@ var LightProbePass = function(params){
   // debugger shader
   this.shader = new Shader();
   this.shader.compile(require('text!shader/probe/probe_debug.glsl'));
+  this.shader.url = 'text!shader/probe/probe_debug.glsl';
   // debugger buffer
   this.export.lightProbeDebugBuffer = RenderPass.createColorTexture(this.width, this.height);
 
@@ -100,8 +101,11 @@ p.capture = function(scene){
   }
 }
 
+/**
+ * Debug draw the light probe with the captured 4 side face
+ */
 p.render = function(scene, camera){
-  // enable depth buffer
+  // the light probe mesh depth information should be recorded.
   gl.depthMask(true);
 
   gl.useProgram(this.shader.program)

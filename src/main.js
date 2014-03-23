@@ -39,23 +39,17 @@ var renderer = new DeferredRenderer();
 
 var scene = new Scene();
 var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 50);
-camera.z = 0.5;
+camera.z = 1.8;
 scene.add(camera);
 
 var dirLight = new DirectionalLight();
 scene.add(dirLight);
 
-var p = new PointLight();
-scene.add(p);
-p.x = -0.3;
-vec3.set(p.color, 1, 0, 0);
-
-var probe = new LightProbe();
-probe.x = 1;
-scene.add(probe);
 
 var loader = new ObjectFile();
 loader.load('../webgl-meshes/head/head.obj').then(function(){
+  loader.object.x = -1;
+  loader.object.z = 1;
   scene.add(loader.object);
 });
 
@@ -68,6 +62,9 @@ var skybox = new SkyBox([
   {resource: Library.get('../webgl-meshes/cube_map/negz.jpg'), target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z}
 ]);
 scene.add(skybox);
+
+var probe = new LightProbe();
+scene.add(probe);
 
 function loop(){
   stats.begin();

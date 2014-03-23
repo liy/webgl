@@ -66,7 +66,7 @@ varying vec4 v_Position;
   void main() {
     vec3 n = normalize(v_Normal);
 
-    gl_FragData[0] = vec4(1,0,0,1);//texture2D(albedoTexture, v_TexCoord);
+    gl_FragData[0] = texture2D(u_AlbedoTexture, v_TexCoord);
     gl_FragData[1] = vec4((n + 1.0) * 0.5, 1.0);
     gl_FragData[2] = texture2D(u_SpecularTexture, v_TexCoord);
     gl_FragData[3] = pack(gl_FragCoord.z);
