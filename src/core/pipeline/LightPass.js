@@ -1,8 +1,8 @@
 define(function(requirejs){
+"use strict"
 
 var RenderPass = require('core/pipeline/RenderPass');
 
-"use strict"
 var LightPass = function(params){
   RenderPass.call(this, params);
 }
