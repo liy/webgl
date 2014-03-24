@@ -50,7 +50,7 @@ p.render = function(scene, camera){
 p.drawSkyBox = function(scene, camera){
   gl.useProgram(this.skyBoxShader.program);
 
-  // TODO: I think no need to disable blend, since depth test will discard any overlapping fragments
+  // Although depth test will discard any overlapping fragments, but the default clear color might still be blended. So disable blend.
   gl.disable(gl.BLEND);
 
   // The depth render buffer is untouched after geometry pass, we can use it to discard any sky box fragments behind the meshes.
