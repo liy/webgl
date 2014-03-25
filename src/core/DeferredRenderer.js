@@ -4,7 +4,6 @@ var ExtensionCheck = require('util/ExtensionCheck');
 var RenderPass = require('core/pipeline/RenderPass');
 var GeometryPass = require('core/pipeline/GeometryPass');
 var LightPass = require('core/pipeline/LightPass');
-var LightProbePass = require('core/pipeline/LightProbePass');
 var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
 var Shader = require('assets/resource/Shader');
@@ -74,26 +73,9 @@ var DeferredRenderer = function(){
   this.geometryPass = new GeometryPass({
     width: this.bufferWidth,
     height: this.bufferHeight,
-
-    init: (function(depthBuffer, depthStencilRenderBuffer){
-      return function(){
-        this.shader = new Shader();
-        this.shader.compile(require('text!shader/geometry.glsl'));
-
-        this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
-        this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
-        this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
-
-        this.framebuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoBuffer.glTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalBuffer.glTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularBuffer.glTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, depthBuffer.glTexture, 0);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
-        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
-      }
-    })(depthBuffer, depthStencilRenderBuffer)
+    shader: new Shader(require('text!shader/geometry.glsl')),
+    depthBuffer: depthBuffer,
+    depthStencilRenderBuffer: depthStencilRenderBuffer
   });
 
   this.lightPass = new LightPass({
@@ -130,14 +112,14 @@ var DeferredRenderer = function(){
     })(depthBuffer)
   });
 
-  LightProbePass.instance = new LightProbePass({
-    width: this.bufferWidth,
-    height: this.bufferHeight,
-    passDepthStencilRenderBuffer: depthStencilRenderBuffer
-  });
+  // LightProbePass.instance = new LightProbePass({
+  //   width: this.bufferWidth,
+  //   height: this.bufferHeight,
+  //   passDepthStencilRenderBuffer: depthStencilRenderBuffer
+  // });
 
   this.synthesisPass = new SynthesisPass({
-    inputs: [this.geometryPass, this.lightPass, LightProbePass.instance],
+    inputs: [this.geometryPass, this.lightPass],
     width: this.bufferWidth,
     height: this.bufferHeight,
 
@@ -180,14 +162,14 @@ p.render = function(scene, camera){
   scene.updateModelMatrix();
 
   // light probe capturing the scene
-  LightProbePass.instance.capture(scene);
+  // LightProbePass.instance.capture(scene);
 
   // update the view dependent matrix
   scene.updateViewMatrix(camera);
 
   this.geometryPass.render(scene, camera);
   // debug draw light probe. This is only for debugging purpose
-  LightProbePass.instance.render(scene, camera);
+  // LightProbePass.instance.render(scene, camera);
   this.lightPass.render(scene, camera);
   this.synthesisPass.render(scene, camera);
   this.screenPass.render(scene, camera);

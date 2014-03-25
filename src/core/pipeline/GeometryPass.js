@@ -5,6 +5,24 @@ var RenderPass = require('core/pipeline/RenderPass');
 
 var GeometryPass = function(params){
   RenderPass.call(this, params);
+
+  console.dir(this.depthBuffer);
+
+  if(!this.shader)
+    this.shader = new Shader(require('text!shader/geometry.glsl'));
+
+  this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
+  this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
+  this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.albedoBuffer.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.normalBuffer.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, this.export.specularBuffer.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, this.depthBuffer.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3]);
 }
 var p = GeometryPass.prototype = Object.create(RenderPass.prototype);
 
