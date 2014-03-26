@@ -73,7 +73,6 @@ var DeferredRenderer = function(){
   this.geometryPass = new GeometryPass({
     width: this.bufferWidth,
     height: this.bufferHeight,
-    shader: new Shader(require('text!shader/geometry.glsl')),
     depthBuffer: depthBuffer,
     depthStencilRenderBuffer: depthStencilRenderBuffer
   });
@@ -82,34 +81,9 @@ var DeferredRenderer = function(){
     inputs: [this.geometryPass],
     width: this.bufferWidth,
     height: this.bufferHeight,
-
-    init: (function(depthBuffer){
-      return function(){
-        this.pointLightShader = new Shader();
-        this.pointLightShader.compile(require('text!shader/light/point.glsl'));
-
-        this.dirLightShader = new Shader();
-        this.dirLightShader.compile(require('text!shader/light/directional.glsl'));
-
-        // a null shader for stencil update
-        this.stencilShader = new Shader();
-        this.stencilShader.compile(require('text!shader/stencil.glsl'));
-
-        // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-        this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
-        this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
-
-        // light pass needs to bind and sample depth texture to reconstruct eye space position for lighting calculation
-        this.depthBuffer = depthBuffer;
-
-        this.framebuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
-        gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
-      }
-    })(depthBuffer)
+    // light pass needs to bind and sample depth texture to reconstruct eye space position for lighting calculation
+    depthBuffer: depthBuffer,
+    depthStencilRenderBuffer: depthStencilRenderBuffer
   });
 
   // LightProbePass.instance = new LightProbePass({
@@ -122,34 +96,14 @@ var DeferredRenderer = function(){
     inputs: [this.geometryPass, this.lightPass],
     width: this.bufferWidth,
     height: this.bufferHeight,
-
-    init: (function(depthStencilRenderBuffer){
-      return function(){
-        this.synthesisShader = new Shader();
-        this.synthesisShader.compile(require('text!shader/synthesis.glsl'));
-
-        this.skyBoxShader = new Shader();
-        this.skyBoxShader.compile(require('text!shader/skybox.glsl'));
-
-        this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
-
-        // TODO: FIXME: find a better way to do input, output and sharing the targets
-        this.framebuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencilRenderBuffer);
-      }
-    })(depthStencilRenderBuffer)
+    // depth testing for sky box
+    depthStencilRenderBuffer: depthStencilRenderBuffer
   });
 
   this.screenPass = new ScreenPass({
     inputs: [this.synthesisPass],
     width: this.canvas.width,
-    height: this.canvas.height,
-    init: function(){
-      this.shader = new Shader();
-      this.shader.compile(require('text!shader/screen.glsl'));
-    }
+    height: this.canvas.height
   });
 
   gl.enable(gl.CULL_FACE);

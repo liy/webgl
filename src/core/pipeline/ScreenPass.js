@@ -1,10 +1,13 @@
 define(function(requirejs){
 
 var RenderPass = require('core/pipeline/RenderPass');
+var Shader = require('assets/resource/Shader');
 
 "use strict"
 var ScreenPass = function(params){
   RenderPass.call(this, params);
+
+  this.shader = new Shader(require('text!shader/screen.glsl'));
 
   this.createScreenBuffer();
 }

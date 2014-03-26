@@ -3,10 +3,25 @@ define(function(requirejs){
 
 var RenderPass = require('core/pipeline/RenderPass');
 var Texture = require('texture/Texture');
+var Shader = require('assets/resource/Shader');
 
 // do light and albedo synthesis and draw sky box.
 var SynthesisPass = function(params){
   RenderPass.call(this, params);
+
+  if(!this.synthesisShader)
+    this.synthesisShader = new Shader(require('text!shader/synthesis.glsl'));
+
+  if(!this.skyBoxShader)
+    this.skyBoxShader = new Shader(require('text!shader/skybox.glsl'));
+
+  this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+  // TODO: FIXME: find a better way to do input, output and sharing the targets
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.export.compositeBuffer.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
 
   this.createSynthesisBuffer();
 }

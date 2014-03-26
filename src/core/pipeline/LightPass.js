@@ -2,9 +2,30 @@ define(function(requirejs){
 "use strict"
 
 var RenderPass = require('core/pipeline/RenderPass');
+var Shader = require('assets/resource/Shader');
 
 var LightPass = function(params){
   RenderPass.call(this, params);
+
+  if(!this.pointLightShader)
+    this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
+  if(!this.directionalLightShader)
+    this.directionalLightShader = new Shader(require('text!shader/light/directional.glsl'));
+  if(!this.stencilShader){
+    // a null shader for stencil update
+    this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
+  }
+
+  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
+  this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+  this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+
+  this.framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+0, gl.TEXTURE_2D, this.export.diffuseLightBuffer.glTexture, 0);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, this.export.specularLightBuffer.glTexture, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.depthStencilRenderBuffer);
+  gl.drawBuffersWEBGL([gl.COLOR_ATTACHMENT0+0, gl.COLOR_ATTACHMENT0+1]);
 }
 var p = LightPass.prototype = Object.create(RenderPass.prototype);
 
@@ -97,24 +118,24 @@ p.pointLighting = function(light, camera){
 }
 
 p.directionalLighting = function(scene, camera){
-  gl.useProgram(this.dirLightShader.program);
+  gl.useProgram(this.directionalLightShader.program);
 
-  camera.uploadUniforms(this.dirLightShader);
+  camera.uploadUniforms(this.directionalLightShader);
 
   var len = scene.directionalLights.length;
   for(var i=0; i<len; ++i){
     var light = scene.directionalLights[i];
 
     this.import.albedoBuffer.bind(gl.TEXTURE0);
-    this.dirLightShader.i('albedoBuffer', 0);
+    this.directionalLightShader.i('albedoBuffer', 0);
     this.import.normalBuffer.bind(gl.TEXTURE0+1);
-    this.dirLightShader.i('normalBuffer', 1);
+    this.directionalLightShader.i('normalBuffer', 1);
     this.import.specularBuffer.bind(gl.TEXTURE0+2)
-    this.dirLightShader.i('specularBuffer', 2);
+    this.directionalLightShader.i('specularBuffer', 2);
     this.depthBuffer.bind(gl.TEXTURE0+3)
-    this.dirLightShader.i('depthBuffer', 3);
+    this.directionalLightShader.i('depthBuffer', 3);
 
-    light.lit(this.dirLightShader, camera);
+    light.lit(this.directionalLightShader, camera);
   }
 }
 

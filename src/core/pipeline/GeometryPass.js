@@ -2,11 +2,10 @@ define(function(require){
 
 "use strict"
 var RenderPass = require('core/pipeline/RenderPass');
+var Shader = require('assets/resource/Shader');
 
 var GeometryPass = function(params){
   RenderPass.call(this, params);
-
-  console.dir(this.depthBuffer);
 
   if(!this.shader)
     this.shader = new Shader(require('text!shader/geometry.glsl'));
