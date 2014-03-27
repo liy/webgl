@@ -66,45 +66,14 @@ var DeferredRenderer = function(){
   // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
-  var depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
+  this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
+  this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
 
-  this.geometryPass = new GeometryPass({
-    width: this.bufferWidth,
-    height: this.bufferHeight,
-    depthBuffer: depthBuffer,
-    depthStencilRenderBuffer: depthStencilRenderBuffer
-  });
-
-  this.lightPass = new LightPass({
-    inputs: [this.geometryPass],
-    width: this.bufferWidth,
-    height: this.bufferHeight,
-    // light pass needs to bind and sample depth texture to reconstruct eye space position for lighting calculation
-    depthBuffer: depthBuffer,
-    depthStencilRenderBuffer: depthStencilRenderBuffer
-  });
-
-  // LightProbePass.instance = new LightProbePass({
-  //   width: this.bufferWidth,
-  //   height: this.bufferHeight,
-  //   passDepthStencilRenderBuffer: depthStencilRenderBuffer
-  // });
-
-  this.synthesisPass = new SynthesisPass({
-    inputs: [this.geometryPass, this.lightPass],
-    width: this.bufferWidth,
-    height: this.bufferHeight,
-    // depth testing for sky box
-    depthStencilRenderBuffer: depthStencilRenderBuffer
-  });
-
-  this.screenPass = new ScreenPass({
-    inputs: [this.synthesisPass],
-    width: this.canvas.width,
-    height: this.canvas.height
-  });
+  this.geometryPass = new GeometryPass(this);
+  this.lightPass = new LightPass(this, [this.geometryPass]);
+  this.synthesisPass = new SynthesisPass(this, [this.geometryPass, this.lightPass]);
+  this.screenPass = new ScreenPass(this, [this.synthesisPass]);
 
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);

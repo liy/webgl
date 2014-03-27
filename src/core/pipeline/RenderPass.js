@@ -1,9 +1,9 @@
 define(function(require){
+"use strict"
 
 var  Texture2D = require('texture/Texture2D');
 
-"use strict"
-var RenderPass = function(params){
+var RenderPass = function(renderer, inputs, shaders){
   // render targets, textures imported from parent passes, upstream.
   this.import = Object.create(null);
   // The render targets which the current RenderPass expose to other RenderPasses, downstream.
@@ -11,27 +11,29 @@ var RenderPass = function(params){
 
   this.framebuffer = null;
 
-  if(params){
-    if(params.inputs){
-      for(var i=0; i<params.inputs.length; ++i){
-        var renderPass = params.inputs[i];
-        // assign parent pass's exporting textures
-        for(var name in renderPass.export){
-          this.import[name] = renderPass.export[name];
-        }
+  this.renderer = renderer;
+  this.bufferWidth = renderer.bufferWidth;
+  this.bufferHeight = renderer.bufferHeight;
+  this.canvasWidth = renderer.canvas.width;
+  this.canvasHeight = renderer.canvas.height;
+
+
+  this.depthBuffer = renderer.depthBuffer;
+  // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
+  this.depthStencilRenderBuffer = renderer.depthStencilRenderBuffer;
+
+  if(inputs){
+    for(var i=0; i<inputs.length; ++i){
+      var renderPass = inputs[i];
+      // assign parent pass's exporting textures
+      for(var name in renderPass.export){
+        this.import[name] = renderPass.export[name];
       }
     }
+  }
 
-    for(var name in params){
-      this[name] = params[name];
-    }
-
-    // handle invalid buffer width and height
-    this.width = this.width || 128;
-    this.height = this.height || 128;
-
-    if(this.init)
-      this.init();
+  for(var name in shaders){
+    this[name] = shaders[name];
   }
 }
 var p = RenderPass.prototype;

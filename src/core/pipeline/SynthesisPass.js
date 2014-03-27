@@ -6,8 +6,8 @@ var Texture = require('texture/Texture');
 var Shader = require('assets/resource/Shader');
 
 // do light and albedo synthesis and draw sky box.
-var SynthesisPass = function(params){
-  RenderPass.call(this, params);
+var SynthesisPass = function(renderer, inputs, shaders){
+  RenderPass.call(this, renderer, inputs, shaders);
 
   if(!this.synthesisShader)
     this.synthesisShader = new Shader(require('text!shader/synthesis.glsl'));
@@ -15,7 +15,7 @@ var SynthesisPass = function(params){
   if(!this.skyBoxShader)
     this.skyBoxShader = new Shader(require('text!shader/skybox.glsl'));
 
-  this.export.compositeBuffer = RenderPass.createColorTexture(this.width, this.height);
+  this.export.compositeBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
 
   // TODO: FIXME: find a better way to do input, output and sharing the targets
   this.framebuffer = gl.createFramebuffer();
@@ -31,7 +31,7 @@ var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   gl.clearColor(1.0, 0.0, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 

@@ -4,10 +4,11 @@ var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
 "use strict"
-var ScreenPass = function(params){
-  RenderPass.call(this, params);
+var ScreenPass = function(renderer, inputs, shaders){
+  RenderPass.call(this, renderer, inputs, shaders);
 
-  this.shader = new Shader(require('text!shader/screen.glsl'));
+  if(!this.shader)
+    this.shader = new Shader(require('text!shader/screen.glsl'));
 
   this.createScreenBuffer();
 }
@@ -17,7 +18,7 @@ p.render = function(scene, camera){
   gl.useProgram(this.shader.program);
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 

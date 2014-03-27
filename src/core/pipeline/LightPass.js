@@ -4,8 +4,8 @@ define(function(requirejs){
 var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
-var LightPass = function(params){
-  RenderPass.call(this, params);
+var LightPass = function(renderer, inputs, shaders){
+  RenderPass.call(this, renderer, inputs, shaders);
 
   if(!this.pointLightShader)
     this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
@@ -17,8 +17,8 @@ var LightPass = function(params){
   }
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-  this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.width, this.height);
-  this.export.specularLightBuffer = RenderPass.createColorTexture(this.width, this.height);
+  this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  this.export.specularLightBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
@@ -33,7 +33,7 @@ p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 

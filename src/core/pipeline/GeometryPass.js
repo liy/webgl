@@ -4,15 +4,15 @@ define(function(require){
 var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
-var GeometryPass = function(params){
-  RenderPass.call(this, params);
+var GeometryPass = function(renderer, inputs, shaders){
+  RenderPass.call(this, renderer, inputs, shaders);
+
+  this.export.albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  this.export.normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  this.export.specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
 
   if(!this.shader)
     this.shader = new Shader(require('text!shader/geometry.glsl'));
-
-  this.export.albedoBuffer = RenderPass.createColorTexture(this.width, this.height);
-  this.export.normalBuffer = RenderPass.createColorTexture(this.width, this.height);
-  this.export.specularBuffer = RenderPass.createColorTexture(this.width, this.height);
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
@@ -33,7 +33,7 @@ p.render = function(scene, camera){
   gl.useProgram(this.shader.program)
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.width, this.height);
+  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
