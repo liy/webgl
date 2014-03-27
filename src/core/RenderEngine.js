@@ -56,7 +56,7 @@ var RenderEngine = function(bufferWidth, bufferHeight, canvasWidth, canvasHeight
 };
 var p = RenderEngine.prototype;
 
-p.render = function(scene, camera){
+p.tick = function(scene, camera){
   // update model, world matrix
   scene.updateModelMatrix();
 
@@ -67,4 +67,5 @@ p.render = function(scene, camera){
   scene.updateViewMatrix(camera);
 }
 
+return RenderEngine;
 });

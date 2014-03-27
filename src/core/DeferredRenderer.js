@@ -63,9 +63,9 @@ var DeferredRenderer = function(){
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
-  // Depth target holds gl_FragCoord.z value, just light standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
+  // Depth target holds gl_FragCoord.z value, just stores standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
-  // OpenGL depth test, stencil test is handled by depth stencil render buffer, shown below.
+  // The actual OpenGL depth test and stencil test is done by depth stencil render buffer, shown below.
   this.depthBuffer = RenderPass.createColorDepthTexture(this.bufferWidth, this.bufferHeight);
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(this.bufferWidth, this.bufferHeight);
