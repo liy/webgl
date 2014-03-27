@@ -14,8 +14,8 @@ var RenderPass = function(renderer, inputs, shaders){
   this.renderer = renderer;
   this.bufferWidth = renderer.bufferWidth;
   this.bufferHeight = renderer.bufferHeight;
-  this.canvasWidth = renderer.canvas.width;
-  this.canvasHeight = renderer.canvas.height;
+  this.canvasWidth = renderer.canvasWidth;
+  this.canvasHeight = renderer.canvasHeight;
 
 
   this.depthBuffer = renderer.depthBuffer;

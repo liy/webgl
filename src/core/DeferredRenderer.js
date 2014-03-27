@@ -1,65 +1,19 @@
 define(function(require){
 
-var ExtensionCheck = require('util/ExtensionCheck');
 var RenderPass = require('core/pipeline/RenderPass');
 var GeometryPass = require('core/pipeline/GeometryPass');
 var LightPass = require('core/pipeline/LightPass');
 var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
-var Shader = require('assets/resource/Shader');
 
 
 "use strict"
-var DeferredRenderer = function(){
-  this.canvas = document.createElement('canvas');
-  document.body.appendChild(this.canvas);
-  this.canvas.width = window.innerWidth;
-  this.canvas.height = window.innerHeight;
-  window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
-
-  this.bufferWidth = 1280;
-  this.bufferHeight = 1280;
-
-  window.addEventListener('resize', this.onResize);
-
-  this.dbExt = gl.getExtension("WEBGL_draw_buffers");
-  this.dtExt = gl.getExtension("WEBGL_depth_texture");
-  this.vaoExt = gl.getExtension("OES_vertex_array_object");
-
-  var supportedNames = gl.getSupportedExtensions();
-
-  // include extensions' properties into gl, for convenience reason.
-  var exts = [this.dbExt, this.dtExt, this.vaoExt];
-  ExtensionCheck.check(exts);
-  for(var i=0; i<exts.length; ++i){
-    var ext = exts[i];
-    for(var name in ext){
-      if(gl[name] === undefined){
-        if(ext[name] instanceof Function){
-          (function(e, n){
-            gl[n] = function(){
-              return e[n].apply(e, arguments);
-            }
-          })(ext, name);
-        }
-        else
-          gl[name] = ext[name];
-      }
-      else
-        console.error('gl conflict name in extension: ' + ext +' name: ' + name);
-    }
-  }
-
-  function validateNoneOfTheArgsAreUndefined(functionName, args) {
-    for (var ii = 0; ii < args.length; ++ii) {
-      if (args[ii] === undefined) {
-        console.error("undefined passed to gl." + functionName + "(" +
-                       WebGLDebugUtils.glFunctionArgsToString(functionName, args) + ")");
-      }
-    }
-  }
-  // FIXME: enable this, ensure no undefined location is passed into gl related function
-  // gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
+var DeferredRenderer = function(engine){
+  this.engine = engine;
+  this.bufferWidth = engine.bufferWidth;
+  this.bufferHeight = engine.bufferHeight;
+  this.canvasWidth = engine.canvas.width;
+  this.canvasHeight = engine.canvas.height;
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
@@ -74,16 +28,10 @@ var DeferredRenderer = function(){
   this.lightPass = new LightPass(this, [this.geometryPass]);
   this.synthesisPass = new SynthesisPass(this, [this.geometryPass, this.lightPass]);
   this.screenPass = new ScreenPass(this, [this.synthesisPass]);
-
-  gl.enable(gl.CULL_FACE);
-  gl.clearColor(0.2, 0.2, 0.2, 1.0);
 }
 var p = DeferredRenderer.prototype;
 
 p.render = function(scene, camera){
-  // update model, world matrix
-  scene.updateModelMatrix();
-
   // light probe capturing the scene
   // LightProbePass.instance.capture(scene);
 

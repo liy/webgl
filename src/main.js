@@ -10,6 +10,7 @@ require.config({
 
 define(function(require){
 
+var RenderEngine = require('core/RenderEngine');
 var DeferredRenderer = require('core/DeferredRenderer');
 var Scene = require('object/Scene');
 var PerspectiveCamera = require('object/camera/PerspectiveCamera');
@@ -34,10 +35,10 @@ stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
 
-var renderer = new DeferredRenderer();
+var engine = new RenderEngine();
 
 var scene = new Scene();
-var camera = new PerspectiveCamera(Math.PI/3, renderer.canvas.width/renderer.canvas.height, 0.01, 50);
+var camera = new PerspectiveCamera(Math.PI/3, engine.canvas.width/engine.canvas.height, 0.01, 50);
 camera.z = 0.6;
 scene.add(camera);
 
@@ -62,7 +63,7 @@ scene.add(skybox);
 function loop(){
   stats.begin();
 
-  renderer.render(scene, camera);
+  engine.tick(scene, camera);
 
   stats.end();
   requestAnimFrame(loop);
