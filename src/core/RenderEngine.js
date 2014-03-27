@@ -53,10 +53,10 @@ var RenderEngine = function(bufferWidth, bufferHeight, canvasWidth, canvasHeight
   // FIXME: enable this, ensure no undefined location is passed into gl related function
   // gl = WebGLDebugUtils.makeDebugContext(gl, undefined, validateNoneOfTheArgsAreUndefined);
 
-  this.deferredRenderer = new DeferredRenderer(this);
-
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
+
+  this.renderer = new DeferredRenderer(this);
 };
 var p = RenderEngine.prototype;
 
@@ -64,11 +64,11 @@ p.tick = function(scene, camera){
   // update model, world matrix
   scene.updateModelMatrix();
 
-  // light probe capturing the scene
-  // LightProbePass.instance.capture(scene);
+  // TODO: light probe capturing the scene
 
-
-  this.deferredRenderer.render(scene, camera);
+  // default renderer, rendering the scene using specified camera.
+  // Note that the view dependent matrices will be updated in the renderer.
+  this.renderer.render(scene, camera);
 }
 
 return RenderEngine;

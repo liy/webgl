@@ -32,9 +32,6 @@ var DeferredRenderer = function(engine){
 var p = DeferredRenderer.prototype;
 
 p.render = function(scene, camera){
-  // light probe capturing the scene
-  // LightProbePass.instance.capture(scene);
-
   // update the view dependent matrix
   scene.updateViewMatrix(camera);
 
