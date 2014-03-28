@@ -4,17 +4,20 @@ define(function(requirejs){
 var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
-var LightPass = function(renderer, inputs, shaders){
-  RenderPass.call(this, renderer, inputs, shaders);
+var LightPass = function(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer){
+  RenderPass.call(this, depthBuffer, depthStencilRenderBuffer);
 
-  if(!this.pointLightShader)
-    this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
-  if(!this.directionalLightShader)
-    this.directionalLightShader = new Shader(require('text!shader/light/directional.glsl'));
-  if(!this.stencilShader){
-    // a null shader for stencil update
-    this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
-  }
+  this.bufferWidth = bufferWidth;
+  this.bufferHeight = bufferHeight;
+
+  this.depthBuffer = depthBuffer;
+  // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
+  this.depthStencilRenderBuffer = depthStencilRenderBuffer;
+
+  this.pointLightShader = new Shader(require('text!shader/light/point.glsl'));
+  this.directionalLightShader = new Shader(require('text!shader/light/directional.glsl'));
+  // a null shader for stencil update
+  this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
   this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);

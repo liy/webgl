@@ -3,7 +3,7 @@ define(function(require){
 
 var  Texture2D = require('texture/Texture2D');
 
-var RenderPass = function(renderer, inputs, shaders){
+var RenderPass = function(){
   // render targets, textures imported from parent passes, upstream.
   this.import = Object.create(null);
   // The render targets which the current RenderPass expose to other RenderPasses, downstream.
@@ -11,18 +11,15 @@ var RenderPass = function(renderer, inputs, shaders){
 
   this.framebuffer = null;
 
-  this.renderer = renderer;
-  this.bufferWidth = renderer.bufferWidth;
-  this.bufferHeight = renderer.bufferHeight;
-  this.canvasWidth = renderer.canvasWidth;
-  this.canvasHeight = renderer.canvasHeight;
+  this._inputs = [];
+}
+var p = RenderPass.prototype;
 
-
-  this.depthBuffer = renderer.depthBuffer;
-  // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  this.depthStencilRenderBuffer = renderer.depthStencilRenderBuffer;
-
-  if(inputs){
+Object.defineProperty(p, "inputs", {
+  get: function(){
+    return this._inputs;
+  },
+  set: function(inputs){
     for(var i=0; i<inputs.length; ++i){
       var renderPass = inputs[i];
       // assign parent pass's exporting textures
@@ -30,13 +27,9 @@ var RenderPass = function(renderer, inputs, shaders){
         this.import[name] = renderPass.export[name];
       }
     }
+    this._inputs = inputs;
   }
-
-  for(var name in shaders){
-    this[name] = shaders[name];
-  }
-}
-var p = RenderPass.prototype;
+});
 
 p.render = function(){
 

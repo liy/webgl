@@ -4,11 +4,13 @@ var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
 "use strict"
-var ScreenPass = function(renderer, inputs, shaders){
-  RenderPass.call(this, renderer, inputs, shaders);
+var ScreenPass = function(canvasWidth, canvasHeight){
+  RenderPass.call(this);
 
-  if(!this.shader)
-    this.shader = new Shader(require('text!shader/screen.glsl'));
+  this.canvasWidth = canvasWidth;
+  this.canvasHeight = canvasHeight;
+
+  this.shader = new Shader(require('text!shader/screen.glsl'));
 
   this.createScreenBuffer();
 }
