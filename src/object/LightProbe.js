@@ -171,7 +171,7 @@ p.capture = function(scene){
   //     // since the camera rotation is changed after DeferredRender perform model matrix update, we need to update its matrix manually.
   //     this.camera.update();
   //     // update scene object's view dependent matrix using current light probe's camera setup.
-  //     scene.updateViewMatrix(this.camera);
+  //     scene.updateModelViewMatrix(this.camera);
 
   //     // draw side
   //     this.geometryPass.render(scene, this.camera);

@@ -33,7 +33,7 @@ var p = DeferredRenderer.prototype;
 
 p.render = function(scene, camera){
   // update the view dependent matrix
-  scene.updateViewMatrix(camera);
+  scene.updateModelViewMatrix(camera);
 
   this.geometryPass.render(scene, camera);
   // debug draw light probe. This is only for debugging purpose

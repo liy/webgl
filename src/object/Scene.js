@@ -132,7 +132,7 @@ p.updateModelMatrix = function(){
   }
 }
 
-p.updateViewMatrix = function(camera){
+p.updateModelViewMatrix = function(camera){
   // update meshes' view dependent matrix
   var len = this.meshes.length;
   for(var i=0; i<len; ++i){
