@@ -36,6 +36,7 @@ document.body.appendChild(stats.domElement);
 
 
 var engine = new RenderEngine();
+var renderer = new DeferredRenderer(engine.canvas.width, engine.canvas.height);
 
 var scene = new Scene();
 var camera = new PerspectiveCamera(Math.PI/3, engine.canvas.width/engine.canvas.height, 0.01, 50);
@@ -63,7 +64,7 @@ scene.add(skybox);
 function loop(){
   stats.begin();
 
-  engine.tick(scene, camera);
+  engine.render(renderer, scene, camera);
 
   stats.end();
   requestAnimFrame(loop);

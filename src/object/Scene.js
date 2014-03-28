@@ -124,7 +124,7 @@ p.untrack = function(node){
   }
 }
 
-p.updateModelMatrix = function(){
+p.update = p.updateModelMatrix = function(){
   // update all object's matrix, which are not dependent on the view matrix
   var len = this.children.length;
   for(var i=0; i<len; ++i){

@@ -4,17 +4,13 @@ define(function(require){
 var ExtensionCheck = require('util/ExtensionCheck');
 var DeferredRenderer = require('core/DeferredRenderer');
 
-var RenderEngine = function(bufferWidth, bufferHeight, canvasWidth, canvasHeight){
+var RenderEngine = function(canvasWidth, canvasHeight){
   this.canvas = document.createElement('canvas');
   document.body.appendChild(this.canvas);
   this.canvas.width = canvasWidth || window.innerWidth;
   this.canvas.height = canvasHeight || window.innerHeight;
   window.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
-
-  this.bufferWidth = bufferWidth || 1024;
-  this.bufferHeight = bufferHeight || 1024;
-
-  window.addEventListener('resize', this.onResize);
+  // window.addEventListener('resize', this.onResize);
 
   // check required extensions
   var requiredExtensions = [gl.getExtension("WEBGL_draw_buffers"), gl.getExtension("WEBGL_depth_texture"), gl.getExtension("OES_vertex_array_object")];
@@ -55,20 +51,12 @@ var RenderEngine = function(bufferWidth, bufferHeight, canvasWidth, canvasHeight
 
   gl.enable(gl.CULL_FACE);
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
-
-  this.renderer = new DeferredRenderer(this);
 };
 var p = RenderEngine.prototype;
 
-p.tick = function(scene, camera){
-  // update model, world matrix
-  scene.updateModelMatrix();
-
-  // TODO: light probe capturing the scene
-
-  // default renderer, rendering the scene using specified camera.
-  // Note that the view dependent matrices will be updated in the renderer.
-  this.renderer.render(scene, camera);
+p.render = function(renderer, scene, camera){
+  scene.update();
+  renderer.render(scene, camera);
 }
 
 return RenderEngine;

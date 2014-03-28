@@ -1,4 +1,5 @@
 define(function(require){
+"use strict"
 
 var RenderPass = require('core/pipeline/RenderPass');
 var GeometryPass = require('core/pipeline/GeometryPass');
@@ -6,14 +7,12 @@ var LightPass = require('core/pipeline/LightPass');
 var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
 
+var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHeight){
+  this.canvasWidth = canvasWidth;
+  this.canvasHeight = canvasHeight;
 
-"use strict"
-var DeferredRenderer = function(engine){
-  this.engine = engine;
-  this.bufferWidth = engine.bufferWidth;
-  this.bufferHeight = engine.bufferHeight;
-  this.canvasWidth = engine.canvas.width;
-  this.canvasHeight = engine.canvas.height;
+  this.bufferWidth = bufferWidth || 1024;
+  this.bufferHeight = bufferHeight || 1024;
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
