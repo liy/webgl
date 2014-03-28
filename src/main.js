@@ -12,6 +12,7 @@ define(function(require){
 
 var RenderEngine = require('core/RenderEngine');
 var DeferredRenderer = require('core/DeferredRenderer');
+var LightProbeRenderer = require('core/LightProbeRenderer');
 var Scene = require('object/Scene');
 var PerspectiveCamera = require('object/camera/PerspectiveCamera');
 var DirectionalLight = require('object/light/DirectionalLight');
@@ -36,6 +37,7 @@ document.body.appendChild(stats.domElement);
 
 
 var engine = new RenderEngine();
+
 var renderer = new DeferredRenderer(engine.canvas.width, engine.canvas.height);
 
 var scene = new Scene();
@@ -45,11 +47,6 @@ scene.add(camera);
 
 var dirLight = new DirectionalLight();
 scene.add(dirLight);
-
-var loader = new ObjectFile();
-loader.load('../webgl-meshes/head/head.obj').then(function(){
-  scene.add(loader.object);
-});
 
 var skybox = new SkyBox([
   {resource: Library.get('../webgl-meshes/cube_map/posx.jpg'), target: gl.TEXTURE_CUBE_MAP_POSITIVE_X},
@@ -61,15 +58,29 @@ var skybox = new SkyBox([
 ]);
 scene.add(skybox);
 
+var loader = new ObjectFile();
+loader.load('../webgl-meshes/head/head.obj').then(function(){
+  scene.add(loader.object);
+
+  // when loader finishes loading, the library will have all the resources, so we can check all loaded here.
+  Library.loaded().then(function(){
+    console.log('all loaded');
+  });
+});
+
 function loop(){
   stats.begin();
 
-  engine.render(renderer, scene, camera);
+  scene.update();
+
+  // TODO: capture probe
+
+  // render to screen
+  renderer.render(scene, camera);
 
   stats.end();
   requestAnimFrame(loop);
 }
 loop();
-
 
 });

@@ -9,25 +9,16 @@ define(function(require){
   // default resourceStore
   Library.resourceStore = {};
 
-  Library.resourceStore = {
-    'posx.jpg': new ImageResource('../webgl-meshes/cube_map/posx.jpg'),
-    'negx.jpg': new ImageResource('../webgl-meshes/cube_map/negx.jpg'),
-    'posy.jpg': new ImageResource('../webgl-meshes/cube_map/posy.jpg'),
-    'negy.jpg': new ImageResource('../webgl-meshes/cube_map/negy.jpg'),
-    'posz.jpg': new ImageResource('../webgl-meshes/cube_map/posz.jpg'),
-    'negz.jpg': new ImageResource('../webgl-meshes/cube_map/negz.jpg'),
-  };
-
   Library.get = function(url){
     return this.resourceStore[url] || this._createResource(url);
   }
 
-  Library.load = function(){
+  Library.loaded = function(){
     var resources = [];
-    for(var key in Library.resourceStore){
-      resources.push(Library.resourceStore[key]);
+    for(var key in this.resourceStore){
+      resources.push(Library.resourceStore[key].ready);
     }
-    console.log(resources);
+    // console.log(resources);
     return Promise.all(resources);
   }
 
@@ -43,8 +34,11 @@ define(function(require){
       case "gif":
       case "bmp":
       case "tga":
-        return new ImageResource(url);
+        this.resourceStore[url] = new ImageResource(url);
+        break;
     }
+
+    return this.resourceStore[url];
   }
 
   return Library;

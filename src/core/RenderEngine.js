@@ -2,7 +2,6 @@ define(function(require){
 "use strict"
 
 var ExtensionCheck = require('util/ExtensionCheck');
-var DeferredRenderer = require('core/DeferredRenderer');
 
 var RenderEngine = function(canvasWidth, canvasHeight){
   this.canvas = document.createElement('canvas');
@@ -53,11 +52,6 @@ var RenderEngine = function(canvasWidth, canvasHeight){
   gl.clearColor(0.2, 0.2, 0.2, 1.0);
 };
 var p = RenderEngine.prototype;
-
-p.render = function(renderer, scene, camera){
-  scene.update();
-  renderer.render(scene, camera);
-}
 
 return RenderEngine;
 });
