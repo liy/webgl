@@ -8,8 +8,11 @@ var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
 
 var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHeight){
-  var bufferWidth = bufferWidth || 1024;
-  var bufferHeight = bufferHeight || 1024;
+  var bufferWidth = this.bufferWidth = bufferWidth || 1024;
+  var bufferHeight = this.bufferHeight = bufferHeight || 1024;
+
+  this.canvasWidth = canvasWidth;
+  this.canvasHeight = canvasHeight;
 
   // Both depth target and depth stencil render buffer will be shared across all the render passes!
   //
@@ -20,7 +23,12 @@ var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHe
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(bufferWidth, bufferHeight);
 
-  this.geometryPass = new GeometryPass(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer);
+
+  var albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  var normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  var specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+
+  this.geometryPass = new GeometryPass(albedoBuffer, normalBuffer, specularBuffer, depthBuffer, depthStencilRenderBuffer);
   this.lightPass = new LightPass(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer);
   this.synthesisPass = new SynthesisPass(bufferWidth, bufferHeight, depthStencilRenderBuffer);
   this.screenPass = new ScreenPass(canvasWidth, canvasHeight);
@@ -35,11 +43,12 @@ p.render = function(scene, camera){
   // update the view dependent matrix
   scene.updateModelViewMatrix(camera);
 
+  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   this.geometryPass.render(scene, camera);
-  // debug draw light probe. This is only for debugging purpose
-  // LightProbePass.instance.render(scene, camera);
   this.lightPass.render(scene, camera);
   this.synthesisPass.render(scene, camera);
+
+  gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
   this.screenPass.render(scene, camera);
 }
 

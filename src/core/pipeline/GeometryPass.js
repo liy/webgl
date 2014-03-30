@@ -4,19 +4,19 @@ define(function(require){
 var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
-var GeometryPass = function(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer){
+var GeometryPass = function(albedoBuffer, normalBuffer, specularBuffer, depthBuffer, depthStencilRenderBuffer){
   RenderPass.call(this, depthBuffer, depthStencilRenderBuffer);
-
-  this.bufferWidth = bufferWidth;
-  this.bufferHeight = bufferHeight;
 
   this.depthBuffer = depthBuffer;
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = depthStencilRenderBuffer;
 
-  this.export.albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  this.export.normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  this.export.specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  // this.export.albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  // this.export.normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  // this.export.specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  this.export.albedoBuffer = albedoBuffer;
+  this.export.normalBuffer = normalBuffer;
+  this.export.specularBuffer = specularBuffer;
 
   this.shader = new Shader(require('text!shader/geometry.glsl'));
 
@@ -39,7 +39,7 @@ p.render = function(scene, camera){
   gl.useProgram(this.shader.program)
   // g-buffers render
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
+  // gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 

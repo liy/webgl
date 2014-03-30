@@ -34,7 +34,7 @@ var p = SynthesisPass.prototype = Object.create(RenderPass.prototype);
 p.render = function(scene, camera){
   // draw to the default screen framebuffer
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-  gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
+  // gl.viewport(0, 0, this.bufferWidth, this.bufferHeight);
   gl.clearColor(1.0, 0.0, 1.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -47,15 +47,15 @@ p.render = function(scene, camera){
   this.import.specularLightBuffer.bind(gl.TEXTURE0+2);
 
   // light probe debug
-  if(this.import.lightProbeDebugBuffer)
-    this.import.lightProbeDebugBuffer.bind(gl.TEXTURE0+3);
-  else
-    Texture.unbind(gl.TEXTURE0+3);
+  // if(this.import.lightProbeDebugBuffer)
+  //   this.import.lightProbeDebugBuffer.bind(gl.TEXTURE0+3);
+  // else
+  //   Texture.unbind(gl.TEXTURE0+3);
 
   this.synthesisShader.i('u_AlbedoBuffer', 0);
   this.synthesisShader.i('u_DiffuseLightBuffer', 1);
   this.synthesisShader.i('u_SpecularLightBuffer', 2);
-  this.synthesisShader.i('u_LightProbeDebugBuffer', 3);
+  // this.synthesisShader.i('u_LightProbeDebugBuffer', 3);
 
   gl.bindVertexArrayOES(this.vao);
   gl.drawArrays(gl.TRIANGLES, 0, 6);

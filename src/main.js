@@ -12,7 +12,6 @@ define(function(require){
 
 var RenderEngine = require('core/RenderEngine');
 var DeferredRenderer = require('core/DeferredRenderer');
-var LightProbeRenderer = require('core/LightProbeRenderer');
 var Scene = require('object/Scene');
 var PerspectiveCamera = require('object/camera/PerspectiveCamera');
 var DirectionalLight = require('object/light/DirectionalLight');
@@ -82,5 +81,10 @@ function loop(){
   requestAnimFrame(loop);
 }
 loop();
+
+
+
+// console.log(2.8*2.84 + 4.45*4.80 + 2.8*2.84 + 2.07*0.91 + 5.39*2.61 + 2.84*5.8 + 4.45*2.65 + 1.75*2.59 + 2.04*1.9 + 2.86*2.8 + 2.79*2.6 + 2.31*2.79);
+// console.log(2.45*3.67 + 2.95*2.69 + 2.87*4.97 + 5.45*3.92 + 3.01*3.73 + 3.04*3.83 + 3.04*3.94 + 2.35*2.65);
 
 });

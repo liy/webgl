@@ -3,6 +3,7 @@ define(function(require){
 
 var Texture = require('texture/Texture');
 var Library = require('assets/Library');
+var ImageResource = require('assets/resource/Resource');
 
 var Texture2D = function Texture2D(){
   Texture.call(this, gl.TEXTURE_2D);
@@ -17,9 +18,18 @@ var Texture2D = function Texture2D(){
 }
 var p = Texture2D.prototype = Object.create(Texture.prototype);
 
-p.init = function(resource){
-  this.resource = resource;
-  this.resource.ready.then(this.onComplete.bind(this));
+p.init = function(data){
+  if(data instanceof ImageResource){
+    this.resource = data;
+    this.resource.ready.then(this.onComplete.bind(this));
+  }
+  else{
+    this.bind();
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, data.internalformat || gl.RGBA, data.width, data.height, 0, data.format || gl.RGBA, data.type || gl.UNSIGNED_BYTE, null);
+    this.unbind();
+  }
 }
 
 p.onComplete = function(){
