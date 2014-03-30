@@ -26,18 +26,17 @@ var p = Material.prototype;
 p.setResources = function(resources){
   for(var name in resources){
     if(resources[name]){
-      var texture = this.textures[name] = new Texture2D();
+      var texture = this.textures[name] = new Texture2D(resources[name]);
       texture.name = name;
-      texture.setParameters = function(texture){
-        if(texture.name === 'albedo'){
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-          gl.generateMipmap(gl.TEXTURE_2D);
+      texture.ready = function(tex){
+        if(tex.name === 'albedo'){
+          // tex.bind();
+          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          // gl.generateMipmap(gl.TEXTURE_2D);
+          // tex.unbind();
         }
-        texture.unbind();
-
         console.log('set param', texture)
-      };
-      texture.init(resources[name]);
+      }
     }
 
   }

@@ -6,19 +6,16 @@ var Texture = require('texture/Texture');
 var Shader = require('assets/resource/Shader');
 
 // do light and albedo synthesis and draw sky box.
-var SynthesisPass = function(bufferWidth, bufferHeight, depthStencilRenderBuffer){
+var SynthesisPass = function(compositeBuffer, depthStencilRenderBuffer){
   RenderPass.call(this);
 
-  this.bufferWidth = bufferWidth;
-  this.bufferHeight = bufferHeight;
+  this.export.compositeBuffer = compositeBuffer;
 
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = depthStencilRenderBuffer;
 
   this.synthesisShader = new Shader(require('text!shader/synthesis.glsl'));
   this.skyBoxShader = new Shader(require('text!shader/skybox.glsl'));
-
-  this.export.compositeBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
 
   // TODO: FIXME: find a better way to do input, output and sharing the targets
   this.framebuffer = gl.createFramebuffer();

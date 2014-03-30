@@ -4,11 +4,12 @@ define(function(requirejs){
 var RenderPass = require('core/pipeline/RenderPass');
 var Shader = require('assets/resource/Shader');
 
-var LightPass = function(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer){
+var LightPass = function(diffuseLightBuffer, specularLightBuffer, depthBuffer, depthStencilRenderBuffer){
   RenderPass.call(this, depthBuffer, depthStencilRenderBuffer);
 
-  this.bufferWidth = bufferWidth;
-  this.bufferHeight = bufferHeight;
+  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
+  this.export.diffuseLightBuffer = diffuseLightBuffer;
+  this.export.specularLightBuffer = specularLightBuffer;
 
   this.depthBuffer = depthBuffer;
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
@@ -19,9 +20,6 @@ var LightPass = function(bufferWidth, bufferHeight, depthBuffer, depthStencilRen
   // a null shader for stencil update
   this.stencilShader = new Shader(require('text!shader/stencil.glsl'));
 
-  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
-  this.export.diffuseLightBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  this.export.specularLightBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
 
   this.framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);

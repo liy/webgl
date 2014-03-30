@@ -11,9 +11,6 @@ var GeometryPass = function(albedoBuffer, normalBuffer, specularBuffer, depthBuf
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   this.depthStencilRenderBuffer = depthStencilRenderBuffer;
 
-  // this.export.albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  // this.export.normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  // this.export.specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
   this.export.albedoBuffer = albedoBuffer;
   this.export.normalBuffer = normalBuffer;
   this.export.specularBuffer = specularBuffer;

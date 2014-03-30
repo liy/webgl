@@ -6,6 +6,7 @@ var GeometryPass = require('core/pipeline/GeometryPass');
 var LightPass = require('core/pipeline/LightPass');
 var SynthesisPass = require('core/pipeline/SynthesisPass');
 var ScreenPass = require('core/pipeline/ScreenPass');
+var Texture2D = require('texture/Texture2D');
 
 var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHeight){
   var bufferWidth = this.bufferWidth = bufferWidth || 1024;
@@ -19,18 +20,26 @@ var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHe
   // Depth target holds gl_FragCoord.z value, just stores standard depth texture value. I need it because WebGL depth stencil texture attachment(gl.DEPTH_STENCIL)
   // has bug, cannot get stencil working properly during lighting pass. This depth target is purely used for sampling in other passes.
   // The actual OpenGL depth test and stencil test is done by depth stencil render buffer, shown below.
-  var depthBuffer = RenderPass.createColorDepthTexture(bufferWidth, bufferHeight);
+  var depthBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
-  var depthStencilRenderBuffer = RenderPass.createDepthStencilRenderBuffer(bufferWidth, bufferHeight);
+  var depthStencilRenderBuffer = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRenderBuffer);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, bufferWidth, bufferHeight);
 
 
-  var albedoBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  var normalBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
-  var specularBuffer = RenderPass.createColorTexture(this.bufferWidth, this.bufferHeight);
+  var albedoBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+  var normalBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+  var specularBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+
+  // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
+  var diffuseLightBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+  var specularLightBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+
+  var compositeBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
 
   this.geometryPass = new GeometryPass(albedoBuffer, normalBuffer, specularBuffer, depthBuffer, depthStencilRenderBuffer);
-  this.lightPass = new LightPass(bufferWidth, bufferHeight, depthBuffer, depthStencilRenderBuffer);
-  this.synthesisPass = new SynthesisPass(bufferWidth, bufferHeight, depthStencilRenderBuffer);
+  this.lightPass = new LightPass(diffuseLightBuffer, specularLightBuffer, depthBuffer, depthStencilRenderBuffer);
+  this.synthesisPass = new SynthesisPass(compositeBuffer, depthStencilRenderBuffer);
   this.screenPass = new ScreenPass(canvasWidth, canvasHeight);
 
   this.lightPass.inputs = [this.geometryPass];

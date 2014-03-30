@@ -18,6 +18,7 @@ var DirectionalLight = require('object/light/DirectionalLight');
 var PointLight = require('object/light/PointLight');
 var ObjectFile = require('assets/loader/ObjectFile');
 var SkyBox = require('object/SkyBox');
+var Texture2D = require('texture/Texture2D');
 
 var Shader = require('assets/resource/Shader');
 var NativeLoader = require('assets/loader/NativeLoader');
@@ -36,6 +37,11 @@ document.body.appendChild(stats.domElement);
 
 
 var engine = new RenderEngine();
+
+var texture = new Texture2D(Library.get('../webgl-meshes/cube_map/posx.jpg'));
+texture.ready.then(function(p){
+  console.log(p);
+})
 
 var renderer = new DeferredRenderer(engine.canvas.width, engine.canvas.height);
 
