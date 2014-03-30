@@ -9,8 +9,8 @@ var ScreenPass = require('core/pipeline/ScreenPass');
 var Texture2D = require('texture/Texture2D');
 
 var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHeight){
-  var bufferWidth = this.bufferWidth = bufferWidth || 1024;
-  var bufferHeight = this.bufferHeight = bufferHeight || 1024;
+  this.bufferWidth = bufferWidth || 1024;
+  this.bufferHeight = bufferHeight || 1024;
 
   this.canvasWidth = canvasWidth;
   this.canvasHeight = canvasHeight;
@@ -24,22 +24,22 @@ var DeferredRenderer = function(canvasWidth, canvasHeight, bufferWidth, bufferHe
   // Because the DEPTH_STENCIL texture bug, I have to use depth stencil render buffer for OpenGL depth and stencil test.
   var depthStencilRenderBuffer = gl.createRenderbuffer();
   gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencilRenderBuffer);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, bufferWidth, bufferHeight);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, this.bufferWidth, this.bufferHeight);
 
-
+  // geometry buffers
   var albedoBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
   var normalBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
   var specularBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+  this.geometryPass = new GeometryPass(albedoBuffer, normalBuffer, specularBuffer, depthBuffer, depthStencilRenderBuffer);
 
   // The accumulation buffers, diffuse and specular is separated. The separated diffuse texture could be used later for stable camera exposure setup, tone mapping.
   var diffuseLightBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
   var specularLightBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
+  this.lightPass = new LightPass(diffuseLightBuffer, specularLightBuffer, depthBuffer, depthStencilRenderBuffer);
 
   var compositeBuffer = new Texture2D({width: this.bufferWidth, height: this.bufferHeight});
-
-  this.geometryPass = new GeometryPass(albedoBuffer, normalBuffer, specularBuffer, depthBuffer, depthStencilRenderBuffer);
-  this.lightPass = new LightPass(diffuseLightBuffer, specularLightBuffer, depthBuffer, depthStencilRenderBuffer);
   this.synthesisPass = new SynthesisPass(compositeBuffer, depthStencilRenderBuffer);
+
   this.screenPass = new ScreenPass(canvasWidth, canvasHeight);
 
   this.lightPass.inputs = [this.geometryPass];

@@ -22,21 +22,19 @@ var Material = function(){
 }
 var p = Material.prototype;
 
-// TODO: Find a better way to setup textures
 p.setResources = function(resources){
   for(var name in resources){
     if(resources[name]){
       var texture = this.textures[name] = new Texture2D(resources[name]);
       texture.name = name;
-      texture.ready = function(tex){
+      texture.ready.then(function(tex){
         if(tex.name === 'albedo'){
-          // tex.bind();
-          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-          // gl.generateMipmap(gl.TEXTURE_2D);
-          // tex.unbind();
+          tex.bind();
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          gl.generateMipmap(gl.TEXTURE_2D);
+          tex.unbind();
         }
-        console.log('set param', texture)
-      }
+      });
     }
 
   }
