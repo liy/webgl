@@ -75,7 +75,7 @@ p.stencil = function(light, camera){
   gl.disable(gl.CULL_FACE);
   // stencil buffer is refreshed for each light
   gl.clear(gl.STENCIL_BUFFER_BIT);
-  // always write to stencil buffer in stencil stage.
+  // in stencil value update stage, we want stencil test always pass. Only depth test matters.
   gl.stencilFunc(gl.ALWAYS, 0, 0);
   // increase and decrease the stencil according to the rule:
   // http://ogldev.atspace.co.uk/www/tutorial37/tutorial37.html
